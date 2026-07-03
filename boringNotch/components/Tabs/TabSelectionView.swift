@@ -56,6 +56,45 @@ struct TabSelectionView: View {
     }
 }
 
+struct NotchPaginationDots: View {
+    @ObservedObject private var coordinator = BoringViewCoordinator.shared
+    @Default(.boringShelf) private var boringShelf
+
+    private var pages: [NotchViews] {
+        boringShelf ? [.home, .activities, .shelf] : [.home, .activities]
+    }
+
+    var body: some View {
+        HStack(spacing: 5) {
+            ForEach(pages, id: \.self) { page in
+                Button {
+                    withAnimation(.smooth(duration: 0.25)) {
+                        coordinator.currentView = page
+                    }
+                } label: {
+                    Circle()
+                        .fill(page == coordinator.currentView ? Color.white : Color.gray.opacity(0.45))
+                        .frame(width: page == coordinator.currentView ? 6 : 5, height: page == coordinator.currentView ? 6 : 5)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(page.accessibilityLabel)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+private extension NotchViews {
+    var accessibilityLabel: String {
+        switch self {
+        case .home: return "Home page"
+        case .activities: return "Activities page"
+        case .shelf: return "Shelf page"
+        }
+    }
+}
+
 #Preview {
     BoringHeader().environmentObject(BoringViewModel())
 }

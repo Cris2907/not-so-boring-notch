@@ -1,7 +1,19 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Activities page" : {
+      "extractionState" : "manual"
+    },
+    "Home page" : {
+      "extractionState" : "manual"
+    },
     "Invert horizontal swipe direction" : {
+      "extractionState" : "manual"
+    },
+    "Media activity" : {
+      "extractionState" : "manual"
+    },
+    "Shelf page" : {
       "extractionState" : "manual"
     },
     "Swipe horizontally with two fingers to move between Home, Activities, and Shelf. When direction is inverted, swiping right to left opens the tab on the right." : {

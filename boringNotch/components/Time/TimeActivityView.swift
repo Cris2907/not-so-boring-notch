@@ -297,6 +297,7 @@ struct ClosedTimeActivityView: View {
     @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject private var manager = TimeActivityManager.shared
     @ObservedObject private var musicManager = MusicManager.shared
+    @ObservedObject private var coordinator = BoringViewCoordinator.shared
 
     let showMedia: Bool
     let albumArtNamespace: Namespace.ID
@@ -306,6 +307,12 @@ struct ClosedTimeActivityView: View {
             HStack(spacing: 8) {
                 leftActivity(at: timeline.date)
                     .frame(width: 88, alignment: .trailing)
+                    .contentShape(Rectangle())
+                    .onHover { hovering in
+                        if hovering && showMedia {
+                            coordinator.currentView = .home
+                        }
+                    }
 
                 Rectangle()
                     .fill(.black)
@@ -313,6 +320,12 @@ struct ClosedTimeActivityView: View {
 
                 rightActivity(at: timeline.date)
                     .frame(width: 88, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .onHover { hovering in
+                        if hovering && showMedia {
+                            coordinator.currentView = .activities
+                        }
+                    }
             }
             .frame(height: vm.effectiveClosedNotchHeight)
             .accessibilityElement(children: .combine)
@@ -322,7 +335,18 @@ struct ClosedTimeActivityView: View {
 
     @ViewBuilder
     private func leftActivity(at date: Date) -> some View {
-        if let snapshot = manager.snapshot {
+        if showMedia {
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .scaledToFill()
+                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                .frame(
+                    width: max(0, vm.effectiveClosedNotchHeight - 12),
+                    height: max(0, vm.effectiveClosedNotchHeight - 12)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed))
+                .accessibilityLabel("Media activity")
+        } else if let snapshot = manager.snapshot {
             HStack(spacing: 6) {
                 Image(systemName: snapshot.kind == .timer ? "timer" : "stopwatch.fill")
                     .foregroundStyle(.orange)
@@ -339,35 +363,41 @@ struct ClosedTimeActivityView: View {
 
     @ViewBuilder
     private func rightActivity(at date: Date) -> some View {
-        if showMedia {
-            HStack(spacing: 6) {
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .scaledToFill()
-                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                    .frame(
-                        width: max(0, vm.effectiveClosedNotchHeight - 12),
-                        height: max(0, vm.effectiveClosedNotchHeight - 12)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed))
-
-                AudioSpectrumView(isPlaying: $musicManager.isPlaying)
-                    .foregroundStyle(.gray)
-                    .frame(width: 18, height: 12)
-            }
-        } else if let snapshot = manager.snapshot {
-            if snapshot.phase == .finished {
-                Text("Done")
-                    .font(.system(size: 12, weight: .semibold))
+        Group {
+            if let snapshot = manager.snapshot {
+                if snapshot.phase == .finished {
+                    HStack(spacing: 5) {
+                        Image(systemName: "timer")
+                        Text("Done")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
                     .foregroundStyle(.orange)
-            } else if snapshot.kind == .timer {
-                TimeProgressRing(snapshot: snapshot, date: date)
-            } else {
-                Image(systemName: snapshot.phase == .running ? "play.fill" : "pause.fill")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.orange.opacity(0.8))
+                } else if snapshot.kind == .timer {
+                    HStack(spacing: 5) {
+                        TimeProgressRing(snapshot: snapshot, date: date)
+                        if showMedia {
+                            Text(TimeActivityFormatter.timer(snapshot.remaining(at: date)))
+                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                .monospacedDigit()
+                                .foregroundStyle(.orange)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                        }
+                    }
+                } else {
+                    HStack(spacing: 5) {
+                        Image(systemName: "stopwatch.fill")
+                        if showMedia {
+                            Text(TimeActivityFormatter.stopwatch(snapshot.elapsed(at: date), includesCentiseconds: false))
+                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                .monospacedDigit()
+                        }
+                    }
+                    .foregroundStyle(.orange)
+                }
             }
         }
+        .accessibilityLabel("Time activity")
     }
 
     private var updateInterval: TimeInterval? {
@@ -406,7 +436,10 @@ private struct TimeProgressRing: View {
                 .trim(from: 0, to: progress)
                 .stroke(.orange, style: StrokeStyle(lineWidth: 2, lineCap: .round))
                 .rotationEffect(.degrees(-90))
+            Image(systemName: "timer")
+                .font(.system(size: 7, weight: .bold))
+                .foregroundStyle(.orange)
         }
-        .frame(width: 16, height: 16)
+        .frame(width: 20, height: 20)
     }
 }

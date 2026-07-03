@@ -70,8 +70,8 @@ final class HorizontalSwipeAccumulatorTests: XCTestCase {
         XCTAssertEqual(destination(from: .activities, direction: .left), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .right), .activities)
         XCTAssertEqual(destination(from: .activities, direction: .right), .home)
-        XCTAssertNil(destination(from: .home, direction: .right))
-        XCTAssertNil(destination(from: .shelf, direction: .left))
+        XCTAssertEqual(destination(from: .home, direction: .right), .shelf)
+        XCTAssertEqual(destination(from: .shelf, direction: .left), .home)
     }
 
     func testNonInvertedNavigationReversesPhysicalMapping() {
@@ -79,11 +79,13 @@ final class HorizontalSwipeAccumulatorTests: XCTestCase {
         XCTAssertEqual(destination(from: .activities, direction: .right, isInverted: false), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .left, isInverted: false), .activities)
         XCTAssertEqual(destination(from: .activities, direction: .left, isInverted: false), .home)
+        XCTAssertEqual(destination(from: .home, direction: .left, isInverted: false), .shelf)
+        XCTAssertEqual(destination(from: .shelf, direction: .right, isInverted: false), .home)
     }
 
     func testShelfIsSkippedWhenDisabled() {
         XCTAssertEqual(destination(from: .home, direction: .left, includesShelf: false), .activities)
-        XCTAssertNil(destination(from: .activities, direction: .left, includesShelf: false))
+        XCTAssertEqual(destination(from: .activities, direction: .left, includesShelf: false), .home)
         XCTAssertEqual(destination(from: .activities, direction: .right, includesShelf: false), .home)
         XCTAssertNil(destination(from: .shelf, direction: .right, includesShelf: false))
     }

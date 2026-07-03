@@ -370,15 +370,21 @@ struct ContentView: View {
               }
               .zIndex(2)
             if vm.notchState == .open {
-                VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
-                    case .activities:
-                        TimeActivityView()
-                    case .shelf:
-                        ShelfView()
+                VStack(spacing: 0) {
+                    Group {
+                        switch coordinator.currentView {
+                        case .home:
+                            NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        case .activities:
+                            TimeActivityView()
+                        case .shelf:
+                            ShelfView()
+                        }
                     }
+                    .frame(maxHeight: .infinity)
+
+                    NotchPaginationDots()
+                        .frame(height: 10)
                 }
                 .id(coordinator.currentView)
                 .transition(

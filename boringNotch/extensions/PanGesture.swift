@@ -81,8 +81,8 @@ func horizontalSwipeDestination(
     let movesTowardRight = isInverted
         ? direction == .left
         : direction == .right
-    let destinationIndex = currentIndex + (movesTowardRight ? 1 : -1)
-    guard orderedViews.indices.contains(destinationIndex) else { return nil }
+    let offset = movesTowardRight ? 1 : -1
+    let destinationIndex = (currentIndex + offset + orderedViews.count) % orderedViews.count
     return orderedViews[destinationIndex]
 }
 
