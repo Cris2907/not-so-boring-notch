@@ -66,13 +66,11 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
-        } else if timeActivityManager.hasSession && vm.notchState == .closed && !vm.hideOnClosed {
-            chinWidth += 176
-        } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-            && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
+        } else if shouldShowMediaActivity && vm.notchState == .closed && !vm.hideOnClosed
         {
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+        } else if timeActivityManager.hasSession && vm.notchState == .closed && !vm.hideOnClosed {
+            chinWidth += 176
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
@@ -310,7 +308,7 @@ struct ContentView: View {
                               .frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                       } else if timeActivityManager.hasSession && vm.notchState == .closed && !vm.hideOnClosed {
                           ClosedTimeActivityView(
-                              showMedia: shouldShowMediaActivity && timeActivityManager.snapshot?.phase != .finished,
+                              showMedia: shouldShowMediaActivity,
                               albumArtNamespace: albumArtNamespace
                           )
                           .transition(.opacity)

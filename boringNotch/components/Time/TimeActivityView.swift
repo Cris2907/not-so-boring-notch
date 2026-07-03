@@ -304,32 +304,60 @@ struct ClosedTimeActivityView: View {
 
     var body: some View {
         TimelineView(.animation(minimumInterval: updateInterval)) { timeline in
-            HStack(spacing: 8) {
-                leftActivity(at: timeline.date)
-                    .frame(width: 88, alignment: .trailing)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        if hovering && showMedia {
-                            coordinator.currentView = .home
-                        }
-                    }
-
-                Rectangle()
-                    .fill(.black)
-                    .frame(width: max(0, vm.closedNotchSize.width - 20))
-
-                rightActivity(at: timeline.date)
-                    .frame(width: 88, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        if hovering && showMedia {
-                            coordinator.currentView = .activities
-                        }
-                    }
+            Group {
+                if showMedia {
+                    mediaAndTimeActivity(at: timeline.date)
+                } else {
+                    timeActivity(at: timeline.date)
+                }
             }
             .frame(height: vm.effectiveClosedNotchHeight)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(closedAccessibilityLabel(at: timeline.date))
+        }
+    }
+
+    private var mediaAccessoryWidth: CGFloat {
+        max(0, vm.effectiveClosedNotchHeight - 12)
+    }
+
+    private func mediaAndTimeActivity(at date: Date) -> some View {
+        HStack(spacing: 8) {
+            leftActivity(at: date)
+                .frame(width: mediaAccessoryWidth, alignment: .trailing)
+                .contentShape(Rectangle())
+                .onHover { hovering in
+                    if hovering {
+                        coordinator.currentView = .home
+                    }
+                }
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: max(0, vm.closedNotchSize.width - cornerRadiusInsets.closed.top))
+
+            compactTimeActivity(at: date)
+                .frame(width: mediaAccessoryWidth, alignment: .center)
+                .contentShape(Rectangle())
+                .onHover { hovering in
+                    if hovering {
+                        coordinator.currentView = .activities
+                    }
+                }
+        }
+    }
+
+    private func timeActivity(at date: Date) -> some View {
+        HStack(spacing: 8) {
+            leftActivity(at: date)
+                .frame(width: 88, alignment: .trailing)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: max(0, vm.closedNotchSize.width - 20))
+
+            rightActivity(at: date)
+                .frame(width: 88, alignment: .leading)
         }
     }
 
@@ -398,6 +426,21 @@ struct ClosedTimeActivityView: View {
             }
         }
         .accessibilityLabel("Time activity")
+    }
+
+    @ViewBuilder
+    private func compactTimeActivity(at date: Date) -> some View {
+        if let snapshot = manager.snapshot {
+            if snapshot.phase == .finished {
+                Image(systemName: "timer")
+                    .foregroundStyle(.orange)
+            } else if snapshot.kind == .timer {
+                TimeProgressRing(snapshot: snapshot, date: date)
+            } else {
+                Image(systemName: "stopwatch.fill")
+                    .foregroundStyle(.orange)
+            }
+        }
     }
 
     private var updateInterval: TimeInterval? {
