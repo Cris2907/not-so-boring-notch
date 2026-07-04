@@ -451,6 +451,7 @@ struct ClosedTimeActivityView: View {
                         .frame(width: mediaAccessoryWidth, alignment: .center)
                 } else {
                     compactTimeActivity(at: date)
+                        .padding(.leading, 8)
                         .fixedSize(horizontal: true, vertical: false)
                         .frame(minWidth: closedTimeActivityMinimumTextWidth, alignment: .leading)
                 }
