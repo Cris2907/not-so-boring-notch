@@ -5,6 +5,7 @@
 
 import AppKit
 import Combine
+import Defaults
 import Foundation
 
 @MainActor
@@ -26,6 +27,7 @@ final class TimeActivityManager: ObservableObject {
         now: @escaping () -> Date = Date.init,
         observeLifecycle: Bool = true,
         playCompletionSound: @escaping () -> Void = {
+            guard Defaults[.timerCompletionSound] else { return }
             if let sound = NSSound(named: NSSound.Name("Glass")) {
                 sound.play()
             } else {

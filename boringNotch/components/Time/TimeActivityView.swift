@@ -4,6 +4,7 @@
 //
 
 import AppKit
+import Defaults
 import SwiftUI
 
 struct TimeActivityView: View {
@@ -11,8 +12,13 @@ struct TimeActivityView: View {
     @ObservedObject private var manager = TimeActivityManager.shared
     @ObservedObject private var webcamManager = WebcamManager.shared
 
+    @Default(.timerDefaultMinutes) private var defaultTimerMinutes
+    @Default(.timerThreeFingerAdjustment) private var timerThreeFingerAdjustment
+    @Default(.timerSwipeSensitivity) private var timerSwipeSensitivity
+    @Default(.stopwatchShowCentiseconds) private var stopwatchShowCentiseconds
+
     @State private var selectedKind: TimeActivityKind = .timer
-    @State private var selectedMinutes = 5
+    @State private var selectedMinutes = Defaults[.timerDefaultMinutes]
     @State private var rulerOffset: CGFloat = 0
 
     private let minuteRange = 1...Int(TimeActivitySnapshot.maximumTimerDuration / 60)
@@ -33,10 +39,17 @@ struct TimeActivityView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Time controls")
         .onAppear {
+            if manager.snapshot == nil {
+                selectedMinutes = min(max(defaultTimerMinutes, minuteRange.lowerBound), minuteRange.upperBound)
+            }
             if vm.isCameraExpanded {
                 webcamManager.stopSession()
                 vm.isCameraExpanded = false
             }
+        }
+        .onChange(of: defaultTimerMinutes) {
+            guard manager.snapshot == nil else { return }
+            selectedMinutes = min(max(defaultTimerMinutes, minuteRange.lowerBound), minuteRange.upperBound)
         }
     }
 
@@ -96,7 +109,9 @@ struct TimeActivityView: View {
             }
         }
         .contentShape(Rectangle())
-        .threeFingerHorizontalTrackpadSwipe(isEnabled: selectedKind == .timer) { delta, phase in
+        .threeFingerHorizontalTrackpadSwipe(
+            isEnabled: selectedKind == .timer && timerThreeFingerAdjustment
+        ) { delta, phase in
             handleTimerSwipe(delta: delta, phase: phase)
         }
         .accessibilityElement(children: .contain)
@@ -117,7 +132,7 @@ struct TimeActivityView: View {
     private var idleStopwatch: some View {
         activityLayout(
             label: "Stopwatch",
-            time: "00:00.00",
+            time: stopwatchShowCentiseconds ? "00:00.00" : "00:00",
             primaryIcon: "play.fill",
             primaryLabel: "Start stopwatch",
             primaryAction: { manager.startStopwatch() },
@@ -257,7 +272,8 @@ struct TimeActivityView: View {
             return
         }
 
-        rulerOffset += delta
+        let sensitivity = max(timerSwipeSensitivity, 1)
+        rulerOffset += delta * (rulerTickSpacing / sensitivity)
 
         while rulerOffset <= -rulerTickSpacing && selectedMinutes < minuteRange.upperBound {
             selectedMinutes += 1
@@ -278,7 +294,10 @@ struct TimeActivityView: View {
 
     private func updateInterval(for snapshot: TimeActivitySnapshot) -> TimeInterval? {
         guard snapshot.phase == .running else { return nil }
-        return snapshot.kind == .stopwatch ? 0.03 : 0.25
+        if snapshot.kind == .stopwatch {
+            return stopwatchShowCentiseconds ? 0.03 : 0.25
+        }
+        return 0.25
     }
 
     private func displayText(for snapshot: TimeActivitySnapshot, at date: Date) -> String {
@@ -288,7 +307,7 @@ struct TimeActivityView: View {
         }
         return TimeActivityFormatter.stopwatch(
             snapshot.elapsed(at: date),
-            includesCentiseconds: true
+            includesCentiseconds: stopwatchShowCentiseconds
         )
     }
 

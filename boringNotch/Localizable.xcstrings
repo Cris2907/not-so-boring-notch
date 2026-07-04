@@ -901,6 +901,9 @@
         }
       }
     },
+    "%lld min" : {
+
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -2107,6 +2110,9 @@
           }
         }
       }
+    },
+    "Adjust duration with a three-finger swipe" : {
+
     },
     "Advanced" : {
       "localizations" : {
@@ -5309,6 +5315,12 @@
         }
       }
     },
+    "Clock" : {
+
+    },
+    "Clock activity" : {
+
+    },
     "Close" : {
       "localizations" : {
         "ar" : {
@@ -7108,6 +7120,9 @@
           }
         }
       }
+    },
+    "Default duration" : {
+
     },
     "Description" : {
       "extractionState" : "stale",
@@ -14040,6 +14055,9 @@
         }
       }
     },
+    "Move three fingers horizontally over the timer ruler. This gesture is kept separate from the two-finger tab navigation gesture." : {
+
+    },
     "Music Source" : {
       "localizations" : {
         "ar" : {
@@ -16246,6 +16264,9 @@
           }
         }
       }
+    },
+    "Play a sound when the timer finishes" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -18764,6 +18785,9 @@
         }
       }
     },
+    "Show active timer or stopwatch when the notch is closed" : {
+
+    },
     "Show battery indicator" : {
       "localizations" : {
         "ar" : {
@@ -19063,6 +19087,9 @@
           }
         }
       }
+    },
+    "Show centiseconds while the stopwatch is open" : {
+
     },
     "Show cool face animation while inactive" : {
       "localizations" : {
@@ -21089,6 +21116,9 @@
     },
     "Swipe horizontally with two fingers to move between Home, Activities, and Shelf. When direction is inverted, swiping right to left opens the tab on the right." : {
       "extractionState" : "manual"
+    },
+    "Swipe sensitivity" : {
+
     },
     "System" : {
       "localizations" : {

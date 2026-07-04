@@ -134,21 +134,20 @@ private struct ThreeFingerHorizontalTrackpadSwipeMonitor: NSViewRepresentable {
     let isEnabled: Bool
     let action: (CGFloat, NSEvent.Phase) -> Void
 
-    func makeNSView(context: Context) -> ThreeFingerSwipeTrackingView {
-        let view = ThreeFingerSwipeTrackingView()
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
         view.allowedTouchTypes = [.indirect]
         view.wantsRestingTouches = true
-        view.coordinator = context.coordinator
+        context.coordinator.installMonitor(on: view)
         return view
     }
 
-    func updateNSView(_ nsView: ThreeFingerSwipeTrackingView, context: Context) {
+    func updateNSView(_ nsView: NSView, context: Context) {
         context.coordinator.update(isEnabled: isEnabled, action: action)
     }
 
-    static func dismantleNSView(_ nsView: ThreeFingerSwipeTrackingView, coordinator: Coordinator) {
-        coordinator.cancelGesture()
-        nsView.coordinator = nil
+    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
+        coordinator.removeMonitor()
     }
 
     func makeCoordinator() -> Coordinator {
@@ -158,6 +157,13 @@ private struct ThreeFingerHorizontalTrackpadSwipeMonitor: NSViewRepresentable {
     @MainActor final class Coordinator: NSObject {
         private var isEnabled: Bool
         private var action: (CGFloat, NSEvent.Phase) -> Void
+        private var monitor: Any?
+        private weak var monitoredView: NSView?
+        private var isTrackingTouches = false
+        private var hasRecognizedHorizontalSwipe = false
+        private var hasRejectedSwipe = false
+        private var initialCentroid: CGPoint?
+        private var previousCentroid: CGPoint?
 
         init(
             isEnabled: Bool,
@@ -172,31 +178,146 @@ private struct ThreeFingerHorizontalTrackpadSwipeMonitor: NSViewRepresentable {
             action: @escaping (CGFloat, NSEvent.Phase) -> Void
         ) {
             if self.isEnabled && !isEnabled {
-                cancelGesture()
+                finishGesture(cancelled: true)
             }
             self.isEnabled = isEnabled
             self.action = action
         }
 
-        func beginGesture() {
-            guard isEnabled else { return }
+        func installMonitor(on view: NSView) {
+            removeMonitor()
+            monitoredView = view
+            monitor = NSEvent.addLocalMonitorForEvents(
+                matching: [.gesture, .beginGesture, .endGesture, .swipe]
+            ) { [weak self] event in
+                self?.handleGestureEvent(event)
+                return event
+            }
+        }
+
+        func removeMonitor() {
+            if let monitor {
+                NSEvent.removeMonitor(monitor)
+                self.monitor = nil
+            }
+            finishGesture(cancelled: true)
+            monitoredView = nil
+        }
+
+        private func handleGestureEvent(_ event: NSEvent) {
+            guard let view = monitoredView,
+                  event.window === view.window
+            else { return }
+
+            let location = view.convert(event.locationInWindow, from: nil)
+            guard view.bounds.contains(location) else {
+                finishGesture(cancelled: true)
+                return
+            }
+
+            if event.type == .swipe {
+                handleSystemSwipe(event)
+                return
+            }
+
+            if event.type == .endGesture {
+                finishGesture(cancelled: false)
+                return
+            }
+
+            if event.type == .beginGesture {
+                finishGesture(cancelled: true)
+                return
+            }
+
+            guard isEnabled, event.type == .gesture else { return }
+
+            updateTracking(with: event)
+        }
+
+        private func handleSystemSwipe(_ event: NSEvent) {
+            guard isEnabled, event.deltaX != 0 else { return }
+
+            // macOS may promote a three-finger trackpad gesture to a discrete
+            // swipe event before raw touch movement reaches the application.
+            // Feed that discrete movement through the same ruler sensitivity.
+            finishGesture(cancelled: true)
             TrackpadGestureRouting.shared.isThreeFingerGestureActive = true
             action(0, .began)
-        }
-
-        func updateGesture(delta: CGFloat) {
-            guard isEnabled else { return }
-            action(delta, .changed)
-        }
-
-        func endGesture() {
+            action(event.deltaX.sign == .minus ? -18 : 18, .changed)
             action(0, .ended)
             TrackpadGestureRouting.shared.isThreeFingerGestureActive = false
         }
 
-        func cancelGesture() {
-            action(0, .cancelled)
+        private func updateTracking(with event: NSEvent) {
+            let touches = event.touches(matching: .touching, in: nil)
+            guard touches.count == 3 else {
+                if isTrackingTouches {
+                    finishGesture(cancelled: true)
+                }
+                return
+            }
+
+            let sum = touches.reduce(CGPoint.zero) { partialResult, touch in
+                CGPoint(
+                    x: partialResult.x + touch.normalizedPosition.x,
+                    y: partialResult.y + touch.normalizedPosition.y
+                )
+            }
+            let centroid = CGPoint(
+                x: sum.x / CGFloat(touches.count),
+                y: sum.y / CGFloat(touches.count)
+            )
+
+            if !isTrackingTouches {
+                isTrackingTouches = true
+                initialCentroid = centroid
+                previousCentroid = centroid
+                return
+            }
+
+            guard !hasRejectedSwipe,
+                  let initialCentroid,
+                  let previousCentroid
+            else { return }
+
+            if !hasRecognizedHorizontalSwipe {
+                let totalX = abs(centroid.x - initialCentroid.x)
+                let totalY = abs(centroid.y - initialCentroid.y)
+                guard max(totalX, totalY) >= 0.01 else { return }
+                guard totalX >= 1.5 * totalY else {
+                    hasRejectedSwipe = true
+                    return
+                }
+                hasRecognizedHorizontalSwipe = true
+                TrackpadGestureRouting.shared.isThreeFingerGestureActive = true
+                action(0, .began)
+            }
+
+            let delta = (centroid.x - previousCentroid.x) * max(viewWidth, 1)
+            self.previousCentroid = centroid
+            guard abs(delta) > 0.1 else { return }
+            action(delta, .changed)
+        }
+
+        private var viewWidth: CGFloat {
+            monitoredView?.bounds.width ?? 0
+        }
+
+        private func finishGesture(cancelled: Bool) {
+            if hasRecognizedHorizontalSwipe {
+                action(0, cancelled ? .cancelled : .ended)
+            }
             TrackpadGestureRouting.shared.isThreeFingerGestureActive = false
+            resetTracking()
+        }
+
+        private func resetTracking() {
+            isTrackingTouches = false
+            hasRecognizedHorizontalSwipe = false
+            hasRejectedSwipe = false
+            initialCentroid = nil
+            previousCentroid = nil
         }
     }
 }
@@ -205,103 +326,6 @@ private struct ThreeFingerHorizontalTrackpadSwipeMonitor: NSViewRepresentable {
 private final class TrackpadGestureRouting {
     static let shared = TrackpadGestureRouting()
     var isThreeFingerGestureActive = false
-}
-
-@MainActor
-private final class ThreeFingerSwipeTrackingView: NSView {
-    weak var coordinator: ThreeFingerHorizontalTrackpadSwipeMonitor.Coordinator?
-
-    private var isTrackingTouches = false
-    private var hasRecognizedHorizontalSwipe = false
-    private var hasRejectedSwipe = false
-    private var initialCentroid: CGPoint?
-    private var previousCentroid: CGPoint?
-
-    override func touchesBegan(with event: NSEvent) {
-        super.touchesBegan(with: event)
-        updateTracking(with: event)
-    }
-
-    override func touchesMoved(with event: NSEvent) {
-        super.touchesMoved(with: event)
-        updateTracking(with: event)
-    }
-
-    override func touchesEnded(with event: NSEvent) {
-        super.touchesEnded(with: event)
-        finish(cancelled: false)
-    }
-
-    override func touchesCancelled(with event: NSEvent) {
-        super.touchesCancelled(with: event)
-        finish(cancelled: true)
-    }
-
-    private func updateTracking(with event: NSEvent) {
-        let touches = event.touches(matching: .touching, in: self)
-        guard touches.count == 3 else {
-            if isTrackingTouches {
-                finish(cancelled: true)
-            }
-            return
-        }
-
-        let centroid = touches.reduce(CGPoint.zero) { partialResult, touch in
-            CGPoint(
-                x: partialResult.x + touch.normalizedPosition.x,
-                y: partialResult.y + touch.normalizedPosition.y
-            )
-        }
-        let normalizedCentroid = CGPoint(
-            x: centroid.x / CGFloat(touches.count),
-            y: centroid.y / CGFloat(touches.count)
-        )
-
-        if !isTrackingTouches {
-            isTrackingTouches = true
-            initialCentroid = normalizedCentroid
-            previousCentroid = normalizedCentroid
-            return
-        }
-
-        guard !hasRejectedSwipe,
-              let initialCentroid,
-              let previousCentroid
-        else { return }
-
-        if !hasRecognizedHorizontalSwipe {
-            let totalX = abs(normalizedCentroid.x - initialCentroid.x)
-            let totalY = abs(normalizedCentroid.y - initialCentroid.y)
-            guard max(totalX, totalY) >= 0.01 else { return }
-            guard totalX >= 1.5 * totalY else {
-                hasRejectedSwipe = true
-                return
-            }
-            hasRecognizedHorizontalSwipe = true
-            coordinator?.beginGesture()
-        }
-
-        let delta = (normalizedCentroid.x - previousCentroid.x) * max(bounds.width, 1)
-        self.previousCentroid = normalizedCentroid
-        guard abs(delta) > 0.1 else { return }
-        coordinator?.updateGesture(delta: delta)
-    }
-
-    private func finish(cancelled: Bool) {
-        guard isTrackingTouches else { return }
-        if hasRecognizedHorizontalSwipe {
-            if cancelled {
-                coordinator?.cancelGesture()
-            } else {
-                coordinator?.endGesture()
-            }
-        }
-        isTrackingTouches = false
-        hasRecognizedHorizontalSwipe = false
-        hasRejectedSwipe = false
-        initialCentroid = nil
-        previousCentroid = nil
-    }
 }
 
 private struct HorizontalTrackpadSwipeMonitor: NSViewRepresentable {

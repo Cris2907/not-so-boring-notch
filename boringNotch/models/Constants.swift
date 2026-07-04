@@ -123,6 +123,14 @@ extension Defaults.Keys {
     static let horizontalTabGestures = Key<Bool>("horizontalTabGestures", default: true)
     static let invertHorizontalTabGestures = Key<Bool>("invertHorizontalTabGestures", default: true)
     static let gestureSensitivity = Key<CGFloat>("gestureSensitivity", default: 200.0)
+
+    // MARK: Clock
+    static let clockShowInClosedNotch = Key<Bool>("clockShowInClosedNotch", default: true)
+    static let timerDefaultMinutes = Key<Int>("timerDefaultMinutes", default: 5)
+    static let timerCompletionSound = Key<Bool>("timerCompletionSound", default: true)
+    static let timerThreeFingerAdjustment = Key<Bool>("timerThreeFingerAdjustment", default: true)
+    static let timerSwipeSensitivity = Key<CGFloat>("timerSwipeSensitivity", default: 18)
+    static let stopwatchShowCentiseconds = Key<Bool>("stopwatchShowCentiseconds", default: true)
     
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
