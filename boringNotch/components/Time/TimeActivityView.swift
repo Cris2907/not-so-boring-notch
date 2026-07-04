@@ -35,7 +35,7 @@ struct TimeActivityView: View {
             }
         }
         .padding(.horizontal, 18)
-        .padding(.vertical, 6)
+        .padding(.vertical, 2)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.black)
         .accessibilityElement(children: .contain)
@@ -56,7 +56,7 @@ struct TimeActivityView: View {
     }
 
     private var setupView: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 2) {
             Picker("Time activity", selection: $selectedKind) {
                 Text("Timer").tag(TimeActivityKind.timer)
                 Text("Stopwatch").tag(TimeActivityKind.stopwatch)
@@ -84,7 +84,7 @@ struct TimeActivityView: View {
                 tickSpacing: rulerTickSpacing,
                 offset: rulerOffset
             )
-            .frame(height: 64)
+            .frame(height: 56)
 
             HStack(alignment: .center) {
                 Button {
@@ -353,7 +353,7 @@ private struct TimerRuler: View {
                     let x = centerX + CGFloat(relativeValue) * tickSpacing + offset
                     let isMajor = value.isMultiple(of: 5)
                     let tickTop: CGFloat = isMajor ? 24 : 32
-                    let tickBottom: CGFloat = 55
+                    let tickBottom = size.height - 9
 
                     var tick = Path()
                     tick.move(to: CGPoint(x: x, y: tickTop))
@@ -377,7 +377,7 @@ private struct TimerRuler: View {
 
                 var selectionTick = Path()
                 selectionTick.move(to: CGPoint(x: centerX, y: 22))
-                selectionTick.addLine(to: CGPoint(x: centerX, y: 57))
+                selectionTick.addLine(to: CGPoint(x: centerX, y: size.height - 7))
                 context.stroke(
                     selectionTick,
                     with: .color(.white.opacity(0.95)),
