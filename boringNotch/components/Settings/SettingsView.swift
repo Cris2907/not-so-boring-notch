@@ -167,6 +167,10 @@ struct ClockSettings: View {
                 }
 
                 if optionSwipeAdjustment {
+                    Defaults.Toggle(key: .timerInvertSwipeDirection) {
+                        Text("Invert timer swipe direction")
+                    }
+
                     Slider(value: $timerSwipeSensitivity, in: 8...32, step: 2) {
                         HStack {
                             Text("Swipe sensitivity")
@@ -179,7 +183,7 @@ struct ClockSettings: View {
             } header: {
                 Text("Timer")
             } footer: {
-                Text("Hold Option and move two fingers horizontally over the timer ruler. Option keeps this separate from tab navigation.")
+                Text("Hold Option and move two fingers horizontally over the timer ruler. Turn off inversion to use classic scroll direction.")
                     .foregroundStyle(.secondary)
             }
 

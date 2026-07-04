@@ -11949,6 +11949,9 @@
     "Invert horizontal swipe direction" : {
       "extractionState" : "manual"
     },
+    "Invert timer swipe direction" : {
+
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -14055,7 +14058,7 @@
         }
       }
     },
-    "Hold Option and move two fingers horizontally over the timer ruler. Option keeps this separate from tab navigation." : {
+    "Hold Option and move two fingers horizontally over the timer ruler. Turn off inversion to use classic scroll direction." : {
 
     },
     "Music Source" : {

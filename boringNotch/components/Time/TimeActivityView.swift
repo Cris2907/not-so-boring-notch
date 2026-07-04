@@ -14,6 +14,7 @@ struct TimeActivityView: View {
 
     @Default(.timerDefaultMinutes) private var defaultTimerMinutes
     @Default(.timerOptionSwipeAdjustment) private var timerOptionSwipeAdjustment
+    @Default(.timerInvertSwipeDirection) private var timerInvertSwipeDirection
     @Default(.timerSwipeSensitivity) private var timerSwipeSensitivity
     @Default(.stopwatchShowCentiseconds) private var stopwatchShowCentiseconds
 
@@ -273,7 +274,8 @@ struct TimeActivityView: View {
         }
 
         let sensitivity = max(timerSwipeSensitivity, 1)
-        rulerOffset += delta * (rulerTickSpacing / sensitivity)
+        let directionalDelta = timerInvertSwipeDirection ? delta : -delta
+        rulerOffset += directionalDelta * (rulerTickSpacing / sensitivity)
 
         while rulerOffset <= -rulerTickSpacing && selectedMinutes < minuteRange.upperBound {
             selectedMinutes += 1
