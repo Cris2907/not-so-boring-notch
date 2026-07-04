@@ -282,17 +282,28 @@ struct TimeActivityView: View {
         while rulerOffset <= -rulerTickSpacing && selectedMinutes < minuteRange.upperBound {
             selectedMinutes += 1
             rulerOffset += rulerTickSpacing
+            provideTimerIntervalFeedback()
         }
 
         while rulerOffset >= rulerTickSpacing && selectedMinutes > minuteRange.lowerBound {
             selectedMinutes -= 1
             rulerOffset -= rulerTickSpacing
+            provideTimerIntervalFeedback()
         }
 
         if selectedMinutes == minuteRange.lowerBound && rulerOffset > 0 {
             rulerOffset = 0
         } else if selectedMinutes == minuteRange.upperBound && rulerOffset < 0 {
             rulerOffset = 0
+        }
+    }
+
+    private func provideTimerIntervalFeedback() {
+        guard Defaults[.enableHaptics] else { return }
+        if selectedMinutes.isMultiple(of: 5) {
+            NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
+        } else {
+            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         }
     }
 
