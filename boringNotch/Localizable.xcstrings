@@ -3614,6 +3614,9 @@
         }
       }
     },
+    "Bluetooth headphones" : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
         "ar" : {
@@ -5921,6 +5924,9 @@
         }
       }
     },
+    "Connected" : {
+
+    },
     "Continue scrolling with inertia" : {
 
     },
@@ -7227,6 +7233,9 @@
           }
         }
       }
+    },
+    "Device matching uses paired Bluetooth device details to choose a better headphone profile image when available." : {
+
     },
     "Disable" : {
       "extractionState" : "stale",
@@ -19197,6 +19206,9 @@
         }
       }
     },
+    "Show headphone connection animation" : {
+
+    },
     "Show HUD in open notch" : {
       "localizations" : {
         "ar" : {
@@ -22351,6 +22363,9 @@
           }
         }
       }
+    },
+    "Use Bluetooth device matching" : {
+
     },
     "Use music visualizer spectrogram" : {
       "localizations" : {
