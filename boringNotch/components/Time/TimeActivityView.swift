@@ -15,6 +15,7 @@ struct TimeActivityView: View {
     @Default(.timerDefaultMinutes) private var defaultTimerMinutes
     @Default(.timerOptionSwipeAdjustment) private var timerOptionSwipeAdjustment
     @Default(.timerInvertSwipeDirection) private var timerInvertSwipeDirection
+    @Default(.timerSwipeInertia) private var timerSwipeInertia
     @Default(.timerSwipeSensitivity) private var timerSwipeSensitivity
     @Default(.stopwatchShowCentiseconds) private var stopwatchShowCentiseconds
 
@@ -111,7 +112,8 @@ struct TimeActivityView: View {
         }
         .contentShape(Rectangle())
         .optionHorizontalTrackpadSwipe(
-            isEnabled: selectedKind == .timer && timerOptionSwipeAdjustment
+            isEnabled: selectedKind == .timer && timerOptionSwipeAdjustment,
+            allowsInertia: timerSwipeInertia
         ) { delta, phase in
             handleTimerSwipe(delta: delta, phase: phase)
         }

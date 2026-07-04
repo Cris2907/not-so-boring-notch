@@ -119,11 +119,13 @@ extension View {
     /// the gesture separate from normal two-finger tab navigation.
     func optionHorizontalTrackpadSwipe(
         isEnabled: Bool,
+        allowsInertia: Bool,
         action: @escaping (CGFloat, NSEvent.Phase) -> Void
     ) -> some View {
         background(
             OptionHorizontalTrackpadSwipeMonitor(
                 isEnabled: isEnabled,
+                allowsInertia: allowsInertia,
                 action: action
             )
         )
@@ -132,6 +134,7 @@ extension View {
 
 private struct OptionHorizontalTrackpadSwipeMonitor: NSViewRepresentable {
     let isEnabled: Bool
+    let allowsInertia: Bool
     let action: (CGFloat, NSEvent.Phase) -> Void
 
     func makeNSView(context: Context) -> NSView {
@@ -141,7 +144,11 @@ private struct OptionHorizontalTrackpadSwipeMonitor: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        context.coordinator.update(isEnabled: isEnabled, action: action)
+        context.coordinator.update(
+            isEnabled: isEnabled,
+            allowsInertia: allowsInertia,
+            action: action
+        )
     }
 
     static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
@@ -149,11 +156,16 @@ private struct OptionHorizontalTrackpadSwipeMonitor: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(isEnabled: isEnabled, action: action)
+        Coordinator(
+            isEnabled: isEnabled,
+            allowsInertia: allowsInertia,
+            action: action
+        )
     }
 
     @MainActor final class Coordinator: NSObject {
         private var isEnabled: Bool
+        private var allowsInertia: Bool
         private var action: (CGFloat, NSEvent.Phase) -> Void
         private var monitor: Any?
         private weak var monitoredView: NSView?
@@ -162,20 +174,24 @@ private struct OptionHorizontalTrackpadSwipeMonitor: NSViewRepresentable {
 
         init(
             isEnabled: Bool,
+            allowsInertia: Bool,
             action: @escaping (CGFloat, NSEvent.Phase) -> Void
         ) {
             self.isEnabled = isEnabled
+            self.allowsInertia = allowsInertia
             self.action = action
         }
 
         func update(
             isEnabled: Bool,
+            allowsInertia: Bool,
             action: @escaping (CGFloat, NSEvent.Phase) -> Void
         ) {
-            if self.isEnabled && !isEnabled {
+            if (self.isEnabled && !isEnabled) || (self.allowsInertia && !allowsInertia && isTracking) {
                 finishGesture(phase: .cancelled)
             }
             self.isEnabled = isEnabled
+            self.allowsInertia = allowsInertia
             self.action = action
         }
 
@@ -202,27 +218,49 @@ private struct OptionHorizontalTrackpadSwipeMonitor: NSViewRepresentable {
                   event.window === view.window
             else { return false }
 
-            if event.phase == .ended || event.phase == .cancelled || event.momentumPhase == .ended {
+            if event.momentumPhase == .cancelled || event.momentumPhase == .ended {
                 let wasTracking = isTracking
-                finishGesture(phase: event.phase == .cancelled ? .cancelled : .ended)
+                finishGesture(phase: event.momentumPhase == .cancelled ? .cancelled : .ended)
+                return wasTracking
+            }
+
+            if !event.momentumPhase.isEmpty {
+                guard isEnabled,
+                      allowsInertia,
+                      isTracking,
+                      event.hasPreciseScrollingDeltas
+                else { return false }
+                return applyDelta(from: event)
+            }
+
+            if event.phase == .ended || event.phase == .cancelled {
+                let wasTracking = isTracking
+                if event.phase == .cancelled || !allowsInertia {
+                    finishGesture(phase: event.phase == .cancelled ? .cancelled : .ended)
+                } else {
+                    scheduleEndTimeout()
+                }
                 return wasTracking
             }
 
             let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
             guard isEnabled,
                   modifiers.contains(.option),
-                  event.hasPreciseScrollingDeltas,
-                  event.momentumPhase.isEmpty
+                  event.hasPreciseScrollingDeltas
             else { return false }
-
-            let absDX = abs(event.scrollingDeltaX)
-            let absDY = abs(event.scrollingDeltaY)
-            guard absDX >= 1.5 * absDY, absDX > 0.2 else { return false }
 
             if !isTracking {
                 isTracking = true
                 action(0, .began)
             }
+
+            return applyDelta(from: event)
+        }
+
+        private func applyDelta(from event: NSEvent) -> Bool {
+            let absDX = abs(event.scrollingDeltaX)
+            let absDY = abs(event.scrollingDeltaY)
+            guard absDX >= 1.5 * absDY, absDX > 0.2 else { return false }
 
             let physicalDelta = event.isDirectionInvertedFromDevice
                 ? -event.scrollingDeltaX

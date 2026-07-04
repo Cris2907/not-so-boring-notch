@@ -130,6 +130,7 @@ extension Defaults.Keys {
     static let timerCompletionSound = Key<Bool>("timerCompletionSound", default: true)
     static let timerOptionSwipeAdjustment = Key<Bool>("timerOptionSwipeAdjustment", default: true)
     static let timerInvertSwipeDirection = Key<Bool>("timerInvertSwipeDirection", default: true)
+    static let timerSwipeInertia = Key<Bool>("timerSwipeInertia", default: true)
     static let timerSwipeSensitivity = Key<CGFloat>("timerSwipeSensitivity", default: 18)
     static let stopwatchShowCentiseconds = Key<Bool>("stopwatchShowCentiseconds", default: true)
     

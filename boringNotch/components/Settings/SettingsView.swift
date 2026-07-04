@@ -171,6 +171,10 @@ struct ClockSettings: View {
                         Text("Invert timer swipe direction")
                     }
 
+                    Defaults.Toggle(key: .timerSwipeInertia) {
+                        Text("Continue scrolling with inertia")
+                    }
+
                     Slider(value: $timerSwipeSensitivity, in: 8...32, step: 2) {
                         HStack {
                             Text("Swipe sensitivity")
