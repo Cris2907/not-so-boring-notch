@@ -682,6 +682,21 @@ struct Media: View {
             } header: {
                 Text("Media playback live activity")
             }
+
+            Section {
+                Defaults.Toggle(key: .showBluetoothHeadphoneNotifications) {
+                    Text("Show headphone connection animation")
+                }
+                Defaults.Toggle(key: .useBluetoothDeviceMatching) {
+                    Text("Use Bluetooth device matching")
+                }
+            } header: {
+                Text("Bluetooth headphones")
+            } footer: {
+                Text("Device matching uses paired Bluetooth device details to choose a better headphone profile image when available.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             
             Section {
                 MusicSlotConfigurationView()

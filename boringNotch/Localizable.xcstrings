@@ -1,24 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Activities page" : {
-      "extractionState" : "manual"
-    },
-    "Home page" : {
-      "extractionState" : "manual"
-    },
-    "Invert horizontal swipe direction" : {
-      "extractionState" : "manual"
-    },
-    "Media activity" : {
-      "extractionState" : "manual"
-    },
-    "Shelf page" : {
-      "extractionState" : "manual"
-    },
-    "Swipe horizontally with two fingers to move between Home, Activities, and Shelf. When direction is inverted, swiping right to left opens the tab on the right." : {
-      "extractionState" : "manual"
-    },
     "" : {
       "localizations" : {
         "ar" : {
@@ -1726,6 +1708,9 @@
       }
     },
     "Activities" : {
+      "extractionState" : "manual"
+    },
+    "Activities page" : {
       "extractionState" : "manual"
     },
     "Add" : {
@@ -3628,6 +3613,9 @@
           }
         }
       }
+    },
+    "Bluetooth headphones" : {
+
     },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
@@ -5930,6 +5918,9 @@
         }
       }
     },
+    "Connected" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -7230,6 +7221,9 @@
           }
         }
       }
+    },
+    "Device matching uses paired Bluetooth device details to choose a better headphone profile image when available." : {
+
     },
     "Disable" : {
       "extractionState" : "stale",
@@ -11245,6 +11239,9 @@
         }
       }
     },
+    "Home page" : {
+      "extractionState" : "manual"
+    },
     "Hours" : {
       "extractionState" : "manual"
     },
@@ -11948,6 +11945,9 @@
           }
         }
       }
+    },
+    "Invert horizontal swipe direction" : {
+      "extractionState" : "manual"
     },
     "Layout Preview" : {
       "localizations" : {
@@ -13148,6 +13148,9 @@
           }
         }
       }
+    },
+    "Media activity" : {
+      "extractionState" : "manual"
     },
     "Media controls" : {
       "localizations" : {
@@ -18676,6 +18679,9 @@
         }
       }
     },
+    "Shelf page" : {
+      "extractionState" : "manual"
+    },
     "Shortcuts" : {
       "localizations" : {
         "ar" : {
@@ -19175,6 +19181,9 @@
           }
         }
       }
+    },
+    "Show headphone connection animation" : {
+
     },
     "Show HUD in open notch" : {
       "localizations" : {
@@ -21093,6 +21102,9 @@
         }
       }
     },
+    "Swipe horizontally with two fingers to move between Home, Activities, and Shelf. When direction is inverted, swiping right to left opens the tab on the right." : {
+      "extractionState" : "manual"
+    },
     "System" : {
       "localizations" : {
         "ar" : {
@@ -22312,6 +22324,9 @@
           }
         }
       }
+    },
+    "Use Bluetooth device matching" : {
+
     },
     "Use music visualizer spectrogram" : {
       "localizations" : {

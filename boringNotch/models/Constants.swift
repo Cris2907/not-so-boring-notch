@@ -127,6 +127,8 @@ extension Defaults.Keys {
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
+    static let showBluetoothHeadphoneNotifications = Key<Bool>("showBluetoothHeadphoneNotifications", default: true)
+    static let useBluetoothDeviceMatching = Key<Bool>("useBluetoothDeviceMatching", default: true)
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)

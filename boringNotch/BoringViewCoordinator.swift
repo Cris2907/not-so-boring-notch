@@ -18,6 +18,7 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case bluetooth
 }
 
 struct sneakPeek {
@@ -210,7 +211,7 @@ class BoringViewCoordinator: ObservableObject {
         icon: String = ""
     ) {
         sneakPeekDuration = duration
-        if type != .music {
+        if type != .music && type != .bluetooth {
             // close()
             if !Defaults[.hudReplacement] {
                 return
