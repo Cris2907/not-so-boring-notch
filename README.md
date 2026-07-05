@@ -13,9 +13,6 @@
   <a href="https://discord.gg/c8JXA7qrPm">
     <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat" alt="Discord Badge" />
   </a>
-  <a href="https://www.ko-fi.com/alexander5015">
-    <img src="https://srv-cdn.himpfen.io/badges/kofi/kofi-flat.svg" alt="Ko-Fi" />
-  </a>
 </p>
 
 This repository is a branch of the original **Boring Notch** by **The Boring Team**. It keeps the core design, interaction model, and overall feel of the original project in place, while adding a few features that make the app more complete without turning it into something heavier or more complicated.
@@ -36,8 +33,7 @@ The focus of this branch is straightforward: preserve the original experience, k
 - [Contributing](#-contributing)
 - [Join our Discord Server](#join-our-discord-server)
 - [Star History](#star-history)
-- [Buy us a coffee!](#buy-us-a-coffee)
-- [Acknowledgments](#-acknowledgments)-->
+- [Special Thanks](#-special-thanks)-->
 
 ## What This Branch Adds
 
@@ -61,12 +57,22 @@ Details:
 - Shows active time sessions directly in the notch, including when the notch is closed.
 - Supports timer adjustments with `Option` + two-finger horizontal swipe, plus configurable sensitivity and direction settings.
 
+### Standalone Calendar Tab
+
+Moves Calendar into its own tab instead of displaying it beside the music controls.
+
+Details:
+- Uses a two-column layout with a complete month grid and the selected day's events and reminders.
+- Supports month navigation with `Option` + two-finger horizontal swipe while preserving normal tab gestures.
+- Uses red calendar controls while retaining each event's source-calendar color.
+- Includes an optional General setting that tints only the selected tab icon: blue for Home and Shelf, red for Calendar, and orange for Activities.
+
 ### Multi-Space Navigation With Two-Finger Gestures
 
 Adds support for moving between notch tabs while using multiple macOS Spaces, using two-finger horizontal swipe gestures when the notch is open.
 
 Details:
-- Allows navigation between Home, Activities, and Shelf with horizontal trackpad gestures.
+- Allows navigation between Home, Calendar, Activities, and Shelf with horizontal trackpad gestures.
 - Includes settings for gesture enablement, direction inversion, and sensitivity.
 - Keeps gesture navigation separate from normal tab interactions so switching tabs feels more consistent across Spaces.
 
@@ -200,13 +206,11 @@ We’re all about good vibes and awesome contributions! Read [CONTRIBUTING.md](C
  </picture>
 </a>
 
-## Support us on Ko-fi!
-<!-- <a href="https://www.buymeacoffee.com/jfxh67wvfxq" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a> -->
-<a href="https://www.ko-fi.com/alexander5015" target="_blank"><img src="https://github.com/user-attachments/assets//a76175ef-7e93-475a-8b67-4922ba5964c2" alt="Support us on Ko-fi" style="height: 70px !important;width: 346px !important;" ></a>
-
-## 🎉 Acknowledgments
+## 🎉 Special Thanks
 
 We would like to express our gratitude to the authors and maintainers of the open-source projects that made this possible. 
+
+- **[The Boring Team](http://theboring.name)** – For creating the original Boring Notch implementation that this branch builds upon.
 
 ## Notable Projects
 - **[MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)** –  An open-source project that allowed us to use the Now Playing source in macOS 15.4+
@@ -219,4 +223,3 @@ For a full list of licenses and attributions, please see the [Third-Party Licens
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-

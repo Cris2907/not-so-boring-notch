@@ -602,6 +602,7 @@
       }
     },
     "%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5927,9 +5928,6 @@
     "Connected" : {
 
     },
-    "Continue scrolling with inertia" : {
-
-    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -6029,6 +6027,9 @@
           }
         }
       }
+    },
+    "Continue scrolling with inertia" : {
+
     },
     "Copy items on drag" : {
       "localizations" : {
@@ -11251,6 +11252,15 @@
         }
       }
     },
+    "Hold Option and move two fingers horizontally over the timer ruler. Turn off inversion to use classic scroll direction." : {
+
+    },
+    "Hold Option and swipe horizontally with two fingers to adjust the timer" : {
+
+    },
+    "Hold Option and swipe horizontally with two fingers to change months" : {
+
+    },
     "Home page" : {
       "extractionState" : "manual"
     },
@@ -14069,9 +14079,6 @@
           }
         }
       }
-    },
-    "Hold Option and move two fingers horizontally over the timer ruler. Turn off inversion to use classic scroll direction." : {
-
     },
     "Music Source" : {
       "localizations" : {
@@ -19004,6 +19011,7 @@
       }
     },
     "Show calendar" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19102,6 +19110,9 @@
           }
         }
       }
+    },
+    "Show calendar tab" : {
+
     },
     "Show centiseconds while the stopwatch is open" : {
 
@@ -21129,11 +21140,11 @@
         }
       }
     },
-    "Hold Option and swipe horizontally with two fingers to adjust the timer" : {
-
-    },
     "Swipe horizontally with two fingers to move between Home, Activities, and Shelf. When direction is inverted, swiping right to left opens the tab on the right." : {
       "extractionState" : "manual"
+    },
+    "Swipe horizontally with two fingers to move between Home, Calendar, Activities, and Shelf. When direction is inverted, swiping right to left opens the tab on the right." : {
+
     },
     "Swipe sensitivity" : {
 
@@ -21561,6 +21572,9 @@
           }
         }
       }
+    },
+    "Tint selected tab icons" : {
+
     },
     "Toggle Notch Open:" : {
       "localizations" : {

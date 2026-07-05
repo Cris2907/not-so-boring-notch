@@ -398,7 +398,7 @@ struct GeneralSettings: View {
             }
         } footer: {
             Text(
-                "Swipe horizontally with two fingers to move between Home, Activities, and Shelf. When direction is inverted, swiping right to left opens the tab on the right."
+                "Swipe horizontally with two fingers to move between Home, Calendar, Activities, and Shelf. When direction is inverted, swiping right to left opens the tab on the right."
             )
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
@@ -414,6 +414,9 @@ struct GeneralSettings: View {
             }
             Defaults.Toggle(key: .enableHaptics) {
                     Text("Enable haptic feedback")
+            }
+            Defaults.Toggle(key: .tintedTabIcons) {
+                Text("Tint selected tab icons")
             }
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
@@ -820,7 +823,7 @@ struct CalendarSettings: View {
     var body: some View {
         Form {
             Defaults.Toggle(key: .showCalendar) {
-                Text("Show calendar")
+                Text("Show calendar tab")
             }
             Defaults.Toggle(key: .hideCompletedReminders) {
                 Text("Hide completed reminders")

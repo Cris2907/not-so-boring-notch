@@ -16,8 +16,35 @@ let closedTimeActivityMinimumTextWidth: CGFloat = 56
 
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
+let calendarOpenNotchHeight: CGFloat = openNotchSize.height + 20
+let maximumOpenNotchHeight: CGFloat = 300
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
+
+func clampedOpenNotchHeight(_ height: CGFloat) -> CGFloat {
+    min(max(height, openNotchSize.height), maximumOpenNotchHeight)
+}
+
+func notchWindowHeight(for notchHeight: CGFloat) -> CGFloat {
+    max(openNotchSize.height, clampedOpenNotchHeight(notchHeight)) + shadowPadding
+}
+
+struct OpenNotchHeightPreferenceKey: PreferenceKey {
+    static let defaultValue = openNotchSize.height
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+extension View {
+    func preferredOpenNotchHeight(_ height: CGFloat) -> some View {
+        preference(
+            key: OpenNotchHeightPreferenceKey.self,
+            value: clampedOpenNotchHeight(height)
+        )
+    }
+}
 
 enum MusicPlayerImageSizes {
     static let cornerRadiusInset: (opened: CGFloat, closed: CGFloat) = (opened: 13.0, closed: 4.0)

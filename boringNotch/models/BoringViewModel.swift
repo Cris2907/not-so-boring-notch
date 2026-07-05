@@ -29,7 +29,6 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var hideOnClosed: Bool = true
 
     @Published var edgeAutoOpenActive: Bool = false
-    @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
 
     @Published var screenUUID: String?
@@ -195,6 +194,13 @@ class BoringViewModel: NSObject, ObservableObject {
         
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
+    }
+
+    func updateOpenNotchHeight(_ height: CGFloat) {
+        guard notchState == .open else { return }
+        let targetHeight = clampedOpenNotchHeight(height)
+        guard notchSize.height != targetHeight else { return }
+        notchSize = CGSize(width: openNotchSize.width, height: targetHeight)
     }
 
     func close() {

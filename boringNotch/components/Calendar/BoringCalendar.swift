@@ -5,243 +5,245 @@
 //  Created by Harsh Vardhan  Goswami  on 08/09/24.
 //
 
+import AppKit
 import Defaults
 import SwiftUI
 
-struct Config: Equatable {
-    //    var count: Int = 10  // 3 days past + today + 7 days future
-    var past: Int = 7
-    var future: Int = 14
-    var steps: Int = 1  // Each step is one day
-    var spacing: CGFloat = 0
-    var showsText: Bool = true
-    var offset: Int = 2  // Number of dates to the left of the selected date
+struct CalendarMonthDay: Equatable {
+    let date: Date
+    let isInDisplayedMonth: Bool
 }
 
-struct WheelPicker: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @Binding var selectedDate: Date
-    @State private var scrollPosition: Int?
-    @State private var haptics: Bool = false
-    @State private var byClick: Bool = false
-    let config: Config
+enum CalendarMonthLayout {
+    static func days(containing date: Date, calendar: Calendar = .current) -> [CalendarMonthDay] {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: date) else { return [] }
+        let firstDay = monthInterval.start
+        let weekday = calendar.component(.weekday, from: firstDay)
+        let leadingDays = (weekday - calendar.firstWeekday + 7) % 7
+        guard let gridStart = calendar.date(byAdding: .day, value: -leadingDays, to: firstDay) else {
+            return []
+        }
 
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: config.spacing) {
-                let spacerNum = config.offset
-                let dateCount = totalDateItems()
-                let totalItems = dateCount + 2 * spacerNum
-                ForEach(0..<totalItems, id: \.self) { index in
-                    if index < spacerNum || index >= spacerNum + dateCount {
-                        // Leading/trailing spacers sized to match a date cell
-                        Spacer()
-                            .frame(width: 24, height: 24)
-                            .id(index)
-                    } else {
-                        let date = dateForItemIndex(index: index, spacerNum: spacerNum)
-                        let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
-                        dateButton(date: date, isSelected: isSelected, id: index) {
-                            selectedDate = date
-                            byClick = true
-                            withAnimation {
-                                scrollPosition = index
-                            }
-                            if Defaults[.enableHaptics] {
-                                haptics.toggle()
-                            }
-                        }
-                    }
-                }
+        return (0..<42).compactMap { offset in
+            guard let day = calendar.date(byAdding: .day, value: offset, to: gridStart) else {
+                return nil
             }
-            .frame(height: 50)
-            .scrollTargetLayout()
-        }
-        .scrollIndicators(.never)
-        .scrollPosition(id: $scrollPosition, anchor: .center)
-        .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps the centered view
-        .safeAreaPadding(.horizontal)
-        .sensoryFeedback(.alignment, trigger: haptics)
-        .onChange(of: scrollPosition) { oldValue, newValue in
-            if !byClick {
-                handleScrollChange(newValue: newValue, config: config)
-            } else {
-                byClick = false
-            }
-        }
-        .onAppear {
-            scrollToToday(config: config)
-        }
-        // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
-        .onChange(of: selectedDate) { _, newValue in
-            let targetIndex = indexForDate(newValue)
-            if scrollPosition != targetIndex {
-                byClick = true
-                withAnimation {
-                    scrollPosition = targetIndex
-                }
-            }
+            return CalendarMonthDay(
+                date: day,
+                isInDisplayedMonth: calendar.isDate(day, equalTo: firstDay, toGranularity: .month)
+            )
         }
     }
 
-    private func dateButton(
-        date: Date, isSelected: Bool, id: Int, onClick: @escaping () -> Void
-    ) -> some View {
-        let isToday = Calendar.current.isDateInToday(date)
-        return Button(action: onClick) {
-            VStack(spacing: 8) {
-                dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
-                dateCircle(date: date, isToday: isToday, isSelected: isSelected)
-            }
-            .padding(.vertical, 4)
-            .padding(.horizontal, 4)
-            .background(isSelected ? Color.effectiveAccentBackground : Color.clear)
-            .cornerRadius(8)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .id(id)
+    static func movingMonth(
+        from selectedDate: Date,
+        by value: Int,
+        calendar: Calendar = .current
+    ) -> Date? {
+        guard let selectedMonth = calendar.dateInterval(of: .month, for: selectedDate)?.start,
+              let destinationMonth = calendar.date(byAdding: .month, value: value, to: selectedMonth),
+              let dayRange = calendar.range(of: .day, in: .month, for: destinationMonth)
+        else { return nil }
+
+        var components = calendar.dateComponents([.era, .year, .month], from: destinationMonth)
+        components.day = min(calendar.component(.day, from: selectedDate), dayRange.count)
+        components.hour = 12
+        return calendar.date(from: components)
     }
 
-    private func dayText(date: String, isToday: Bool, isSelected: Bool) -> some View {
-        Text(date)
-            .font(.caption)
-            .foregroundColor(isSelected ? .white : Color(white: 0.65))
-    }
-
-    private func dateCircle(date: Date, isToday: Bool, isSelected: Bool) -> some View {
-        ZStack {
-            Circle()
-                .fill(isToday ? Color.effectiveAccent : .clear)
-                .frame(width: 20, height: 20)
-                .overlay(
-                    Circle()
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 0)
-                )
-            Text("\(date.date)")
-                .font(.body)
-                .fontWeight(.medium)
-                .foregroundColor(isSelected ? .white : Color(white: isToday ? 0.9 : 0.65))
-        }
-    }
-
-    func handleScrollChange(newValue: Int?, config: Config) {
-        guard let newIndex = newValue else { return }
-        let spacerNum = config.offset
-        let dateCount = totalDateItems()
-        guard (spacerNum..<(spacerNum + dateCount)).contains(newIndex) else { return }
-        let date = dateForItemIndex(index: newIndex, spacerNum: spacerNum)
-        if !Calendar.current.isDate(date, inSameDayAs: selectedDate) {
-            selectedDate = date
-            if Defaults[.enableHaptics] {
-                haptics.toggle()
-            }
-        }
-    }
-
-    private func scrollToToday(config: Config) {
-        let today = Date()
-        byClick = true
-        scrollPosition = indexForDate(today)
-        selectedDate = today
-    }
-
-    // MARK: - Index/Date mapping with steps and spacers
-    private func indexForDate(_ date: Date) -> Int {
-        let spacerNum = config.offset
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let startDate = cal.startOfDay(for: cal.date(byAdding: .day, value: -config.past, to: today) ?? today)
-        let target = cal.startOfDay(for: date)
-        let days = cal.dateComponents([.day], from: startDate, to: target).day ?? 0
-        let stepIndex = max(0, min(days / max(config.steps, 1), totalDateItems() - 1))
-        return spacerNum + stepIndex
-    }
-
-    private func dateForItemIndex(index: Int, spacerNum: Int) -> Date {
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let startDate = cal.date(byAdding: .day, value: -config.past, to: today) ?? today
-        let stepIndex = index - spacerNum
-        return cal.date(byAdding: .day, value: stepIndex * max(config.steps, 1), to: startDate) ?? today
-    }
-
-    private func totalDateItems() -> Int {
-        let range = config.past + config.future
-        let step = max(config.steps, 1)
-        return Int(ceil(Double(range) / Double(step))) + 1
-    }
-
-    private func dateToString(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "E"
-        return formatter.string(from: date)
+    static func weekdaySymbols(calendar: Calendar = .current) -> [String] {
+        let symbols = calendar.veryShortStandaloneWeekdaySymbols
+        let start = max(0, min(calendar.firstWeekday - 1, symbols.count - 1))
+        return Array(symbols[start...] + symbols[..<start])
     }
 }
 
 struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject private var calendarManager = CalendarManager.shared
+    @ObservedObject private var webcamManager = WebcamManager.shared
     @State private var selectedDate = Date()
+    @State private var displayedMonth = Date()
+    @State private var monthSwipeAccumulator = HorizontalSwipeAccumulator(threshold: 18)
+    @State private var haptics = false
+
+    private let calendar = Calendar.current
+    private let dayColumns = Array(
+        repeating: GridItem(.flexible(minimum: 20), spacing: 2),
+        count: 7
+    )
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading) {
-                    Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                    Text(selectedDate.formatted(.dateTime.year()))
-                        .font(.title3)
-                        .fontWeight(.light)
-                        .foregroundColor(Color(white: 0.65))
-                }
+        HStack(alignment: .top, spacing: 14) {
+            monthColumn
+                .frame(width: 275)
 
-                ZStack(alignment: .top) {
-                    WheelPicker(selectedDate: $selectedDate, config: Config())
-                    HStack(alignment: .top) {
-                        LinearGradient(
-                            colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
-                        Spacer()
-                        LinearGradient(
-                            colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                        )
-                        .frame(width: 20)
-                    }
+            Divider()
+                .overlay(.red.opacity(0.22))
+
+            eventsColumn
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.black)
+        .contentShape(Rectangle())
+        .optionHorizontalTrackpadSwipe(isEnabled: true, allowsInertia: false) { delta, phase in
+            handleMonthSwipe(delta: delta, phase: phase)
+        }
+        .sensoryFeedback(.alignment, trigger: haptics)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Calendar")
+        .onChange(of: selectedDate) { _, newDate in
+            Task {
+                await calendarManager.updateCurrentDate(newDate)
+            }
+        }
+        .onAppear {
+            let today = Date.now
+            selectedDate = today
+            displayedMonth = today
+            if vm.isCameraExpanded {
+                webcamManager.stopSession()
+                vm.isCameraExpanded = false
+            }
+            Task {
+                await calendarManager.updateCurrentDate(today)
+            }
+        }
+    }
+
+    private var monthColumn: some View {
+        VStack(spacing: 3) {
+            HStack(spacing: 8) {
+                Text(displayedMonth.formatted(.dateTime.month(.wide).year()))
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+
+                Spacer()
+
+                monthButton(icon: "chevron.left", label: "Previous month") {
+                    moveMonth(by: -1)
+                }
+                monthButton(icon: "chevron.right", label: "Next month") {
+                    moveMonth(by: 1)
                 }
             }
 
-            let filteredEvents = EventListView.filteredEvents(
-                events: calendarManager.events
-            )
+            LazyVGrid(columns: dayColumns, spacing: 2) {
+                ForEach(Array(CalendarMonthLayout.weekdaySymbols(calendar: calendar).enumerated()), id: \.offset) { _, symbol in
+                    Text(symbol)
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.red.opacity(0.78))
+                        .frame(maxWidth: .infinity)
+                }
+
+                ForEach(Array(CalendarMonthLayout.days(containing: displayedMonth, calendar: calendar).enumerated()), id: \.offset) { _, day in
+                    dayButton(day)
+                }
+            }
+        }
+        .accessibilityHint("Hold Option and swipe horizontally with two fingers to change months")
+    }
+
+    private var eventsColumn: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(selectedDate.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                Spacer(minLength: 8)
+                Text(selectedDate.formatted(.dateTime.year()))
+                    .font(.caption)
+                    .foregroundStyle(.red.opacity(0.82))
+            }
+
+            let filteredEvents = EventListView.filteredEvents(events: calendarManager.events)
             if filteredEvents.isEmpty {
                 EmptyEventsView(selectedDate: selectedDate)
-                Spacer(minLength: 0)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 EventListView(events: calendarManager.events)
             }
         }
-        .listRowBackground(Color.clear)
-        .frame(height: 120)
-        .onChange(of: selectedDate) {
-            Task {
-                await calendarManager.updateCurrentDate(selectedDate)
-            }
+    }
+
+    private func monthButton(
+        icon: String,
+        label: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.red)
+                .frame(width: 20, height: 18)
+                .background(.red.opacity(0.16), in: Capsule())
         }
-        .onChange(of: vm.notchState) { _, _ in
-            Task {
-                await calendarManager.updateCurrentDate(Date.now)
-                selectedDate = Date.now
-            }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+
+    private func dayButton(_ day: CalendarMonthDay) -> some View {
+        let isSelected = calendar.isDate(day.date, inSameDayAs: selectedDate)
+        let isToday = calendar.isDateInToday(day.date)
+
+        return Button {
+            select(day.date)
+        } label: {
+            Text(day.date.formatted(.dateTime.day()))
+                .font(.system(size: 10, weight: isSelected || isToday ? .semibold : .regular, design: .rounded))
+                .foregroundStyle(isSelected ? .white : .white.opacity(day.isInDisplayedMonth ? 0.82 : 0.34))
+                .frame(maxWidth: .infinity)
+                .frame(height: 15)
+                .background {
+                    if isSelected {
+                        Circle().fill(.red)
+                    } else if isToday {
+                        Circle().stroke(.red, lineWidth: 1)
+                    }
+                }
+                .contentShape(Rectangle())
         }
-        .onAppear {
-            Task {
-                await calendarManager.updateCurrentDate(Date.now)
-                selectedDate = Date.now
-            }
+        .buttonStyle(.plain)
+        .accessibilityLabel(day.date.formatted(date: .complete, time: .omitted))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func select(_ date: Date) {
+        selectedDate = date
+        displayedMonth = date
+        provideHapticFeedback()
+    }
+
+    private func moveMonth(by value: Int) {
+        guard let destination = CalendarMonthLayout.movingMonth(
+            from: selectedDate,
+            by: value,
+            calendar: calendar
+        ) else { return }
+
+        withAnimation(.smooth(duration: 0.2)) {
+            selectedDate = destination
+            displayedMonth = destination
         }
+        provideHapticFeedback()
+    }
+
+    private func handleMonthSwipe(delta: CGFloat, phase: NSEvent.Phase) {
+        if phase == .began || phase == .ended || phase == .cancelled {
+            monthSwipeAccumulator.reset()
+            return
+        }
+
+        guard let direction = monthSwipeAccumulator.consume(delta: delta) else { return }
+        moveMonth(by: direction == .left ? 1 : -1)
+    }
+
+    private func provideHapticFeedback() {
+        guard Defaults[.enableHaptics] else { return }
+        haptics.toggle()
     }
 }
 
@@ -291,6 +293,7 @@ struct EventListView: View {
     }
 
     private func scrollToRelevantEvent(proxy: ScrollViewProxy) {
+        guard autoScrollToNextEvent else { return }
         let now = Date()
         // Determine a single target using preferred search order:
         // 1) first non-all-day upcoming/in-progress event

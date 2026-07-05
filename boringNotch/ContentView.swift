@@ -39,12 +39,17 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.clockShowInClosedNotch) var clockShowInClosedNotch
+    @Default(.showCalendar) private var showCalendar
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
+
+    private var requiredWindowHeight: CGFloat {
+        notchWindowHeight(for: vm.notchSize.height)
+    }
 
     private var topCornerRadius: CGFloat {
        ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
@@ -155,6 +160,7 @@ struct ContentView: View {
                         
                         return view
                             .animation(vm.notchState == .open ? openAnimation : closeAnimation, value: vm.notchState)
+                            .animation(.smooth(duration: 0.25), value: vm.notchSize)
                             .animation(.smooth, value: gestureProgress)
                     }
                     .contentShape(Rectangle())
@@ -205,6 +211,17 @@ struct ContentView: View {
                             }
                         }
                     }
+                    .onChange(of: showCalendar) { _, isEnabled in
+                        let destination = resolvedNotchView(
+                            coordinator.currentView,
+                            showCalendar: isEnabled,
+                            includesShelf: Defaults[.boringShelf]
+                        )
+                        guard destination != coordinator.currentView else { return }
+                        withAnimation(.smooth(duration: 0.25)) {
+                            coordinator.currentView = destination
+                        }
+                    }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
                             hoverTask?.cancel()
@@ -241,7 +258,7 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .frame(maxWidth: windowSize.width, maxHeight: requiredWindowHeight, alignment: .top)
         .compositingGroup()
         .scaleEffect(
             x: gestureScale,
@@ -249,6 +266,7 @@ struct ContentView: View {
             anchor: .top
         )
         .animation(.smooth, value: gestureProgress)
+        .background(NotchWindowHeightSynchronizer(height: requiredWindowHeight))
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
@@ -404,6 +422,9 @@ struct ContentView: View {
                         switch coordinator.currentView {
                         case .home:
                             NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        case .calendar:
+                            CalendarView()
+                                .preferredOpenNotchHeight(calendarOpenNotchHeight)
                         case .activities:
                             TimeActivityView()
                         case .shelf:
@@ -413,7 +434,7 @@ struct ContentView: View {
                     .frame(maxHeight: .infinity)
 
                     NotchPaginationDots()
-                        .frame(height: 10)
+                        .frame(height: 18)
                 }
                 .id(coordinator.currentView)
                 .transition(
@@ -425,6 +446,9 @@ struct ContentView: View {
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
+        }
+        .onPreferenceChange(OpenNotchHeightPreferenceKey.self) { height in
+            vm.updateOpenNotchHeight(height)
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
     }
@@ -630,6 +654,7 @@ struct ContentView: View {
                 from: coordinator.currentView,
                 direction: direction,
                 isInverted: Defaults[.invertHorizontalTabGestures],
+                includesCalendar: Defaults[.showCalendar],
                 includesShelf: Defaults[.boringShelf]
               )
         else { return }
@@ -667,7 +692,7 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard vm.notchState == .open else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
@@ -691,6 +716,52 @@ struct ContentView: View {
             if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
+        }
+    }
+}
+
+private struct NotchWindowHeightSynchronizer: NSViewRepresentable {
+    let height: CGFloat
+
+    func makeNSView(context: Context) -> WindowSizingView {
+        WindowSizingView(height: height)
+    }
+
+    func updateNSView(_ nsView: WindowSizingView, context: Context) {
+        nsView.updateHeight(height)
+    }
+
+    final class WindowSizingView: NSView {
+        private var targetHeight: CGFloat
+
+        init(height: CGFloat) {
+            targetHeight = height
+            super.init(frame: .zero)
+        }
+
+        required init?(coder: NSCoder) {
+            return nil
+        }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            applyHeight()
+        }
+
+        func updateHeight(_ height: CGFloat) {
+            targetHeight = height
+            DispatchQueue.main.async { [weak self] in
+                self?.applyHeight()
+            }
+        }
+
+        private func applyHeight() {
+            guard let window, abs(window.frame.height - targetHeight) > 0.5 else { return }
+            var frame = window.frame
+            let topEdge = frame.maxY
+            frame.size.height = targetHeight
+            frame.origin.y = topEdge - targetHeight
+            window.setFrame(frame, display: true, animate: true)
         }
     }
 }
