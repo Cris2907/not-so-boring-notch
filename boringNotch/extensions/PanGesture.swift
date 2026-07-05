@@ -71,11 +71,13 @@ func horizontalSwipeDestination(
     from currentView: NotchViews,
     direction: HorizontalSwipeDirection,
     isInverted: Bool,
+    includesCalendar: Bool,
     includesShelf: Bool
 ) -> NotchViews? {
-    let orderedViews: [NotchViews] = includesShelf
-        ? [.home, .activities, .shelf]
-        : [.home, .activities]
+    let orderedViews = visibleNotchViews(
+        showCalendar: includesCalendar,
+        includesShelf: includesShelf
+    )
     guard let currentIndex = orderedViews.firstIndex(of: currentView) else { return nil }
 
     let movesTowardRight = isInverted

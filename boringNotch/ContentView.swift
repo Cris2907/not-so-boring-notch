@@ -39,6 +39,7 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.clockShowInClosedNotch) var clockShowInClosedNotch
+    @Default(.showCalendar) private var showCalendar
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
@@ -203,6 +204,17 @@ struct ContentView: View {
                             withAnimation {
                                 isHovering = false
                             }
+                        }
+                    }
+                    .onChange(of: showCalendar) { _, isEnabled in
+                        let destination = resolvedNotchView(
+                            coordinator.currentView,
+                            showCalendar: isEnabled,
+                            includesShelf: Defaults[.boringShelf]
+                        )
+                        guard destination != coordinator.currentView else { return }
+                        withAnimation(.smooth(duration: 0.25)) {
+                            coordinator.currentView = destination
                         }
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
@@ -404,6 +416,8 @@ struct ContentView: View {
                         switch coordinator.currentView {
                         case .home:
                             NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        case .calendar:
+                            CalendarView()
                         case .activities:
                             TimeActivityView()
                         case .shelf:
@@ -630,6 +644,7 @@ struct ContentView: View {
                 from: coordinator.currentView,
                 direction: direction,
                 isInverted: Defaults[.invertHorizontalTabGestures],
+                includesCalendar: Defaults[.showCalendar],
                 includesShelf: Defaults[.boringShelf]
               )
         else { return }
@@ -667,7 +682,7 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard vm.notchState == .open else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20

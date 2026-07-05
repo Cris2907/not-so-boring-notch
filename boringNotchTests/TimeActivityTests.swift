@@ -65,43 +65,157 @@ final class HorizontalSwipeAccumulatorTests: XCTestCase {
         XCTAssertEqual(accumulator.consume(delta: -30), .left)
     }
 
-    func testInvertedNavigationMovesWithTabOrderAndIncludesShelf() {
-        XCTAssertEqual(destination(from: .home, direction: .left), .activities)
+    func testInvertedNavigationMovesWithTabOrderAndIncludesCalendarAndShelf() {
+        XCTAssertEqual(destination(from: .home, direction: .left), .calendar)
+        XCTAssertEqual(destination(from: .calendar, direction: .left), .activities)
         XCTAssertEqual(destination(from: .activities, direction: .left), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .right), .activities)
-        XCTAssertEqual(destination(from: .activities, direction: .right), .home)
+        XCTAssertEqual(destination(from: .activities, direction: .right), .calendar)
+        XCTAssertEqual(destination(from: .calendar, direction: .right), .home)
         XCTAssertEqual(destination(from: .home, direction: .right), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .left), .home)
     }
 
     func testNonInvertedNavigationReversesPhysicalMapping() {
-        XCTAssertEqual(destination(from: .home, direction: .right, isInverted: false), .activities)
+        XCTAssertEqual(destination(from: .home, direction: .right, isInverted: false), .calendar)
+        XCTAssertEqual(destination(from: .calendar, direction: .right, isInverted: false), .activities)
         XCTAssertEqual(destination(from: .activities, direction: .right, isInverted: false), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .left, isInverted: false), .activities)
-        XCTAssertEqual(destination(from: .activities, direction: .left, isInverted: false), .home)
+        XCTAssertEqual(destination(from: .activities, direction: .left, isInverted: false), .calendar)
+        XCTAssertEqual(destination(from: .calendar, direction: .left, isInverted: false), .home)
         XCTAssertEqual(destination(from: .home, direction: .left, isInverted: false), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .right, isInverted: false), .home)
     }
 
     func testShelfIsSkippedWhenDisabled() {
-        XCTAssertEqual(destination(from: .home, direction: .left, includesShelf: false), .activities)
+        XCTAssertEqual(destination(from: .home, direction: .left, includesShelf: false), .calendar)
+        XCTAssertEqual(destination(from: .calendar, direction: .left, includesShelf: false), .activities)
         XCTAssertEqual(destination(from: .activities, direction: .left, includesShelf: false), .home)
-        XCTAssertEqual(destination(from: .activities, direction: .right, includesShelf: false), .home)
+        XCTAssertEqual(destination(from: .activities, direction: .right, includesShelf: false), .calendar)
         XCTAssertNil(destination(from: .shelf, direction: .right, includesShelf: false))
+    }
+
+    func testCalendarIsSkippedWhenDisabled() {
+        XCTAssertEqual(destination(from: .home, direction: .left, includesCalendar: false), .activities)
+        XCTAssertEqual(destination(from: .activities, direction: .right, includesCalendar: false), .home)
+        XCTAssertNil(destination(from: .calendar, direction: .left, includesCalendar: false))
+    }
+
+    func testVisibleNotchViewOrderForFeatureCombinations() {
+        XCTAssertEqual(
+            visibleNotchViews(showCalendar: true, includesShelf: true),
+            [.home, .calendar, .activities, .shelf]
+        )
+        XCTAssertEqual(
+            visibleNotchViews(showCalendar: false, includesShelf: true),
+            [.home, .activities, .shelf]
+        )
+        XCTAssertEqual(
+            visibleNotchViews(showCalendar: true, includesShelf: false),
+            [.home, .calendar, .activities]
+        )
+        XCTAssertEqual(
+            visibleNotchViews(showCalendar: false, includesShelf: false),
+            [.home, .activities]
+        )
+    }
+
+    func testHiddenCurrentPageFallsBackToHome() {
+        XCTAssertEqual(
+            resolvedNotchView(.calendar, showCalendar: false, includesShelf: true),
+            .home
+        )
+        XCTAssertEqual(
+            resolvedNotchView(.calendar, showCalendar: true, includesShelf: true),
+            .calendar
+        )
     }
 
     private func destination(
         from currentView: NotchViews,
         direction: HorizontalSwipeDirection,
         isInverted: Bool = true,
+        includesCalendar: Bool = true,
         includesShelf: Bool = true
     ) -> NotchViews? {
         horizontalSwipeDestination(
             from: currentView,
             direction: direction,
             isInverted: isInverted,
+            includesCalendar: includesCalendar,
             includesShelf: includesShelf
         )
+    }
+}
+
+final class CalendarMonthLayoutTests: XCTestCase {
+    func testLeapYearMonthProducesFortyTwoCellsAndTwentyNineCurrentMonthDays() throws {
+        let calendar = makeCalendar(firstWeekday: 1)
+        let february = try XCTUnwrap(calendar.date(from: DateComponents(year: 2024, month: 2, day: 15)))
+
+        let days = CalendarMonthLayout.days(containing: february, calendar: calendar)
+
+        XCTAssertEqual(days.count, 42)
+        XCTAssertEqual(days.filter(\.isInDisplayedMonth).count, 29)
+        assertDate(days.first?.date, year: 2024, month: 1, day: 28, calendar: calendar)
+        assertDate(days.last?.date, year: 2024, month: 3, day: 9, calendar: calendar)
+    }
+
+    func testGridHonorsCalendarFirstWeekday() throws {
+        let calendar = makeCalendar(firstWeekday: 2)
+        let february = try XCTUnwrap(calendar.date(from: DateComponents(year: 2024, month: 2, day: 15)))
+
+        let days = CalendarMonthLayout.days(containing: february, calendar: calendar)
+
+        assertDate(days.first?.date, year: 2024, month: 1, day: 29, calendar: calendar)
+        XCTAssertEqual(CalendarMonthLayout.weekdaySymbols(calendar: calendar).count, 7)
+    }
+
+    func testSixWeekBoundaryIncludesAdjacentMonthDays() throws {
+        let calendar = makeCalendar(firstWeekday: 1)
+        let august = try XCTUnwrap(calendar.date(from: DateComponents(year: 2020, month: 8, day: 15)))
+
+        let days = CalendarMonthLayout.days(containing: august, calendar: calendar)
+
+        assertDate(days.first?.date, year: 2020, month: 7, day: 26, calendar: calendar)
+        assertDate(days.last?.date, year: 2020, month: 9, day: 5, calendar: calendar)
+    }
+
+    func testMovingMonthPreservesAndClampsDayNumber() throws {
+        let calendar = makeCalendar(firstWeekday: 1)
+        let january31 = try XCTUnwrap(calendar.date(from: DateComponents(year: 2024, month: 1, day: 31)))
+        let february = try XCTUnwrap(CalendarMonthLayout.movingMonth(from: january31, by: 1, calendar: calendar))
+        let march = try XCTUnwrap(CalendarMonthLayout.movingMonth(from: february, by: 1, calendar: calendar))
+
+        assertDate(february, year: 2024, month: 2, day: 29, calendar: calendar)
+        assertDate(march, year: 2024, month: 3, day: 29, calendar: calendar)
+    }
+
+    private func makeCalendar(firstWeekday: Int) -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        calendar.firstWeekday = firstWeekday
+        return calendar
+    }
+
+    private func assertDate(
+        _ date: Date?,
+        year: Int,
+        month: Int,
+        day: Int,
+        calendar: Calendar,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        guard let date else {
+            XCTFail("Expected date", file: file, line: line)
+            return
+        }
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        XCTAssertEqual(components.year, year, file: file, line: line)
+        XCTAssertEqual(components.month, month, file: file, line: line)
+        XCTAssertEqual(components.day, day, file: file, line: line)
     }
 }
 

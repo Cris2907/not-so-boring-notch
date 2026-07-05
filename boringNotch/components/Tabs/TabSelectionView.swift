@@ -15,14 +15,38 @@ struct TabModel: Identifiable {
     let view: NotchViews
 }
 
-let tabs = [
+private let tabs = [
     TabModel(label: "Home", icon: "house.fill", view: .home),
+    TabModel(label: "Calendar", icon: "calendar", view: .calendar),
     TabModel(label: "Activities", icon: "timer", view: .activities),
     TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
 ]
 
+func visibleNotchViews(showCalendar: Bool, includesShelf: Bool) -> [NotchViews] {
+    var views: [NotchViews] = [.home]
+    if showCalendar {
+        views.append(.calendar)
+    }
+    views.append(.activities)
+    if includesShelf {
+        views.append(.shelf)
+    }
+    return views
+}
+
+func resolvedNotchView(
+    _ currentView: NotchViews,
+    showCalendar: Bool,
+    includesShelf: Bool
+) -> NotchViews {
+    visibleNotchViews(showCalendar: showCalendar, includesShelf: includesShelf)
+        .contains(currentView) ? currentView : .home
+}
+
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.showCalendar) private var showCalendar
+    @Default(.boringShelf) private var boringShelf
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {
@@ -52,16 +76,18 @@ struct TabSelectionView: View {
     }
 
     private var visibleTabs: [TabModel] {
-        tabs.filter { $0.view != .shelf || Defaults[.boringShelf] }
+        visibleNotchViews(showCalendar: showCalendar, includesShelf: boringShelf)
+            .compactMap { view in tabs.first { $0.view == view } }
     }
 }
 
 struct NotchPaginationDots: View {
     @ObservedObject private var coordinator = BoringViewCoordinator.shared
     @Default(.boringShelf) private var boringShelf
+    @Default(.showCalendar) private var showCalendar
 
     private var pages: [NotchViews] {
-        boringShelf ? [.home, .activities, .shelf] : [.home, .activities]
+        visibleNotchViews(showCalendar: showCalendar, includesShelf: boringShelf)
     }
 
     var body: some View {
@@ -89,6 +115,7 @@ private extension NotchViews {
     var accessibilityLabel: String {
         switch self {
         case .home: return "Home page"
+        case .calendar: return "Calendar page"
         case .activities: return "Activities page"
         case .shelf: return "Shelf page"
         }
