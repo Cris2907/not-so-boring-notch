@@ -11,6 +11,12 @@
   <img src="https://github.com/Cris2907/not-so-boring-notch/actions/workflows/cicd.yml/badge.svg" alt="TheBoringNotch Build & Test" style="margin-right: 10px;" />
 </p>
 
+
+
+https://github.com/user-attachments/assets/547144cc-1b9a-48b7-af9b-3816fa0ab8e9
+
+
+
 This repository is a branch of the original **Boring Notch** by **The Boring Team**. It keeps the core design, interaction model, and overall feel of the original project in place, while adding a few features that make the app more complete without turning it into something heavier or more complicated.
 
 The focus of this branch is straightforward: preserve the original experience, keep performance responsive, keep battery usage low, and add practical improvements that fit naturally into the notch UI.
