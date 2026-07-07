@@ -1,4 +1,5 @@
 import Combine
+import Defaults
 import SwiftUI
 import XCTest
 @testable import boringNotch
@@ -389,6 +390,182 @@ final class ActivityArchitectureTests: XCTestCase {
         XCTAssertTrue(calendar.supportsConfiguration)
         XCTAssertFalse(calendar.supportsCompactPresentation)
     }
+
+    func testCalendarLiveEligibilityRequiresAnInProgressTimedEvent() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        let manager = CalendarManager(
+            currentDate: now,
+            observesEventStoreChanges: false,
+            loadsInitialData: false
+        )
+        let activity = CalendarActivity(
+            manager: manager,
+            now: { now },
+            schedulesBoundaryUpdates: false
+        )
+
+        manager.events = [makeCalendarEvent(start: now.addingTimeInterval(60), end: now.addingTimeInterval(120))]
+        XCTAssertEqual(activity.livePresentationState, .hidden)
+
+        manager.events = [makeCalendarEvent(start: now.addingTimeInterval(-60), end: now.addingTimeInterval(60), isAllDay: true)]
+        XCTAssertEqual(activity.livePresentationState, .hidden)
+
+        manager.events = [makeCalendarEvent(start: now.addingTimeInterval(-60), end: now.addingTimeInterval(60), type: .reminder(completed: false))]
+        XCTAssertEqual(activity.livePresentationState, .hidden)
+
+        manager.events = [makeCalendarEvent(start: now.addingTimeInterval(-60), end: now.addingTimeInterval(60))]
+        XCTAssertEqual(activity.livePresentationState, .visible(priority: .normal))
+        let _: AnyView = AnyView(activity.makeLivePresentationView())
+        let _: AnyView = AnyView(activity.makeMinimalLivePresentationView())
+
+        manager.events = [makeCalendarEvent(start: now.addingTimeInterval(-120), end: now)]
+        XCTAssertEqual(activity.livePresentationState, .hidden)
+    }
+
+    func testCalendarLiveSelectorUsesCurrentEventAndExactNextBoundary() throws {
+        let now = Date(timeIntervalSince1970: 10_000)
+        let current = makeCalendarEvent(
+            id: "current",
+            start: now.addingTimeInterval(-30),
+            end: now.addingTimeInterval(30)
+        )
+        let newerOverlap = makeCalendarEvent(
+            id: "newer-overlap",
+            start: now.addingTimeInterval(-10),
+            end: now.addingTimeInterval(20)
+        )
+        let upcoming = makeCalendarEvent(
+            id: "upcoming",
+            start: now.addingTimeInterval(10),
+            end: now.addingTimeInterval(40)
+        )
+
+        XCTAssertEqual(
+            CalendarLiveEventSelector.select(from: [current, newerOverlap, upcoming], at: now)?.id,
+            newerOverlap.id
+        )
+        XCTAssertEqual(
+            try XCTUnwrap(
+                CalendarLiveEventSelector.nextBoundary(
+                    in: [current, newerOverlap, upcoming],
+                    after: now
+                )
+            ),
+            upcoming.start
+        )
+    }
+
+    func testProductionPomodoroAndCalendarShareLivePresentationStack() async throws {
+        let originalShowCalendar = Defaults[.showCalendar]
+        Defaults[.showCalendar] = true
+        defer { Defaults[.showCalendar] = originalShowCalendar }
+
+        let now = Date(timeIntervalSince1970: 10_000)
+        let calendarManager = CalendarManager(
+            currentDate: now,
+            observesEventStoreChanges: false,
+            loadsInitialData: false
+        )
+        let calendar = CalendarActivity(
+            manager: calendarManager,
+            now: { now },
+            schedulesBoundaryUpdates: false
+        )
+        let suiteName = "ActivityArchitectureTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let pomodoroManager = PomodoroManager(
+            defaults: defaults,
+            now: { now },
+            configuration: { .standard },
+            managesBackgroundExecution: false
+        )
+        let registry = try ActivityRegistry {
+            calendar
+            PomodoroActivity(manager: pomodoroManager)
+        }
+        let coordinator = ActivityLivePresentationCoordinator(registry: registry)
+
+        XCTAssertEqual(registry.availableActivityIDs, [.calendar, .pomodoro])
+
+        calendarManager.events = [
+            makeCalendarEvent(
+                start: now.addingTimeInterval(-60),
+                end: now.addingTimeInterval(60)
+            )
+        ]
+        await coordinator.waitForPendingReconciliation()
+        assertStack(
+            selectedActivityLivePresentationStack(
+                from: registry.activities,
+                snapshot: coordinator.snapshot
+            ),
+            contains: [.calendar]
+        )
+
+        pomodoroManager.start()
+        await coordinator.waitForPendingReconciliation()
+        let sharedStack = selectedActivityLivePresentationStack(
+            from: registry.activities,
+            snapshot: coordinator.snapshot
+        )
+        assertStack(
+            sharedStack,
+            contains: [.calendar, .pomodoro]
+        )
+        XCTAssertEqual(
+            sharedStack.debugSelectionDescription,
+            ".split(calendar, builtin.pomodoro)"
+        )
+        XCTAssertLessThan(
+            try XCTUnwrap(coordinator.snapshot.startedSequence(for: .calendar)),
+            try XCTUnwrap(coordinator.snapshot.startedSequence(for: .pomodoro))
+        )
+
+        calendarManager.events = []
+        await coordinator.waitForPendingReconciliation()
+        assertStack(
+            selectedActivityLivePresentationStack(
+                from: registry.activities,
+                snapshot: coordinator.snapshot
+            ),
+            contains: [.pomodoro]
+        )
+        XCTAssertNil(coordinator.snapshot.startedSequence(for: .calendar))
+        XCTAssertEqual(registry.availableActivityIDs, [.calendar, .pomodoro])
+    }
+}
+
+private func makeCalendarEvent(
+    id: String = "event",
+    start: Date,
+    end: Date,
+    isAllDay: Bool = false,
+    type: EventType = .event(.accepted)
+) -> EventModel {
+    EventModel(
+        id: id,
+        start: start,
+        end: end,
+        title: "Design review",
+        location: nil,
+        notes: nil,
+        url: nil,
+        isAllDay: isAllDay,
+        type: type,
+        calendar: CalendarModel(
+            id: "calendar",
+            account: "Tests",
+            title: "Tests",
+            color: .systemRed,
+            isSubscribed: false,
+            isReminder: type.isReminder
+        ),
+        participants: [],
+        timeZone: nil,
+        hasRecurrenceRules: false,
+        priority: nil
+    )
 }
 
 @MainActor

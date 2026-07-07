@@ -102,6 +102,8 @@ The core supplies the metadata icon, physical-notch spacing, and fixed content d
 
 Pomodoro publishes a normal-priority presentation with remaining time while running, a low-priority static presentation while paused, and hides it while ready or inactive. Media remains on its existing path and is not a registered activity live presentation.
 
+Calendar publishes a normal-priority presentation only while a selected, timed calendar event is in progress. All-day items, reminders, upcoming events, and ended events remain hidden. Its full presentation shows the current event and end time; its minimal presentation shows the end time while the core stack supplies the Calendar icon and placement.
+
 ## State and lifecycle
 
 Use SwiftUI state for presentation-local state:

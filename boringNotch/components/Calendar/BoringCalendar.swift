@@ -265,6 +265,51 @@ struct EmptyEventsView: View {
     }
 }
 
+struct CalendarLivePresentationView: View {
+    @ObservedObject var manager: CalendarManager
+    let now: () -> Date
+
+    var body: some View {
+        if let event = CalendarLiveEventSelector.select(from: manager.events, at: now()) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(event.title)
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                Text(event.end, style: .time)
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundStyle(.red)
+                    .monospacedDigit()
+                    .lineLimit(1)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(
+                Text("\(event.title), ends \(event.end.formatted(date: .omitted, time: .shortened))")
+            )
+        }
+    }
+}
+
+struct CalendarMinimalLivePresentationView: View {
+    @ObservedObject var manager: CalendarManager
+    let now: () -> Date
+
+    var body: some View {
+        if let event = CalendarLiveEventSelector.select(from: manager.events, at: now()) {
+            Text(event.end, style: .time)
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(.red)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .accessibilityLabel(
+                    Text("\(event.title), ends \(event.end.formatted(date: .omitted, time: .shortened))")
+                )
+        }
+    }
+}
+
 struct EventListView: View {
     @Environment(\.openURL) private var openURL
     @ObservedObject private var calendarManager = CalendarManager.shared
