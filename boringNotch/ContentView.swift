@@ -51,8 +51,6 @@ struct ContentView: View {
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
-    private let activityLivePresentationContentWidth: CGFloat = 64
-    private let activityMinimalLivePresentationContentWidth: CGFloat = 56
 
     private var requiredWindowHeight: CGFloat {
         notchWindowHeight(for: vm.notchSize.height)
@@ -112,15 +110,7 @@ struct ContentView: View {
         for stack: ActivityLivePresentationStack
     ) -> CGFloat? {
         let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
-
-        switch stack {
-        case .none:
-            return nil
-        case .full:
-            return accessorySize + activityLivePresentationContentWidth + 20
-        case .split:
-            return 2 * (accessorySize + activityMinimalLivePresentationContentWidth) + 20
-        }
+        return stack.requiredAdditionalWidth(accessorySize: accessorySize)
     }
 
     private func closedActivityLivePresentationDisplayDescription(
@@ -483,9 +473,7 @@ struct ContentView: View {
                                 vm.notchState == .closed,
                                 !vm.hideOnClosed {
                           ClosedActivityLivePresentationStackView(
-                              stack: livePresentationStack,
-                              fullContentWidth: activityLivePresentationContentWidth,
-                              minimalContentWidth: activityMinimalLivePresentationContentWidth
+                              stack: livePresentationStack
                           )
                           .id(livePresentationStack.identity)
                           .transition(.opacity)
@@ -835,8 +823,6 @@ struct MediaMinimalLivePresentationView: View {
 
 private struct ClosedActivityLivePresentationStackView: View {
     let stack: ActivityLivePresentationStack
-    let fullContentWidth: CGFloat
-    let minimalContentWidth: CGFloat
 
     var body: some View {
         switch stack {
@@ -844,14 +830,12 @@ private struct ClosedActivityLivePresentationStackView: View {
             EmptyView()
         case .full(let activity):
             ClosedActivityFullLivePresentationView(
-                activity: activity,
-                contentWidth: fullContentWidth
+                activity: activity
             )
         case .split(let leading, let trailing):
             ClosedActivitySplitLivePresentationView(
                 leadingActivity: leading,
-                trailingActivity: trailing,
-                contentWidth: minimalContentWidth
+                trailingActivity: trailing
             )
         }
     }
@@ -861,10 +845,11 @@ private struct ClosedActivityFullLivePresentationView: View {
     @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject var activity: AnyLiveActivityPresentationProvider
 
-    let contentWidth: CGFloat
-
     var body: some View {
         let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
+        let contentWidth = activity.livePresentationSizing.fullContentWidth.resolved(
+            accessorySize: accessorySize
+        )
 
         HStack(spacing: 8) {
             activity.makeAccessoryView()
@@ -891,13 +876,10 @@ private struct ClosedActivitySplitLivePresentationView: View {
     @ObservedObject var leadingActivity: AnyLiveActivityPresentationProvider
     @ObservedObject var trailingActivity: AnyLiveActivityPresentationProvider
 
-    let contentWidth: CGFloat
-
     var body: some View {
         HStack(spacing: 8) {
             ClosedActivityMinimalLivePresentationView(
                 activity: leadingActivity,
-                contentWidth: contentWidth,
                 iconPlacement: .trailing,
                 alignment: .trailing
             )
@@ -913,7 +895,6 @@ private struct ClosedActivitySplitLivePresentationView: View {
 
             ClosedActivityMinimalLivePresentationView(
                 activity: trailingActivity,
-                contentWidth: contentWidth,
                 iconPlacement: .leading,
                 alignment: .leading
             )
@@ -926,13 +907,15 @@ private struct ClosedActivityMinimalLivePresentationView: View {
     @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject var activity: AnyLiveActivityPresentationProvider
 
-    let contentWidth: CGFloat
     let iconPlacement: ClosedActivityMinimalIconPlacement
     let alignment: Alignment
 
     var body: some View {
         let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
         let showsAccessory = activity.showsAccessoryInMinimalPresentation
+        let contentWidth = activity.livePresentationSizing.minimalContentWidth.resolved(
+            accessorySize: accessorySize
+        )
 
         HStack(spacing: showsAccessory ? 6 : 0) {
             if showsAccessory && iconPlacement == .leading {
@@ -947,7 +930,7 @@ private struct ClosedActivityMinimalLivePresentationView: View {
             }
         }
         .frame(
-            width: accessorySize + contentWidth + 6,
+            width: contentWidth + (showsAccessory ? accessorySize + 6 : 0),
             height: vm.effectiveClosedNotchHeight,
             alignment: alignment
         )

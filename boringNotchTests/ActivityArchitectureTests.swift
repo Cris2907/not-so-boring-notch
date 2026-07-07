@@ -167,6 +167,60 @@ final class ActivityArchitectureTests: XCTestCase {
         }
     }
 
+    func testSelectedLivePresentationStackReportsRequiredClosedWidth() throws {
+        let accessorySize: CGFloat = 20
+        let fullProvider = LiveTestProvider(
+            id: ActivityID("full"),
+            state: .visible(priority: .normal),
+            livePresentationSizing: LiveActivityPresentationSizing(
+                fullContentWidth: .fixed(42),
+                minimalContentWidth: .fixed(17)
+            )
+        )
+
+        let fullStack = selectedActivityLivePresentationStack(
+            from: [AnyLiveActivityPresentationProvider(fullProvider)],
+            snapshot: .empty
+        )
+
+        XCTAssertEqual(
+            fullStack.requiredAdditionalWidth(accessorySize: accessorySize),
+            accessorySize + 42 + 20
+        )
+
+        let leadingProvider = LiveTestProvider(
+            id: ActivityID("leading"),
+            state: .visible(priority: .normal),
+            livePresentationSizing: LiveActivityPresentationSizing(
+                minimalContentWidth: .fixed(30)
+            )
+        )
+        let trailingProvider = LiveTestProvider(
+            id: ActivityID("trailing"),
+            state: .visible(priority: .normal),
+            showsAccessoryInMinimalPresentation: false,
+            livePresentationSizing: LiveActivityPresentationSizing(
+                minimalContentWidth: .accessorySize
+            )
+        )
+
+        let splitStack = selectedActivityLivePresentationStack(
+            from: [
+                AnyLiveActivityPresentationProvider(leadingProvider),
+                AnyLiveActivityPresentationProvider(trailingProvider)
+            ],
+            snapshot: ActivityLivePresentationSnapshot(startedSequences: [
+                leadingProvider.id: 1,
+                trailingProvider.id: 2
+            ])
+        )
+
+        XCTAssertEqual(
+            splitStack.requiredAdditionalWidth(accessorySize: accessorySize),
+            (30 + accessorySize + 6) + accessorySize + 20
+        )
+    }
+
     func testMoreThanTwoLiveActivitiesUseTwoMostRecent() throws {
         let oldest = LiveTestActivity(id: "oldest", state: .visible(priority: .normal))
         let newest = LiveTestActivity(id: "newest", state: .visible(priority: .normal))
@@ -663,15 +717,21 @@ private final class LiveTestActivity: NotchActivity {
 private final class LiveTestProvider: LiveActivityPresentationProvider {
     let id: ActivityID
     let name: String
+    let showsAccessoryInMinimalPresentation: Bool
+    let livePresentationSizing: LiveActivityPresentationSizing
     @Published var livePresentationState: ActivityLivePresentationState
 
     init(
         id: ActivityID,
-        state: ActivityLivePresentationState = .hidden
+        state: ActivityLivePresentationState = .hidden,
+        showsAccessoryInMinimalPresentation: Bool = true,
+        livePresentationSizing: LiveActivityPresentationSizing = LiveActivityPresentationSizing()
     ) {
         self.id = id
         name = id.rawValue
         livePresentationState = state
+        self.showsAccessoryInMinimalPresentation = showsAccessoryInMinimalPresentation
+        self.livePresentationSizing = livePresentationSizing
     }
 
     func makeAccessoryView() -> some View {

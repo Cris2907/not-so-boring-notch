@@ -58,6 +58,33 @@ enum ActivityLivePresentationState: Equatable, Sendable {
     }
 }
 
+enum LiveActivityPresentationWidth: Equatable, Sendable {
+    case fixed(CGFloat)
+    case accessorySize
+
+    func resolved(accessorySize: CGFloat) -> CGFloat {
+        switch self {
+        case .fixed(let width):
+            return max(0, width)
+        case .accessorySize:
+            return max(0, accessorySize)
+        }
+    }
+}
+
+struct LiveActivityPresentationSizing: Equatable, Sendable {
+    let fullContentWidth: LiveActivityPresentationWidth
+    let minimalContentWidth: LiveActivityPresentationWidth
+
+    init(
+        fullContentWidth: LiveActivityPresentationWidth = .fixed(64),
+        minimalContentWidth: LiveActivityPresentationWidth = .fixed(56)
+    ) {
+        self.fullContentWidth = fullContentWidth
+        self.minimalContentWidth = minimalContentWidth
+    }
+}
+
 @MainActor
 protocol NotchActivity: ObservableObject {
     associatedtype ExpandedContent: View
@@ -187,6 +214,7 @@ protocol LiveActivityPresentationProvider: ObservableObject {
     var name: String { get }
     var livePresentationState: ActivityLivePresentationState { get }
     var showsAccessoryInMinimalPresentation: Bool { get }
+    var livePresentationSizing: LiveActivityPresentationSizing { get }
 
     @ViewBuilder func makeAccessoryView() -> AccessoryContent
     @ViewBuilder func makeFullView() -> FullContent
@@ -195,6 +223,9 @@ protocol LiveActivityPresentationProvider: ObservableObject {
 
 extension LiveActivityPresentationProvider {
     var showsAccessoryInMinimalPresentation: Bool { true }
+    var livePresentationSizing: LiveActivityPresentationSizing {
+        LiveActivityPresentationSizing()
+    }
 }
 
 @MainActor
@@ -206,6 +237,7 @@ final class AnyLiveActivityPresentationProvider: ObservableObject, Identifiable 
 
     private let presentationState: () -> ActivityLivePresentationState
     private let minimalPresentationAccessoryVisibility: () -> Bool
+    private let presentationSizing: () -> LiveActivityPresentationSizing
     private let accessoryView: () -> AnyView
     private let fullView: () -> AnyView
     private let minimalView: () -> AnyView
@@ -216,6 +248,7 @@ final class AnyLiveActivityPresentationProvider: ObservableObject, Identifiable 
         name = provider.name
         presentationState = { provider.livePresentationState }
         minimalPresentationAccessoryVisibility = { provider.showsAccessoryInMinimalPresentation }
+        presentationSizing = { provider.livePresentationSizing }
         accessoryView = { AnyView(provider.makeAccessoryView()) }
         fullView = { AnyView(provider.makeFullView()) }
         minimalView = { AnyView(provider.makeMinimalView()) }
@@ -231,6 +264,7 @@ final class AnyLiveActivityPresentationProvider: ObservableObject, Identifiable 
             activity.isAvailable ? activity.livePresentationState : .hidden
         }
         minimalPresentationAccessoryVisibility = { true }
+        presentationSizing = { LiveActivityPresentationSizing() }
         accessoryView = {
             AnyView(
                 Image(systemName: activity.metadata.systemImage)
@@ -248,6 +282,7 @@ final class AnyLiveActivityPresentationProvider: ObservableObject, Identifiable 
 
     var livePresentationState: ActivityLivePresentationState { presentationState() }
     var showsAccessoryInMinimalPresentation: Bool { minimalPresentationAccessoryVisibility() }
+    var livePresentationSizing: LiveActivityPresentationSizing { presentationSizing() }
 
     func makeAccessoryView() -> AnyView { accessoryView() }
     func makeFullView() -> AnyView { fullView() }
@@ -296,6 +331,10 @@ final class TimeLiveActivityProvider: LiveActivityPresentationProvider {
     let id = ActivityID.time
     let name = "Timer"
     let showsAccessoryInMinimalPresentation = false
+    let livePresentationSizing = LiveActivityPresentationSizing(
+        fullContentWidth: .fixed(closedTimeActivityMinimumTextWidth),
+        minimalContentWidth: .fixed(closedTimeActivityMinimumTextWidth)
+    )
 
     private let manager: TimeActivityManager
     @Published private var isEnabled: Bool
@@ -358,6 +397,9 @@ final class MediaLiveActivityProvider: LiveActivityPresentationProvider {
     let id = ActivityID.media
     let name = "Media"
     let showsAccessoryInMinimalPresentation = false
+    let livePresentationSizing = LiveActivityPresentationSizing(
+        minimalContentWidth: .accessorySize
+    )
 
     private let manager: MusicManager
     private let coordinator: BoringViewCoordinator
@@ -559,6 +601,36 @@ enum ActivityLivePresentationStack {
         case .split(let leading, let trailing):
             return ".split(\(leading.id.rawValue), \(trailing.id.rawValue))"
         }
+    }
+
+    @MainActor
+    func requiredAdditionalWidth(accessorySize: CGFloat) -> CGFloat? {
+        switch self {
+        case .none:
+            return nil
+        case .full(let activity):
+            return accessorySize
+                + activity.livePresentationSizing.fullContentWidth.resolved(
+                    accessorySize: accessorySize
+                )
+                + 20
+        case .split(let leading, let trailing):
+            return minimalPresentationWidth(
+                for: leading,
+                accessorySize: accessorySize
+            )
+                + minimalPresentationWidth(for: trailing, accessorySize: accessorySize)
+                + 20
+        }
+    }
+
+    @MainActor
+    private func minimalPresentationWidth(
+        for activity: AnyLiveActivityPresentationProvider,
+        accessorySize: CGFloat
+    ) -> CGFloat {
+        activity.livePresentationSizing.minimalContentWidth.resolved(accessorySize: accessorySize)
+            + (activity.showsAccessoryInMinimalPresentation ? accessorySize + 6 : 0)
     }
 }
 
