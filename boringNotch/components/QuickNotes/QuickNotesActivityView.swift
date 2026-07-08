@@ -4,10 +4,12 @@ import AppKit
 
 private let quickNotesOpenNotchHeightPadding: CGFloat = 26
 private let quickNotesEditorMinimumLineCount = 3
+private let quickNotesExpandedBottomMargin: CGFloat = 20
 
 struct QuickNotesActivityView: View {
     @ObservedObject var manager: QuickNotesManager
     @State private var editorTextHeight: CGFloat = 54
+    @State private var limitShakeTrigger = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -23,15 +25,21 @@ struct QuickNotesActivityView: View {
                 Spacer()
 
                 Button(role: .destructive, action: manager.clear) {
-                    Label("Clear note", systemImage: "trash")
+                    Image(systemName: "trash")
+                        .foregroundStyle(.red)
                 }
                 .buttonStyle(.borderless)
                 .disabled(manager.note.isEmpty)
                 .help("Clear note")
+                .accessibilityLabel("Clear note")
             }
 
             ZStack(alignment: .bottomLeading) {
-                QuickNotesGrowingTextView(text: noteBinding, textHeight: $editorTextHeight)
+                QuickNotesGrowingTextView(
+                    text: noteBinding,
+                    textHeight: $editorTextHeight,
+                    onLimitExceeded: triggerLimitShake
+                )
                     .frame(height: editorTextHeight)
                     .padding(.horizontal, 10)
                     .padding(.top, 9)
@@ -64,9 +72,11 @@ struct QuickNotesActivityView: View {
                 RoundedRectangle(cornerRadius: 9)
                     .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 }
+            .modifier(QuickNotesLimitShakeEffect(trigger: limitShakeTrigger))
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 8)
+        .padding(.bottom, quickNotesExpandedBottomMargin)
         .fixedSize(horizontal: false, vertical: true)
         .background {
             GeometryReader { proxy in
@@ -98,11 +108,35 @@ struct QuickNotesActivityView: View {
             return .secondary
         }
     }
+
+    private func triggerLimitShake() {
+        withAnimation(.linear(duration: 0.28)) {
+            limitShakeTrigger += 1
+        }
+    }
+}
+
+private struct QuickNotesLimitShakeEffect: GeometryEffect {
+    var animatableData: CGFloat
+
+    init(trigger: Int) {
+        animatableData = CGFloat(trigger)
+    }
+
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        ProjectionTransform(
+            CGAffineTransform(
+                translationX: sin(animatableData * .pi * 6) * 4,
+                y: 0
+            )
+        )
+    }
 }
 
 private struct QuickNotesGrowingTextView: NSViewRepresentable {
     @Binding var text: String
     @Binding var textHeight: CGFloat
+    let onLimitExceeded: () -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -163,8 +197,15 @@ private struct QuickNotesGrowingTextView: NSViewRepresentable {
 
             textView.string = limitedValue
             parent.text = limitedValue
+            parent.onLimitExceeded()
             textView.setSelectedRange(
-                NSRange(location: min((limitedValue as NSString).length, affectedCharRange.location + replacement.count), length: 0)
+                NSRange(
+                    location: min(
+                        (limitedValue as NSString).length,
+                        affectedCharRange.location + (replacement as NSString).length
+                    ),
+                    length: 0
+                )
             )
             updateHeight(for: textView)
             return false
@@ -176,6 +217,7 @@ private struct QuickNotesGrowingTextView: NSViewRepresentable {
 
             if textView.string != limitedValue {
                 textView.string = limitedValue
+                parent.onLimitExceeded()
             }
 
             parent.text = limitedValue
