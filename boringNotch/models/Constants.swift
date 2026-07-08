@@ -160,6 +160,12 @@ extension Defaults.Keys {
         "pomodoroAutoStartNextSession",
         default: false
     )
+
+    // MARK: Quick Notes
+    static let quickNotesShowContentInLivePreview = Key<Bool>(
+        "quickNotesShowContentInLivePreview",
+        default: true
+    )
     
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)

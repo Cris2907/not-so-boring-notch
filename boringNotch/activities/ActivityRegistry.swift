@@ -96,6 +96,7 @@ final class ActivityRegistry: ObservableObject {
             return try ActivityRegistry(enablementStore: .shared) {
                 CalendarActivity()
                 PomodoroActivity()
+                QuickNotesActivity()
             }
         } catch {
             preconditionFailure("Invalid default activity registry: \(error)")

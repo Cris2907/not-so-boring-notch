@@ -161,6 +161,10 @@
 		C1A200032F00000100000001 /* PomodoroManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A200132F00000100000001 /* PomodoroManager.swift */; };
 		C1A200042F00000100000001 /* PomodoroActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A200142F00000100000001 /* PomodoroActivityView.swift */; };
 		C1A200052F00000100000001 /* PomodoroActivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A200152F00000100000001 /* PomodoroActivityTests.swift */; };
+		C1A300012F00000100000001 /* QuickNotesActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A300112F00000100000001 /* QuickNotesActivity.swift */; };
+		C1A300022F00000100000001 /* QuickNotesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A300122F00000100000001 /* QuickNotesManager.swift */; };
+		C1A300032F00000100000001 /* QuickNotesActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A300132F00000100000001 /* QuickNotesActivityView.swift */; };
+		C1A300042F00000100000001 /* QuickNotesActivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A300142F00000100000001 /* QuickNotesActivityTests.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -354,6 +358,10 @@
 		C1A200132F00000100000001 /* PomodoroManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroManager.swift; sourceTree = "<group>"; };
 		C1A200142F00000100000001 /* PomodoroActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroActivityView.swift; sourceTree = "<group>"; };
 		C1A200152F00000100000001 /* PomodoroActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroActivityTests.swift; sourceTree = "<group>"; };
+		C1A300112F00000100000001 /* QuickNotesActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickNotesActivity.swift; sourceTree = "<group>"; };
+		C1A300122F00000100000001 /* QuickNotesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickNotesManager.swift; sourceTree = "<group>"; };
+		C1A300132F00000100000001 /* QuickNotesActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickNotesActivityView.swift; sourceTree = "<group>"; };
+		C1A300142F00000100000001 /* QuickNotesActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickNotesActivityTests.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -540,6 +548,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				C1A300202F00000100000001 /* QuickNotes */,
 				C1A200202F00000100000001 /* Pomodoro */,
 				A10000070000000000000001 /* Time */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
@@ -566,6 +575,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				C1A300122F00000100000001 /* QuickNotesManager.swift */,
 				C1A200132F00000100000001 /* PomodoroManager.swift */,
 				A10000030000000000000001 /* TimeActivityManager.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
@@ -735,6 +745,7 @@
 		A10000130000000000000001 /* boringNotchTests */ = {
 			isa = PBXGroup;
 			children = (
+				C1A300142F00000100000001 /* QuickNotesActivityTests.swift */,
 				C1A200152F00000100000001 /* PomodoroActivityTests.swift */,
 				C1A100142F00000100000001 /* ActivityArchitectureTests.swift */,
 				A10000100000000000000001 /* TimeActivityTests.swift */,
@@ -851,6 +862,7 @@
 				C1A100132F00000100000001 /* ExampleActivity.swift */,
 				C1A100152F00000100000001 /* CalendarActivity.swift */,
 				C1A200112F00000100000001 /* PomodoroActivity.swift */,
+				C1A300112F00000100000001 /* QuickNotesActivity.swift */,
 			);
 			path = activities;
 			sourceTree = "<group>";
@@ -861,6 +873,14 @@
 				C1A200142F00000100000001 /* PomodoroActivityView.swift */,
 			);
 			path = Pomodoro;
+			sourceTree = "<group>";
+		};
+		C1A300202F00000100000001 /* QuickNotes */ = {
+			isa = PBXGroup;
+			children = (
+				C1A300132F00000100000001 /* QuickNotesActivityView.swift */,
+			);
+			path = QuickNotes;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1043,6 +1063,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1A300012F00000100000001 /* QuickNotesActivity.swift in Sources */,
+				C1A300022F00000100000001 /* QuickNotesManager.swift in Sources */,
+				C1A300032F00000100000001 /* QuickNotesActivityView.swift in Sources */,
 				C1A200012F00000100000001 /* PomodoroActivity.swift in Sources */,
 				C1A200022F00000100000001 /* PomodoroSession.swift in Sources */,
 				C1A200032F00000100000001 /* PomodoroManager.swift in Sources */,
@@ -1179,6 +1202,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1A300042F00000100000001 /* QuickNotesActivityTests.swift in Sources */,
 				C1A200052F00000100000001 /* PomodoroActivityTests.swift in Sources */,
 				C1A100042F00000100000001 /* ActivityArchitectureTests.swift in Sources */,
 				A10000110000000000000001 /* TimeActivityTests.swift in Sources */,

@@ -342,6 +342,7 @@ The app deployment target is macOS 14. Verify every API and SF Symbol against th
 | Feature | Dedicated tab | Complete chin | One-side chin | Notes |
 | --- | --- | --- | --- | --- |
 | Pomodoro | Yes, `.activity(.pomodoro)` | Remaining time and paused state | Automatic red Timer accessory; custom minimal content is currently empty | Meets the three code paths, but showing a short dynamic value in the minimal view would align more closely with Apple's minimal-presentation guidance |
+| Quick Notes | Yes, `.activity(.quickNotes)` | Single-line note preview or private saved status | Narrow saved status | Production registered; note content is locally persisted and live-eligible only while meaningful content exists |
 | Calendar | Yes when `showCalendar` is enabled | No | No | Registered and configurable, but expanded-only; it does not meet the required three-presentation contract yet |
 | Example | Only if temporarily registered | No | No | Demonstrates basic type conformance and compact capability; not production registered and not a complete template for a new activity |
 | Timer/Stopwatch | Shared legacy `.activities` page, not a registered activity | Yes through `TimeLiveActivityProvider` | Accessory only | Additional provider, ID `builtin.time`; visibility also depends on `clockShowInClosedNotch` |

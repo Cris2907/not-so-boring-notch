@@ -16448,6 +16448,48 @@
         }
       }
     },
+    "Changes are saved automatically." : {
+
+    },
+    "Clear note" : {
+
+    },
+    "Closed notch" : {
+
+    },
+    "Keep a short note close at hand." : {
+
+    },
+    "Note saved" : {
+
+    },
+    "Quick Note saved" : {
+
+    },
+    "Quick Note saved; content hidden" : {
+
+    },
+    "Quick Note: %@" : {
+
+    },
+    "Quick note" : {
+
+    },
+    "Quick Notes" : {
+
+    },
+    "Saved" : {
+
+    },
+    "Show note content when the notch is closed" : {
+
+    },
+    "This change takes effect immediately. When off, the full presentation shows only that a note is saved. The minimal presentation never displays note content." : {
+
+    },
+    "Write a quick note…" : {
+
+    },
     "Pomodoro" : {
 
     },
