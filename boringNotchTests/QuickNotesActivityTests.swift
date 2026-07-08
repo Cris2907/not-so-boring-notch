@@ -41,7 +41,7 @@ final class QuickNotesActivityTests: XCTestCase {
                 minimalContentWidth: .fixed(42)
             )
         )
-        XCTAssertTrue(activity.supportsConfiguration)
+        XCTAssertFalse(activity.supportsConfiguration)
         XCTAssertTrue(activity.isAvailable)
     }
 
@@ -69,7 +69,7 @@ final class QuickNotesActivityTests: XCTestCase {
             ),
             .home
         )
-        XCTAssertTrue(registry.activity(for: .quickNotes)?.supportsConfiguration == true)
+        XCTAssertTrue(registry.activity(for: .quickNotes)?.supportsConfiguration == false)
     }
 
     func testContentPersistsExactlyAndClearRemovesIt() {

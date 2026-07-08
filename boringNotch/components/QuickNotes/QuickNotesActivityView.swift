@@ -313,20 +313,3 @@ struct QuickNotesMinimalLivePresentationView: View {
     }
 }
 
-struct QuickNotesSettingsView: View {
-    var body: some View {
-        Form {
-            Section {
-                Defaults.Toggle(key: .quickNotesShowContentInLivePreview) {
-                    Text("Show note content when the notch is closed")
-                }
-            } header: {
-                Text("Closed notch")
-            } footer: {
-                Text("This change takes effect immediately. When off, the full presentation shows only that a note is saved. The minimal presentation never displays note content.")
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .navigationTitle("Quick Notes")
-    }
-}

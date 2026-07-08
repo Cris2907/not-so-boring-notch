@@ -5556,9 +5556,6 @@
         }
       }
     },
-    "Closed notch" : {
-
-    },
     "Closed Notch" : {
       "localizations" : {
         "ar" : {
@@ -7480,7 +7477,7 @@
         }
       }
     },
-    "Disabled extensions are hidden from the open notch. Turn off the chin toggle to keep an extension available without showing it in the closed notch." : {
+    "Disabled extensions are hidden from the open notch. Extensions with a chin toggle can stay available without showing in the closed notch." : {
 
     },
     "Dismiss" : {
@@ -19848,9 +19845,6 @@
         }
       }
     },
-    "Show note content when the notch is closed" : {
-
-    },
     "Show on all displays" : {
       "localizations" : {
         "ar" : {
@@ -21491,9 +21485,6 @@
           }
         }
       }
-    },
-    "This change takes effect immediately. When off, the full presentation shows only that a note is saved. The minimal presentation never displays note content." : {
-
     },
     "Time activity" : {
       "extractionState" : "manual"

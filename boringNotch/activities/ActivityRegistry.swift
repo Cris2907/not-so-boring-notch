@@ -92,8 +92,16 @@ final class ActivityEnablementStore: ObservableObject {
 @MainActor
 final class ActivityChinVisibilityStore: ObservableObject {
     static let shared: ActivityChinVisibilityStore = {
+        var hiddenActivityIDs = Set(Defaults[.activityIDsHiddenFromChin].map { ActivityID($0) })
+        hiddenActivityIDs.insert(.quickNotes)
+
+        let persistedHiddenActivityIDs = hiddenActivityIDs.map(\.rawValue).sorted()
+        if Defaults[.activityIDsHiddenFromChin] != persistedHiddenActivityIDs {
+            Defaults[.activityIDsHiddenFromChin] = persistedHiddenActivityIDs
+        }
+
         let store = ActivityChinVisibilityStore(
-            hiddenActivityIDs: Set(Defaults[.activityIDsHiddenFromChin].map { ActivityID($0) }),
+            hiddenActivityIDs: hiddenActivityIDs,
             persist: { hiddenActivityIDs in
                 Defaults[.activityIDsHiddenFromChin] = hiddenActivityIDs
             }

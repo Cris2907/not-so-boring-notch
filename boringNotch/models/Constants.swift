@@ -71,7 +71,10 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
 extension Defaults.Keys {
     // MARK: Extensions
     static let disabledActivityIDs = Key<[String]>("disabledActivityIDs", default: [])
-    static let activityIDsHiddenFromChin = Key<[String]>("activityIDsHiddenFromChin", default: [])
+    static let activityIDsHiddenFromChin = Key<[String]>(
+        "activityIDsHiddenFromChin",
+        default: [ActivityID.quickNotes.rawValue]
+    )
 
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)

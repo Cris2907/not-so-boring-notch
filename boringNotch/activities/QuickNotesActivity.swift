@@ -38,8 +38,6 @@ final class QuickNotesActivity: NotchActivity {
         minimalContentWidth: .fixed(42)
     )
 
-    var supportsConfiguration: Bool { true }
-
     func makeExpandedView() -> some View {
         QuickNotesActivityView(manager: manager)
     }
@@ -50,9 +48,5 @@ final class QuickNotesActivity: NotchActivity {
 
     func makeMinimalLivePresentationView() -> some View {
         QuickNotesMinimalLivePresentationView(manager: manager)
-    }
-
-    func makeConfigurationView() -> some View {
-        QuickNotesSettingsView()
     }
 }
