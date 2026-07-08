@@ -66,68 +66,76 @@ final class HorizontalSwipeAccumulatorTests: XCTestCase {
     }
 
     func testInvertedNavigationMovesWithTabOrderAndIncludesCalendarAndShelf() {
-        XCTAssertEqual(destination(from: .home, direction: .left), .calendar)
-        XCTAssertEqual(destination(from: .calendar, direction: .left), .activities)
+        XCTAssertEqual(destination(from: .home, direction: .left), .activity(.calendar))
+        XCTAssertEqual(destination(from: .activity(.calendar), direction: .left), .activities)
         XCTAssertEqual(destination(from: .activities, direction: .left), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .right), .activities)
-        XCTAssertEqual(destination(from: .activities, direction: .right), .calendar)
-        XCTAssertEqual(destination(from: .calendar, direction: .right), .home)
+        XCTAssertEqual(destination(from: .activities, direction: .right), .activity(.calendar))
+        XCTAssertEqual(destination(from: .activity(.calendar), direction: .right), .home)
         XCTAssertEqual(destination(from: .home, direction: .right), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .left), .home)
     }
 
     func testNonInvertedNavigationReversesPhysicalMapping() {
-        XCTAssertEqual(destination(from: .home, direction: .right, isInverted: false), .calendar)
-        XCTAssertEqual(destination(from: .calendar, direction: .right, isInverted: false), .activities)
+        XCTAssertEqual(destination(from: .home, direction: .right, isInverted: false), .activity(.calendar))
+        XCTAssertEqual(destination(from: .activity(.calendar), direction: .right, isInverted: false), .activities)
         XCTAssertEqual(destination(from: .activities, direction: .right, isInverted: false), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .left, isInverted: false), .activities)
-        XCTAssertEqual(destination(from: .activities, direction: .left, isInverted: false), .calendar)
-        XCTAssertEqual(destination(from: .calendar, direction: .left, isInverted: false), .home)
+        XCTAssertEqual(destination(from: .activities, direction: .left, isInverted: false), .activity(.calendar))
+        XCTAssertEqual(destination(from: .activity(.calendar), direction: .left, isInverted: false), .home)
         XCTAssertEqual(destination(from: .home, direction: .left, isInverted: false), .shelf)
         XCTAssertEqual(destination(from: .shelf, direction: .right, isInverted: false), .home)
     }
 
     func testShelfIsSkippedWhenDisabled() {
-        XCTAssertEqual(destination(from: .home, direction: .left, includesShelf: false), .calendar)
-        XCTAssertEqual(destination(from: .calendar, direction: .left, includesShelf: false), .activities)
+        XCTAssertEqual(destination(from: .home, direction: .left, includesShelf: false), .activity(.calendar))
+        XCTAssertEqual(destination(from: .activity(.calendar), direction: .left, includesShelf: false), .activities)
         XCTAssertEqual(destination(from: .activities, direction: .left, includesShelf: false), .home)
-        XCTAssertEqual(destination(from: .activities, direction: .right, includesShelf: false), .calendar)
+        XCTAssertEqual(destination(from: .activities, direction: .right, includesShelf: false), .activity(.calendar))
         XCTAssertNil(destination(from: .shelf, direction: .right, includesShelf: false))
     }
 
     func testCalendarIsSkippedWhenDisabled() {
-        XCTAssertEqual(destination(from: .home, direction: .left, includesCalendar: false), .activities)
-        XCTAssertEqual(destination(from: .activities, direction: .right, includesCalendar: false), .home)
-        XCTAssertNil(destination(from: .calendar, direction: .left, includesCalendar: false))
+        XCTAssertEqual(destination(from: .home, direction: .left, availableActivityIDs: []), .activities)
+        XCTAssertEqual(destination(from: .activities, direction: .right, availableActivityIDs: []), .home)
+        XCTAssertNil(destination(from: .activity(.calendar), direction: .left, availableActivityIDs: []))
     }
 
     func testVisibleNotchViewOrderForFeatureCombinations() {
         XCTAssertEqual(
-            visibleNotchViews(showCalendar: true, includesShelf: true),
-            [.home, .calendar, .activities, .shelf]
+            visibleNotchViews(availableActivityIDs: [.calendar], includesShelf: true),
+            [.home, .activity(.calendar), .activities, .shelf]
         )
         XCTAssertEqual(
-            visibleNotchViews(showCalendar: false, includesShelf: true),
+            visibleNotchViews(availableActivityIDs: [], includesShelf: true),
             [.home, .activities, .shelf]
         )
         XCTAssertEqual(
-            visibleNotchViews(showCalendar: true, includesShelf: false),
-            [.home, .calendar, .activities]
+            visibleNotchViews(availableActivityIDs: [.calendar], includesShelf: false),
+            [.home, .activity(.calendar), .activities]
         )
         XCTAssertEqual(
-            visibleNotchViews(showCalendar: false, includesShelf: false),
+            visibleNotchViews(availableActivityIDs: [], includesShelf: false),
             [.home, .activities]
         )
     }
 
     func testHiddenCurrentPageFallsBackToHome() {
         XCTAssertEqual(
-            resolvedNotchView(.calendar, showCalendar: false, includesShelf: true),
+            resolvedNotchView(
+                .activity(.calendar),
+                availableActivityIDs: [],
+                includesShelf: true
+            ),
             .home
         )
         XCTAssertEqual(
-            resolvedNotchView(.calendar, showCalendar: true, includesShelf: true),
-            .calendar
+            resolvedNotchView(
+                .activity(.calendar),
+                availableActivityIDs: [.calendar],
+                includesShelf: true
+            ),
+            .activity(.calendar)
         )
     }
 
@@ -135,14 +143,14 @@ final class HorizontalSwipeAccumulatorTests: XCTestCase {
         from currentView: NotchViews,
         direction: HorizontalSwipeDirection,
         isInverted: Bool = true,
-        includesCalendar: Bool = true,
+        availableActivityIDs: [ActivityID] = [.calendar],
         includesShelf: Bool = true
     ) -> NotchViews? {
         horizontalSwipeDestination(
             from: currentView,
             direction: direction,
             isInverted: isInverted,
-            includesCalendar: includesCalendar,
+            availableActivityIDs: availableActivityIDs,
             includesShelf: includesShelf
         )
     }

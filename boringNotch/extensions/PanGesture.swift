@@ -71,11 +71,11 @@ func horizontalSwipeDestination(
     from currentView: NotchViews,
     direction: HorizontalSwipeDirection,
     isInverted: Bool,
-    includesCalendar: Bool,
+    availableActivityIDs: [ActivityID],
     includesShelf: Bool
 ) -> NotchViews? {
     let orderedViews = visibleNotchViews(
-        showCalendar: includesCalendar,
+        availableActivityIDs: availableActivityIDs,
         includesShelf: includesShelf
     )
     guard let currentIndex = orderedViews.firstIndex(of: currentView) else { return nil }
@@ -117,6 +117,14 @@ extension View {
         )
     }
 
+    func excludesHorizontalTrackpadNavigation(_ isEnabled: Bool) -> some View {
+        background {
+            if isEnabled {
+                HorizontalTrackpadNavigationExclusionRegion()
+            }
+        }
+    }
+
     /// Handles precise horizontal scrolling only while Option is held. This keeps
     /// the gesture separate from normal two-finger tab navigation.
     func optionHorizontalTrackpadSwipe(
@@ -131,6 +139,44 @@ extension View {
                 action: action
             )
         )
+    }
+}
+
+@MainActor
+private final class HorizontalTrackpadNavigationExclusionRegistry {
+    static let shared = HorizontalTrackpadNavigationExclusionRegistry()
+
+    private let views = NSHashTable<NSView>.weakObjects()
+
+    func add(_ view: NSView) {
+        views.add(view)
+    }
+
+    func remove(_ view: NSView) {
+        views.remove(view)
+    }
+
+    func contains(_ event: NSEvent) -> Bool {
+        views.allObjects.contains { view in
+            guard view.window === event.window, !view.isHidden, view.alphaValue > 0 else {
+                return false
+            }
+            return view.bounds.contains(view.convert(event.locationInWindow, from: nil))
+        }
+    }
+}
+
+private struct HorizontalTrackpadNavigationExclusionRegion: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        HorizontalTrackpadNavigationExclusionRegistry.shared.add(view)
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    static func dismantleNSView(_ nsView: NSView, coordinator: ()) {
+        HorizontalTrackpadNavigationExclusionRegistry.shared.remove(nsView)
     }
 }
 
@@ -369,6 +415,11 @@ private struct HorizontalTrackpadSwipeMonitor: NSViewRepresentable {
         }
 
         private func handleScroll(_ event: NSEvent) {
+            if HorizontalTrackpadNavigationExclusionRegistry.shared.contains(event) {
+                finishGesture()
+                return
+            }
+
             if event.phase == .ended || event.momentumPhase == .ended {
                 finishGesture()
                 return

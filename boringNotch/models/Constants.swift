@@ -69,6 +69,9 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
 }
 
 extension Defaults.Keys {
+    // MARK: Extensions
+    static let disabledActivityIDs = Key<[String]>("disabledActivityIDs", default: [])
+
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
@@ -79,6 +82,7 @@ extension Defaults.Keys {
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
     static let enableHaptics = Key<Bool>("enableHaptics", default: true)
     static let openNotchOnHover = Key<Bool>("openNotchOnHover", default: true)
+    static let openMediaTabOnChinHover = Key<Bool>("openMediaTabOnChinHover", default: true)
     static let extendHoverArea = Key<Bool>("extendHoverArea", default: false)
     static let notchHeightMode = Key<WindowHeightMode>(
         "notchHeightMode",
@@ -134,6 +138,28 @@ extension Defaults.Keys {
     static let timerSwipeInertia = Key<Bool>("timerSwipeInertia", default: true)
     static let timerSwipeSensitivity = Key<CGFloat>("timerSwipeSensitivity", default: 18)
     static let stopwatchShowCentiseconds = Key<Bool>("stopwatchShowCentiseconds", default: true)
+
+    // MARK: Pomodoro
+    static let pomodoroFocusMinutes = Key<Int>(
+        "pomodoroFocusMinutes",
+        default: PomodoroConfiguration.defaultFocusMinutes
+    )
+    static let pomodoroShortBreakMinutes = Key<Int>(
+        "pomodoroShortBreakMinutes",
+        default: PomodoroConfiguration.defaultShortBreakMinutes
+    )
+    static let pomodoroLongBreakMinutes = Key<Int>(
+        "pomodoroLongBreakMinutes",
+        default: PomodoroConfiguration.defaultLongBreakMinutes
+    )
+    static let pomodoroFocusSessionsBeforeLongBreak = Key<Int>(
+        "pomodoroFocusSessionsBeforeLongBreak",
+        default: PomodoroConfiguration.defaultFocusSessionsBeforeLongBreak
+    )
+    static let pomodoroAutoStartNextSession = Key<Bool>(
+        "pomodoroAutoStartNextSession",
+        default: false
+    )
     
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)

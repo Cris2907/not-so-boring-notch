@@ -408,101 +408,38 @@ private struct TimerRuler: View {
     }
 }
 
-struct ClosedTimeActivityView: View {
-    @EnvironmentObject private var vm: BoringViewModel
-    @ObservedObject private var manager = TimeActivityManager.shared
-    @ObservedObject private var musicManager = MusicManager.shared
-    @ObservedObject private var coordinator = BoringViewCoordinator.shared
-
-    let showMedia: Bool
-    let albumArtNamespace: Namespace.ID
+struct TimeLivePresentationAccessoryView: View {
+    @ObservedObject var manager: TimeActivityManager
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: updateInterval)) { timeline in
-            compactActivity(at: timeline.date)
-            .frame(height: vm.effectiveClosedNotchHeight)
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(closedAccessibilityLabel(at: timeline.date))
-        }
-    }
-
-    private var mediaAccessoryWidth: CGFloat {
-        max(0, vm.effectiveClosedNotchHeight - 12)
-    }
-
-    private func compactActivity(at date: Date) -> some View {
-        HStack(spacing: 8) {
-            leftActivity(at: date)
-                .frame(width: mediaAccessoryWidth, alignment: .trailing)
-                .contentShape(Rectangle())
-                .onHover { hovering in
-                    if hovering && showMedia {
-                        coordinator.currentView = .home
-                    }
-                }
-
-            Rectangle()
-                .fill(.black)
-                .frame(width: max(0, vm.closedNotchSize.width - cornerRadiusInsets.closed.top))
-
-            Group {
-                if showMedia {
-                    compactTimeActivity(at: date)
-                        .frame(width: mediaAccessoryWidth, alignment: .center)
-                } else {
-                    compactTimeActivity(at: date)
-                        .padding(.leading, 8)
-                        .fixedSize(horizontal: true, vertical: false)
-                        .frame(minWidth: closedTimeActivityMinimumTextWidth, alignment: .leading)
-                }
-            }
-            .contentShape(Rectangle())
-            .onHover { hovering in
-                if hovering && showMedia {
-                    coordinator.currentView = .activities
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func leftActivity(at date: Date) -> some View {
-        if showMedia {
-            Image(nsImage: musicManager.albumArt)
-                .resizable()
-                .scaledToFill()
-                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                .frame(
-                    width: max(0, vm.effectiveClosedNotchHeight - 12),
-                    height: max(0, vm.effectiveClosedNotchHeight - 12)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed))
-                .accessibilityLabel("Media activity")
-        } else if let snapshot = manager.snapshot {
+        if let snapshot = manager.snapshot {
             Image(systemName: snapshot.kind == .timer ? "timer" : "stopwatch.fill")
                 .font(.system(size: 18, weight: .medium))
                 .foregroundStyle(.orange)
+                .accessibilityHidden(true)
         }
     }
+}
 
-    @ViewBuilder
-    private func compactTimeActivity(at date: Date) -> some View {
-        if let snapshot = manager.snapshot {
-            if !showMedia {
-                Text(compactText(for: snapshot, at: date))
+struct TimeLivePresentationView: View {
+    @ObservedObject var manager: TimeActivityManager
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: updateInterval)) { timeline in
+            if let snapshot = manager.snapshot, snapshot.phase != .finished {
+                Text(TimeLivePresentationFormatter.text(for: snapshot, at: timeline.date))
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(.orange)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.75)
                     .contentTransition(.numericText())
-            } else if snapshot.phase == .finished {
-                Image(systemName: "timer")
-                    .foregroundStyle(.orange)
-            } else if snapshot.kind == .timer {
-                TimeProgressRing(snapshot: snapshot, date: date)
-            } else {
-                Image(systemName: "stopwatch.fill")
-                    .foregroundStyle(.orange)
+                    .accessibilityLabel(
+                        TimeLivePresentationFormatter.accessibilityLabel(
+                            for: snapshot,
+                            at: timeline.date
+                        )
+                    )
             }
         }
     }
@@ -511,19 +448,75 @@ struct ClosedTimeActivityView: View {
         guard let snapshot = manager.snapshot, snapshot.phase == .running else { return nil }
         return snapshot.kind == .stopwatch ? 0.1 : 0.25
     }
+}
 
-    private func compactText(for snapshot: TimeActivitySnapshot, at date: Date) -> String {
-        if snapshot.phase == .finished { return "Done" }
+struct TimeMinimalLivePresentationView: View {
+    @ObservedObject var manager: TimeActivityManager
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: updateInterval)) { timeline in
+            if let snapshot = manager.snapshot, snapshot.phase != .finished {
+                Text(TimeLivePresentationFormatter.text(for: snapshot, at: timeline.date))
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(.orange)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                    .contentTransition(.numericText())
+                    .accessibilityLabel(
+                        TimeLivePresentationFormatter.accessibilityLabel(
+                            for: snapshot,
+                            at: timeline.date
+                        )
+                    )
+            }
+        }
+    }
+
+    private var updateInterval: TimeInterval? {
+        guard let snapshot = manager.snapshot, snapshot.phase == .running else { return nil }
+        return snapshot.kind == .stopwatch ? 0.1 : 0.25
+    }
+}
+
+struct TimerCompletionInterruptionView: View {
+    @EnvironmentObject private var vm: BoringViewModel
+
+    var body: some View {
+        let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
+
+        HStack(spacing: 8) {
+            Image(systemName: "timer")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(.orange)
+                .frame(width: accessorySize, height: accessorySize)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: max(0, vm.closedNotchSize.width - cornerRadiusInsets.closed.top))
+
+            Text("Done")
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundStyle(.orange)
+                .frame(width: closedTimeActivityMinimumTextWidth, alignment: .leading)
+        }
+        .frame(height: vm.effectiveClosedNotchHeight)
+        .accessibilityLabel("Timer finished")
+    }
+}
+
+private enum TimeLivePresentationFormatter {
+    static func text(for snapshot: TimeActivitySnapshot, at date: Date) -> String {
         if snapshot.kind == .timer {
             return TimeActivityFormatter.timer(snapshot.remaining(at: date))
         }
         return TimeActivityFormatter.stopwatch(snapshot.elapsed(at: date), includesCentiseconds: false)
     }
 
-    private func closedAccessibilityLabel(at date: Date) -> String {
-        guard let snapshot = manager.snapshot else { return "" }
-        let timeDescription = compactText(for: snapshot, at: date)
-        return showMedia ? "\(timeDescription), media playing" : timeDescription
+    static func accessibilityLabel(for snapshot: TimeActivitySnapshot, at date: Date) -> String {
+        snapshot.kind == .timer
+            ? "Timer remaining \(TimeActivityFormatter.timer(snapshot.remaining(at: date)))"
+            : "Stopwatch elapsed \(TimeActivityFormatter.stopwatch(snapshot.elapsed(at: date), includesCentiseconds: false))"
     }
 }
 

@@ -36,9 +36,6 @@ struct SettingsView: View {
                 NavigationLink(value: "Media") {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
-                NavigationLink(value: "Calendar") {
-                    Label("Calendar", systemImage: "calendar")
-                }
                 NavigationLink(value: "Clock") {
                     Label("Clock", systemImage: "clock")
                 }
@@ -57,9 +54,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-                // NavigationLink(value: "Extensions") {
-                //     Label("Extensions", systemImage: "puzzlepiece.extension")
-                // }
+                NavigationLink(value: "Extensions") {
+                    Label("Extensions", systemImage: "puzzlepiece.extension")
+                }
                 NavigationLink(value: "Advanced") {
                     Label("Advanced", systemImage: "gearshape.2")
                 }
@@ -80,8 +77,6 @@ struct SettingsView: View {
                     Appearance()
                 case "Media":
                     Media()
-                case "Calendar":
-                    CalendarSettings()
                 case "Clock":
                     ClockSettings()
                 case "HUD":
@@ -93,7 +88,7 @@ struct SettingsView: View {
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
-                    GeneralSettings()
+                    ExtensionsSettings()
                 case "Advanced":
                     Advanced()
                 case "About":
@@ -128,6 +123,98 @@ struct SettingsView: View {
         .id(accentColorUpdateTrigger)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AccentColorChanged"))) { _ in
             accentColorUpdateTrigger = UUID()
+        }
+    }
+}
+
+struct ExtensionsSettings: View {
+    @ObservedObject private var activityRegistry = ActivityRegistry.shared
+
+    var body: some View {
+        Form {
+            Section {
+                ForEach(activityRegistry.activities) { activity in
+                    HStack(spacing: 12) {
+                        if activity.supportsConfiguration {
+                            NavigationLink {
+                                ExtensionConfigurationDetail(activityID: activity.id)
+                            } label: {
+                                ExtensionSettingsLabel(activity: activity)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            ExtensionSettingsLabel(activity: activity)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
+                        Toggle(
+                            activity.metadata.name,
+                            isOn: Binding(
+                                get: { activityRegistry.isActivityEnabled(activity.id) },
+                                set: { activityRegistry.setActivityEnabled($0, for: activity.id) }
+                            )
+                        )
+                        .labelsHidden()
+                        .tint(.effectiveAccent)
+                    }
+                }
+            } header: {
+                Text("Installed extensions")
+            } footer: {
+                Text("Disabled extensions are hidden from the open notch and cannot appear as live activities.")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .navigationTitle("Extensions")
+    }
+}
+
+private struct ExtensionConfigurationDetail: View {
+    let activityID: ActivityID
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ActivityConfigurationView(activityID: activityID)
+            .toolbar {
+                ToolbarItem(placement: .navigation) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                    }
+                    .help("Back to Extensions")
+                    .accessibilityLabel("Back to Extensions")
+                }
+            }
+    }
+}
+
+private struct ExtensionSettingsLabel: View {
+    @ObservedObject var activity: AnyNotchActivity
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: activity.metadata.systemImage)
+                .foregroundStyle(activity.metadata.tint)
+                .frame(width: 18)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(activity.metadata.name)
+
+                if let summary = activity.metadata.summary {
+                    Text(summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if !activity.isAvailable {
+                    Text("Currently unavailable")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
     }
 }
@@ -412,6 +499,10 @@ struct GeneralSettings: View {
             Defaults.Toggle(key: .openNotchOnHover) {
                 Text("Open notch on hover")
             }
+            Defaults.Toggle(key: .openMediaTabOnChinHover) {
+                Text("Open media from chin center")
+            }
+            .disabled(!openNotchOnHover)
             Defaults.Toggle(key: .enableHaptics) {
                     Text("Enable haptic feedback")
             }
