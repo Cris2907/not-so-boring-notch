@@ -148,21 +148,33 @@ struct ExtensionsSettings: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
-                        Toggle(
-                            activity.metadata.name,
-                            isOn: Binding(
-                                get: { activityRegistry.isActivityEnabled(activity.id) },
-                                set: { activityRegistry.setActivityEnabled($0, for: activity.id) }
+                        VStack(alignment: .trailing, spacing: 6) {
+                            Toggle(
+                                "Enabled",
+                                isOn: Binding(
+                                    get: { activityRegistry.isActivityEnabled(activity.id) },
+                                    set: { activityRegistry.setActivityEnabled($0, for: activity.id) }
+                                )
                             )
-                        )
-                        .labelsHidden()
+
+                            Toggle(
+                                "Chin",
+                                isOn: Binding(
+                                    get: { activityRegistry.isActivityShownOnChin(activity.id) },
+                                    set: { activityRegistry.setActivityShownOnChin($0, for: activity.id) }
+                                )
+                            )
+                            .disabled(!activityRegistry.isActivityEnabled(activity.id))
+                            .help("Show on chin")
+                        }
+                        .controlSize(.small)
                         .tint(.effectiveAccent)
                     }
                 }
             } header: {
                 Text("Installed extensions")
             } footer: {
-                Text("Disabled extensions are hidden from the open notch and cannot appear as live activities.")
+                Text("Disabled extensions are hidden from the open notch. Turn off the chin toggle to keep an extension available without showing it in the closed notch.")
                     .foregroundStyle(.secondary)
             }
         }

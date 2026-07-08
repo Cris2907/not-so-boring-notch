@@ -25,23 +25,13 @@ struct QuickNotesActivityView: View {
                 .help("Clear note")
             }
 
-            ZStack(alignment: .topLeading) {
-                if manager.note.isEmpty {
-                    Text("Write a quick note…")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                        .allowsHitTesting(false)
-                        .accessibilityHidden(true)
-                }
-
-                TextEditor(text: noteBinding)
-                    .font(.system(size: 14))
-                    .scrollContentBackground(.hidden)
-                    .padding(5)
-                    .accessibilityLabel("Quick note")
-            }
+            TextField("Write a quick note…", text: noteBinding, axis: .vertical)
+                .textFieldStyle(.plain)
+                .font(.system(size: 14))
+                .lineLimit(3...)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 9)
+                .accessibilityLabel("Quick note")
             .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 9))
             .overlay {
                 RoundedRectangle(cornerRadius: 9)

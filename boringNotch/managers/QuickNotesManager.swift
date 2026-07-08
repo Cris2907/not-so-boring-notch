@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 final class QuickNotesManager: ObservableObject {
     static let shared = QuickNotesManager()
+    static let maximumCharacterCount = 262
 
     @Published private(set) var note: String
 
@@ -19,17 +20,23 @@ final class QuickNotesManager: ObservableObject {
     ) {
         self.defaults = defaults
         self.persistenceKey = persistenceKey
-        note = defaults.string(forKey: persistenceKey) ?? ""
+        let persistedNote = defaults.string(forKey: persistenceKey) ?? ""
+        note = Self.limitedNote(persistedNote)
+
+        if note != persistedNote {
+            defaults.set(note, forKey: persistenceKey)
+        }
     }
 
     func updateNote(_ newValue: String) {
-        guard note != newValue else { return }
+        let limitedValue = Self.limitedNote(newValue)
+        guard note != limitedValue else { return }
 
-        note = newValue
-        if newValue.isEmpty {
+        note = limitedValue
+        if limitedValue.isEmpty {
             defaults.removeObject(forKey: persistenceKey)
         } else {
-            defaults.set(newValue, forKey: persistenceKey)
+            defaults.set(limitedValue, forKey: persistenceKey)
         }
     }
 
@@ -46,5 +53,9 @@ final class QuickNotesManager: ObservableObject {
         guard normalized.count > characterLimit else { return normalized }
         guard characterLimit > 1 else { return "…" }
         return String(normalized.prefix(characterLimit - 1)) + "…"
+    }
+
+    private static func limitedNote(_ note: String) -> String {
+        String(note.prefix(maximumCharacterCount))
     }
 }

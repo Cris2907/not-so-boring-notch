@@ -88,6 +88,26 @@ final class QuickNotesActivityTests: XCTestCase {
         XCTAssertEqual(makeManager().note, "")
     }
 
+    func testContentIsLimitedToMaximumCharacterCountWhenUpdatedAndRestored() {
+        let manager = makeManager()
+        let oversizedNote = String(repeating: "a", count: QuickNotesManager.maximumCharacterCount + 40)
+
+        manager.updateNote(oversizedNote)
+
+        XCTAssertEqual(manager.note.count, QuickNotesManager.maximumCharacterCount)
+        XCTAssertEqual(
+            defaults.string(forKey: "quickNotes.note")?.count,
+            QuickNotesManager.maximumCharacterCount
+        )
+
+        defaults.set(oversizedNote, forKey: "quickNotes.note")
+        XCTAssertEqual(makeManager().note.count, QuickNotesManager.maximumCharacterCount)
+        XCTAssertEqual(
+            defaults.string(forKey: "quickNotes.note")?.count,
+            QuickNotesManager.maximumCharacterCount
+        )
+    }
+
     func testWhitespaceIsPersistedButNotLiveEligible() throws {
         let manager = makeManager()
         let registry = try ActivityRegistry {

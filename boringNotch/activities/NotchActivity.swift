@@ -339,7 +339,10 @@ final class LiveActivityPresentationProviderRegistry: ObservableObject {
     private var providerObservations: Set<AnyCancellable> = []
 
     var providers: [AnyLiveActivityPresentationProvider] {
-        registeredActivityProviders.filter { activityRegistry.isActivityEnabled($0.id) }
+        registeredActivityProviders.filter {
+            activityRegistry.isActivityEnabled($0.id)
+                && activityRegistry.isActivityShownOnChin($0.id)
+        }
             + additionalProviders
     }
 

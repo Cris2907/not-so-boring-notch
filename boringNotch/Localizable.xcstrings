@@ -4434,6 +4434,9 @@
         }
       }
     },
+    "Changes are saved automatically." : {
+
+    },
     "Charging" : {
       "localizations" : {
         "ar" : {
@@ -4733,6 +4736,9 @@
           }
         }
       }
+    },
+    "Chin" : {
+
     },
     "Choose a Music Source" : {
       "localizations" : {
@@ -5234,6 +5240,9 @@
         }
       }
     },
+    "Clear note" : {
+
+    },
     "Clear slot" : {
       "localizations" : {
         "ar" : {
@@ -5539,6 +5548,9 @@
           }
         }
       }
+    },
+    "Closed notch" : {
+
     },
     "Closed Notch" : {
       "localizations" : {
@@ -7461,7 +7473,7 @@
         }
       }
     },
-    "Disabled extensions are hidden from the open notch and cannot appear as live activities." : {
+    "Disabled extensions are hidden from the open notch. Turn off the chin toggle to keep an extension available without showing it in the closed notch." : {
 
     },
     "Dismiss" : {
@@ -8980,6 +8992,9 @@
           }
         }
       }
+    },
+    "Enabled" : {
+
     },
     "Enhance your experience with HUDs" : {
       "localizations" : {
@@ -12009,6 +12024,9 @@
       "extractionState" : "manual"
     },
     "Invert timer swipe direction" : {
+
+    },
+    "Keep a short note close at hand." : {
 
     },
     "Layout Preview" : {
@@ -15633,6 +15651,9 @@
         }
       }
     },
+    "Note saved" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -16448,48 +16469,6 @@
         }
       }
     },
-    "Changes are saved automatically." : {
-
-    },
-    "Clear note" : {
-
-    },
-    "Closed notch" : {
-
-    },
-    "Keep a short note close at hand." : {
-
-    },
-    "Note saved" : {
-
-    },
-    "Quick Note saved" : {
-
-    },
-    "Quick Note saved; content hidden" : {
-
-    },
-    "Quick Note: %@" : {
-
-    },
-    "Quick note" : {
-
-    },
-    "Quick Notes" : {
-
-    },
-    "Saved" : {
-
-    },
-    "Show note content when the notch is closed" : {
-
-    },
-    "This change takes effect immediately. When off, the full presentation shows only that a note is saved. The minimal presentation never displays note content." : {
-
-    },
-    "Write a quick note…" : {
-
-    },
     "Pomodoro" : {
 
     },
@@ -16695,6 +16674,21 @@
           }
         }
       }
+    },
+    "Quick note" : {
+
+    },
+    "Quick Note saved" : {
+
+    },
+    "Quick Note saved; content hidden" : {
+
+    },
+    "Quick Note: %@" : {
+
+    },
+    "Quick Notes" : {
+
     },
     "Quick Share" : {
       "localizations" : {
@@ -18319,6 +18313,9 @@
         }
       }
     },
+    "Saved" : {
+
+    },
     "Seconds" : {
       "extractionState" : "manual"
     },
@@ -19844,6 +19841,9 @@
         }
       }
     },
+    "Show note content when the notch is closed" : {
+
+    },
     "Show on all displays" : {
       "localizations" : {
         "ar" : {
@@ -19943,6 +19943,9 @@
           }
         }
       }
+    },
+    "Show on chin" : {
+
     },
     "Show percentage" : {
       "localizations" : {
@@ -21482,6 +21485,9 @@
         }
       }
     },
+    "This change takes effect immediately. When off, the full presentation shows only that a note is saved. The minimal presentation never displays note content." : {
+
+    },
     "Time activity" : {
       "extractionState" : "manual"
     },
@@ -23014,9 +23020,6 @@
         }
       }
     },
-    "View upcoming events and reminders." : {
-
-    },
     "View on GitHub: pear-devs/pear-desktop" : {
       "localizations" : {
         "ar" : {
@@ -23116,6 +23119,9 @@
           }
         }
       }
+    },
+    "View upcoming events and reminders." : {
+
     },
     "Welcome" : {
       "localizations" : {
@@ -23516,6 +23522,9 @@
           }
         }
       }
+    },
+    "Write a quick note…" : {
+
     },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
       "localizations" : {
