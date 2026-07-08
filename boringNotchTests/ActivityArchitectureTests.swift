@@ -287,6 +287,24 @@ final class ActivityArchitectureTests: XCTestCase {
             accessorySize + 42 + 20
         )
 
+        let mediaProvider = LiveTestProvider(
+            id: .media,
+            state: .visible(priority: .normal),
+            livePresentationSizing: LiveActivityPresentationSizing(
+                fullContentWidth: .accessorySize,
+                minimalContentWidth: .accessorySize
+            )
+        )
+        let mediaStack = selectedActivityLivePresentationStack(
+            from: [AnyLiveActivityPresentationProvider(mediaProvider)],
+            snapshot: .empty
+        )
+
+        XCTAssertEqual(
+            mediaStack.requiredAdditionalWidth(accessorySize: accessorySize),
+            0
+        )
+
         let leadingProvider = LiveTestProvider(
             id: ActivityID("leading"),
             state: .visible(priority: .normal),
@@ -349,6 +367,13 @@ final class ActivityArchitectureTests: XCTestCase {
             iconOnlyStack.requiredAdditionalWidth(accessorySize: accessorySize),
             accessorySize + 12 + 20
         )
+    }
+
+    func testClosedActivityNotchEdgeSpacingScalesAndCaps() {
+        XCTAssertEqual(closedActivityNotchEdgeSpacing(accessorySize: 0), 0)
+        XCTAssertEqual(closedActivityNotchEdgeSpacing(accessorySize: 10), 2)
+        XCTAssertEqual(closedActivityNotchEdgeSpacing(accessorySize: 20), 4)
+        XCTAssertEqual(closedActivityNotchEdgeSpacing(accessorySize: 40), 4)
     }
 
     func testMoreThanTwoLiveActivitiesUseTwoMostRecent() throws {

@@ -900,8 +900,22 @@ private struct ClosedActivityFullLivePresentationView: View {
         let contentWidth = activity.livePresentationSizing.fullContentWidth.resolved(
             accessorySize: accessorySize
         )
+        let edgeSpacing = closedActivityNotchEdgeSpacing(accessorySize: accessorySize)
+        let centerWidth = activity.id == .media
+            ? max(
+                0,
+                vm.closedNotchSize.width
+                    - 20
+                    - accessorySize
+                    - contentWidth
+                    - (edgeSpacing * 2)
+            )
+            : max(
+                0,
+                vm.closedNotchSize.width - cornerRadiusInsets.closed.top
+            )
 
-        HStack(spacing: 8) {
+        HStack(spacing: edgeSpacing) {
             activity.makeAccessoryView()
                 .frame(width: accessorySize, height: accessorySize)
                 .contentShape(Rectangle())
@@ -912,12 +926,7 @@ private struct ClosedActivityFullLivePresentationView: View {
 
             Rectangle()
                 .fill(.black)
-                .frame(
-                    width: max(
-                        0,
-                        vm.closedNotchSize.width - cornerRadiusInsets.closed.top
-                    )
-                )
+                .frame(width: centerWidth)
                 .contentShape(Rectangle())
                 .onHover { hovering in
                     guard hovering else { return }
@@ -944,7 +953,9 @@ private struct ClosedActivitySplitLivePresentationView: View {
     let openMediaTab: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
+        let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
+
+        HStack(spacing: closedActivityNotchEdgeSpacing(accessorySize: accessorySize)) {
             ClosedActivityMinimalLivePresentationView(
                 activity: leadingActivity,
                 iconPlacement: .trailing,

@@ -439,6 +439,7 @@ final class MediaLiveActivityProvider: LiveActivityPresentationProvider {
     let name = "Media"
     let showsAccessoryInMinimalPresentation = false
     let livePresentationSizing = LiveActivityPresentationSizing(
+        fullContentWidth: .accessorySize,
         minimalContentWidth: .accessorySize
     )
 
@@ -654,6 +655,9 @@ enum ActivityLivePresentationStack {
         case .none:
             return nil
         case .full(let activity):
+            if activity.id == .media {
+                return 0
+            }
             return accessorySize
                 + activity.livePresentationSizing.fullContentWidth.resolved(
                     accessorySize: accessorySize
