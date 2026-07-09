@@ -375,10 +375,12 @@ extension ActivityID {
 final class TimeLiveActivityProvider: LiveActivityPresentationProvider {
     let id = ActivityID.time
     let name = "Timer"
-    let livePresentationSizing = LiveActivityPresentationSizing(
-        fullContentWidth: .fixed(closedTimeActivityMinimumTextWidth),
-        minimalContentWidth: .fixed(0)
-    )
+    var livePresentationSizing: LiveActivityPresentationSizing {
+        LiveActivityPresentationSizing(
+            fullContentWidth: .fixed(Self.fullContentWidth(for: manager.snapshot)),
+            minimalContentWidth: .fixed(0)
+        )
+    }
 
     private let manager: TimeActivityManager
     @Published private var isEnabled: Bool
@@ -421,6 +423,14 @@ final class TimeLiveActivityProvider: LiveActivityPresentationProvider {
         case .finished:
             return .hidden
         }
+    }
+
+    static func fullContentWidth(for snapshot: TimeActivitySnapshot?) -> CGFloat {
+        guard let snapshot else { return closedTimeActivityCompactTextWidth }
+        guard snapshot.kind == .timer else { return closedTimeActivityCompactTextWidth }
+        return snapshot.duration >= 3_600
+            ? closedTimeActivityMinimumTextWidth
+            : closedTimeActivityCompactTextWidth
     }
 
     func makeAccessoryView() -> some View {

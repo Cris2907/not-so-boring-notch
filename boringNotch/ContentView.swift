@@ -87,7 +87,7 @@ struct ContentView: View {
             && vm.notchState == .closed && !vm.hideOnClosed
         {
             chinWidth += closedActivityFullPresentationAdditionalWidth(
-                contentWidth: closedTimeActivityMinimumTextWidth,
+                contentWidth: closedTimeActivityCompactTextWidth,
                 accessorySize: max(0, vm.effectiveClosedNotchHeight - 12)
             )
         } else if let livePresentationWidth = activityLivePresentationAdditionalWidth(

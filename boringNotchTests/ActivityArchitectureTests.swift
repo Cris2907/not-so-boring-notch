@@ -848,6 +848,35 @@ final class ActivityArchitectureTests: XCTestCase {
         )
     }
 
+    func testTimeProviderFullPresentationUsesCompactSizingForSubHourTimers() throws {
+        let now = Date(timeIntervalSince1970: 40_000)
+        let suiteName = "TimeProviderFullSizing.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let manager = TimeActivityManager(
+            defaults: defaults,
+            now: { now },
+            observeLifecycle: false,
+            playCompletionSound: {}
+        )
+        let timeProvider = TimeLiveActivityProvider(manager: manager, isEnabled: true)
+
+        XCTAssertTrue(manager.startTimer(duration: 10 * 60))
+        XCTAssertEqual(
+            timeProvider.livePresentationSizing.fullContentWidth,
+            .fixed(closedTimeActivityCompactTextWidth)
+        )
+
+        manager.reset()
+
+        XCTAssertTrue(manager.startTimer(duration: 90 * 60))
+        XCTAssertEqual(
+            timeProvider.livePresentationSizing.fullContentWidth,
+            .fixed(closedTimeActivityMinimumTextWidth)
+        )
+    }
+
     func testTransientInterruptionPreservesSelectedStackInDiagnostics() throws {
         let provider = LiveTestProvider(
             id: .pomodoro,

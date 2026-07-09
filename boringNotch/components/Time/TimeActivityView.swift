@@ -485,7 +485,7 @@ struct TimerCompletionInterruptionView: View {
     var body: some View {
         let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
         let sideWidth = closedActivityFullPresentationSideWidth(
-            contentWidth: closedTimeActivityMinimumTextWidth,
+            contentWidth: closedTimeActivityCompactTextWidth,
             accessorySize: accessorySize
         )
         let edgeSpacing = closedActivityNotchEdgeSpacing(accessorySize: accessorySize)
