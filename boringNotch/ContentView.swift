@@ -86,10 +86,9 @@ struct ContentView: View {
         } else if showsTimerCompletionInterruption && clockShowInClosedNotch
             && vm.notchState == .closed && !vm.hideOnClosed
         {
-            chinWidth += (
-                max(0, vm.effectiveClosedNotchHeight - 12)
-                    + closedTimeActivityMinimumTextWidth
-                    + 20
+            chinWidth += closedActivityFullPresentationAdditionalWidth(
+                contentWidth: closedTimeActivityCompactTextWidth,
+                accessorySize: max(0, vm.effectiveClosedNotchHeight - 12)
             )
         } else if let livePresentationWidth = activityLivePresentationAdditionalWidth(
             for: livePresentationStack
@@ -942,6 +941,10 @@ private struct ClosedActivityFullLivePresentationView: View {
         let contentWidth = activity.livePresentationSizing.fullContentWidth.resolved(
             accessorySize: accessorySize
         )
+        let sideWidth = closedActivityFullPresentationSideWidth(
+            contentWidth: contentWidth,
+            accessorySize: accessorySize
+        )
         let edgeSpacing = closedActivityNotchEdgeSpacing(accessorySize: accessorySize)
         let centerWidth = max(
             0,
@@ -951,6 +954,11 @@ private struct ClosedActivityFullLivePresentationView: View {
         HStack(spacing: edgeSpacing) {
             activity.makeAccessoryView()
                 .frame(width: accessorySize, height: accessorySize)
+                .frame(
+                    width: sideWidth,
+                    height: vm.effectiveClosedNotchHeight,
+                    alignment: .center
+                )
                 .contentShape(Rectangle())
                 .onHover { hovering in
                     guard hovering else { return }
@@ -969,7 +977,7 @@ private struct ClosedActivityFullLivePresentationView: View {
             activity.makeFullView()
                 .padding(.leading, closedActivityFullPresentationContentLeadingPadding)
                 .frame(
-                    width: contentWidth + closedActivityFullPresentationContentLeadingPadding,
+                    width: sideWidth,
                     alignment: .leading
                 )
                 .contentShape(Rectangle())

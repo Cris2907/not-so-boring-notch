@@ -219,7 +219,7 @@ final class QuickNotesActivityTests: XCTestCase {
         switch fullStack {
         case .full(let activity):
             XCTAssertEqual(activity.id, .quickNotes)
-            XCTAssertEqual(fullStack.requiredAdditionalWidth(accessorySize: 20), 188)
+            XCTAssertEqual(fullStack.requiredAdditionalWidth(accessorySize: 20), 316)
         default:
             XCTFail("Expected Quick Notes to use its full presentation")
         }

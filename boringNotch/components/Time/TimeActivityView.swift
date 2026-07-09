@@ -484,12 +484,22 @@ struct TimerCompletionInterruptionView: View {
 
     var body: some View {
         let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
+        let sideWidth = closedActivityFullPresentationSideWidth(
+            contentWidth: closedTimeActivityCompactTextWidth,
+            accessorySize: accessorySize
+        )
+        let edgeSpacing = closedActivityNotchEdgeSpacing(accessorySize: accessorySize)
 
-        HStack(spacing: 8) {
+        HStack(spacing: edgeSpacing) {
             Image(systemName: "timer")
                 .font(.system(size: 18, weight: .medium))
                 .foregroundStyle(.orange)
                 .frame(width: accessorySize, height: accessorySize)
+                .frame(
+                    width: sideWidth,
+                    height: vm.effectiveClosedNotchHeight,
+                    alignment: .center
+                )
 
             Rectangle()
                 .fill(.black)
@@ -498,7 +508,8 @@ struct TimerCompletionInterruptionView: View {
             Text("Done")
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                 .foregroundStyle(.orange)
-                .frame(width: closedTimeActivityMinimumTextWidth, alignment: .leading)
+                .padding(.leading, closedActivityFullPresentationContentLeadingPadding)
+                .frame(width: sideWidth, alignment: .leading)
         }
         .frame(height: vm.effectiveClosedNotchHeight)
         .accessibilityLabel("Timer finished")

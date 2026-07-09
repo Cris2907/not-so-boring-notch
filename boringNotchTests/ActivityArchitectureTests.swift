@@ -336,7 +336,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             fullStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            accessorySize + 42 + closedActivityFullPresentationContentLeadingPadding + 20
+            ((42 + closedActivityFullPresentationContentLeadingPadding) * 2) + 20
         )
 
         let mediaProvider = LiveTestProvider(
@@ -354,7 +354,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             mediaStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            (accessorySize * 2) + closedActivityFullPresentationContentLeadingPadding + 20
+            ((accessorySize + closedActivityFullPresentationContentLeadingPadding) * 2) + 20
         )
 
         let leadingProvider = LiveTestProvider(
@@ -845,6 +845,35 @@ final class ActivityArchitectureTests: XCTestCase {
         XCTAssertEqual(
             stack.requiredAdditionalWidth(accessorySize: accessorySize),
             accessorySize + 12 + 20
+        )
+    }
+
+    func testTimeProviderFullPresentationUsesCompactSizingForSubHourTimers() throws {
+        let now = Date(timeIntervalSince1970: 40_000)
+        let suiteName = "TimeProviderFullSizing.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let manager = TimeActivityManager(
+            defaults: defaults,
+            now: { now },
+            observeLifecycle: false,
+            playCompletionSound: {}
+        )
+        let timeProvider = TimeLiveActivityProvider(manager: manager, isEnabled: true)
+
+        XCTAssertTrue(manager.startTimer(duration: 10 * 60))
+        XCTAssertEqual(
+            timeProvider.livePresentationSizing.fullContentWidth,
+            .fixed(closedTimeActivityCompactTextWidth)
+        )
+
+        manager.reset()
+
+        XCTAssertTrue(manager.startTimer(duration: 90 * 60))
+        XCTAssertEqual(
+            timeProvider.livePresentationSizing.fullContentWidth,
+            .fixed(closedTimeActivityMinimumTextWidth)
         )
     }
 

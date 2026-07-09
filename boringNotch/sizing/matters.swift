@@ -12,11 +12,35 @@ import SwiftUI
 let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
 let bluetoothSneakSize: CGSize = .init(width: 292, height: 1)
-let closedTimeActivityMinimumTextWidth: CGFloat = 56
+let closedTimeActivityCompactTextWidth: CGFloat = 52
+let closedTimeActivityMinimumTextWidth: CGFloat = 64
 let closedActivityFullPresentationContentLeadingPadding: CGFloat = 8
+let closedActivityFullPresentationWidthReserve: CGFloat = 18
 
 func closedActivityNotchEdgeSpacing(accessorySize: CGFloat) -> CGFloat {
     min(4, max(0, accessorySize / 5))
+}
+
+func closedActivityFullPresentationSideWidth(
+    contentWidth: CGFloat,
+    accessorySize: CGFloat
+) -> CGFloat {
+    max(accessorySize, contentWidth + closedActivityFullPresentationContentLeadingPadding)
+}
+
+func closedActivityFullPresentationAdditionalWidth(
+    contentWidth: CGFloat,
+    accessorySize: CGFloat
+) -> CGFloat {
+    let sideWidth = closedActivityFullPresentationSideWidth(
+        contentWidth: contentWidth,
+        accessorySize: accessorySize
+    )
+
+    return (sideWidth * 2)
+        + (2 * closedActivityNotchEdgeSpacing(accessorySize: accessorySize))
+        - cornerRadiusInsets.closed.top
+        + closedActivityFullPresentationWidthReserve
 }
 
 let shadowPadding: CGFloat = 20
