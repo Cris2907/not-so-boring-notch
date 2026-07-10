@@ -1094,6 +1094,7 @@ typealias DobermanAnimator = DobermanAnimationModel
 @MainActor
 final class DobermanAnimationModel: ObservableObject {
     @Published private(set) var renderState: DobermanRenderState
+    @Published private(set) var worldTravel: CGFloat = 0
 
     private(set) var generation = 0
     private var expandedStageWidth = DobermanAnimationDefinitions.defaultStageWidth
@@ -1461,6 +1462,7 @@ final class DobermanAnimationModel: ObservableObject {
 
         try await sleep(milliseconds: DobermanAnimationDefinitions.movementStartDelayMilliseconds)
         try ensureCurrent(token)
+        worldTravel += targetX - renderState.x
         renderState = updatedState(
             x: targetX,
             movementDuration: Double(movementMilliseconds) / 1000
@@ -1696,11 +1698,17 @@ struct DobermanSceneView: View {
 
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(LinearGradient(
-                        colors: [.brown.opacity(0.16), .black.opacity(0.3)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ))
+                    .fill(.black)
+
+                DobermanParallaxLayer(imageName: "sun", travel: model.worldTravel, depth: 0.04)
+                DobermanParallaxLayer(imageName: "clouds", travel: model.worldTravel, depth: 0.10)
+                DobermanParallaxLayer(imageName: "city", travel: model.worldTravel, depth: 0.20)
+                DobermanParallaxLayer(
+                    imageName: "grass",
+                    travel: model.worldTravel,
+                    depth: 0.34,
+                    usesNearestNeighbor: true
+                )
 
                 Capsule()
                     .fill(.black.opacity(0.3))
@@ -1714,10 +1722,75 @@ struct DobermanSceneView: View {
                     .animation(.linear(duration: reducedMotion ? 0.12 : model.renderState.movementDuration), value: model.renderState.x)
                     .accessibilityLabel("Doberman in the scene")
             }
+            .animation(
+                .linear(duration: reducedMotion ? 0.01 : model.renderState.movementDuration),
+                value: model.worldTravel
+            )
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(.white.opacity(0.12), lineWidth: 1)
+            )
             .onAppear { model.updateExpandedStageWidth(proxy.size.width) }
             .onChange(of: proxy.size.width) { _, width in model.updateExpandedStageWidth(width) }
         }
+    }
+}
+
+/// A height-fitted, endlessly tiled panorama. `travel` is cumulative so crossing a
+/// tile boundary remains seamless, while `depth` gives distant layers less motion.
+struct DobermanParallaxLayer: View, Animatable {
+    let imageName: String
+    var travel: CGFloat
+    let depth: CGFloat
+    var usesNearestNeighbor = false
+
+    var animatableData: CGFloat {
+        get { travel }
+        set { travel = newValue }
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            let tileWidth = max(1, proxy.size.height * 300 / 70)
+            let wrappedTravel = (travel * depth).truncatingRemainder(dividingBy: tileWidth)
+            let firstX = -wrappedTravel - tileWidth
+            let tileCount = Int(ceil(proxy.size.width / tileWidth)) + 3
+
+            Group {
+                if usesNearestNeighbor {
+                    HStack(spacing: 0) {
+                        ForEach(0..<tileCount, id: \.self) { _ in
+                            Image(imageName)
+                                .resizable()
+                                .interpolation(.none)
+                                .antialiased(false)
+                                .frame(width: tileWidth, height: proxy.size.height)
+                        }
+                    }
+                    .frame(width: CGFloat(tileCount) * tileWidth, alignment: .leading)
+                    .offset(x: firstX)
+                } else {
+                    Canvas(rendersAsynchronously: true) { context, size in
+                        let image = context.resolve(Image(imageName))
+
+                        for index in 0..<tileCount {
+                            let rect = CGRect(
+                                x: firstX + CGFloat(index) * tileWidth,
+                                y: 0,
+                                width: tileWidth,
+                                height: size.height
+                            )
+                            context.draw(image, in: rect)
+                        }
+                    }
+                }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .clipped()
+        }
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
     }
 }
 
