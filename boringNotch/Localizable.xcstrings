@@ -2947,6 +2947,9 @@
         }
       }
     },
+    "Automatic time matching will use your current time zone in a future update." : {
+
+    },
     "Automatically check for updates" : {
       "localizations" : {
         "ar" : {
@@ -3251,6 +3254,9 @@
       }
     },
     "Back to Extensions" : {
+
+    },
+    "Background" : {
 
     },
     "Battery" : {
@@ -13079,6 +13085,9 @@
         }
       }
     },
+    "Match time of day automatically" : {
+
+    },
     "Max Capacity: %lld%%" : {
       "localizations" : {
         "ar" : {
@@ -16308,6 +16317,9 @@
 
     },
     "Paused" : {
+
+    },
+    "Pet" : {
 
     },
     "Pick a Color" : {
@@ -21533,6 +21545,9 @@
       }
     },
     "Thirst" : {
+
+    },
+    "Time" : {
 
     },
     "Time activity" : {

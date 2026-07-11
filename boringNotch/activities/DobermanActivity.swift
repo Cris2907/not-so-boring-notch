@@ -1720,6 +1720,8 @@ struct DobermanSceneView: View {
     @ObservedObject var model: DobermanAnimationModel
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Default(.dobermanReduceMotion) private var activityReduceMotion
+    @Default(.dobermanBackground) private var selectedBackground
+    @Default(.dobermanSceneTime) private var selectedTime
 
     var body: some View {
         GeometryReader { proxy in
@@ -1733,27 +1735,40 @@ struct DobermanSceneView: View {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(.black)
 
-                DobermanParallaxLayer(imageName: "sun", travel: model.worldTravel, depth: 0.04)
-                DobermanParallaxLayer(imageName: "clouds", travel: model.worldTravel, depth: 0.10)
-                DobermanParallaxLayer(imageName: "city", travel: model.worldTravel, depth: 0.20)
                 DobermanParallaxLayer(
-                    imageName: "grass",
+                    imageName: selectedTime.assetName(for: "sun", background: selectedBackground),
                     travel: model.worldTravel,
-                    depth: 0.34,
+                    depth: 0.4
+                )
+                DobermanScrollingCloudLayer(
+                    travel: model.worldTravel,
+                    isPaused: reducedMotion,
+                    imageName: selectedTime.assetName(for: "clouds", background: selectedBackground)
+                )
+                DobermanParallaxLayer(
+                    imageName: selectedTime.assetName(for: "city", background: selectedBackground),
+                    travel: model.worldTravel,
+                    depth: 0.8
+                )
+                DobermanParallaxLayer(
+                    imageName: selectedTime.assetName(for: "grass", background: selectedBackground),
+                    travel: model.worldTravel,
+                    depth: 2.3,
                     usesNearestNeighbor: true
                 )
 
-                Capsule()
-                    .fill(.black.opacity(0.3))
-                    .frame(width: spriteWidth * 0.62, height: 8)
-                    .offset(x: model.renderState.x + spriteWidth * 0.19, y: groundY + spriteHeight - 7)
-                    .animation(.linear(duration: reducedMotion ? 0.01 : model.renderState.movementDuration), value: model.renderState.x)
+                DobermanGroundShadowLayer(
+                    dogX: model.renderState.x,
+                    dogBottomY: groundY - 7 + spriteHeight,
+                    spriteWidth: spriteWidth,
+                    movementDuration: reducedMotion ? 0.01 : model.renderState.movementDuration
+                )
 
                 DobermanSpriteSheetView(frame: model.renderState.frame, scale: scale)
                     .scaleEffect(x: model.renderState.facingDirection.scaleX, y: 1, anchor: .center)
                     .offset(
                         x: model.renderState.x,
-                        y: groundY - 4 + (reducedMotion ? 0 : model.renderState.walkBobOffset)
+                        y: groundY - 7 + (reducedMotion ? 0 : model.renderState.walkBobOffset)
                     )
                     .animation(.linear(duration: reducedMotion ? 0.12 : model.renderState.movementDuration), value: model.renderState.x)
                     .accessibilityLabel("Doberman in the scene")
@@ -1769,6 +1784,57 @@ struct DobermanSceneView: View {
             )
             .onAppear { model.updateExpandedStageWidth(proxy.size.width) }
             .onChange(of: proxy.size.width) { _, width in model.updateExpandedStageWidth(width) }
+        }
+    }
+}
+
+/// A separate ground layer that overlaps the dog's lowest pixels and extends
+/// slightly below them, giving the sprite more contact and depth in the scene.
+struct DobermanGroundShadowLayer: View {
+    static let height: CGFloat = 10
+    static let bottomExtension: CGFloat = 3
+
+    let dogX: CGFloat
+    let dogBottomY: CGFloat
+    let spriteWidth: CGFloat
+    let movementDuration: TimeInterval
+
+    var body: some View {
+        Ellipse()
+            .fill(.black.opacity(0.45))
+            .frame(width: spriteWidth * 0.62, height: Self.height)
+            .overlay {
+                Ellipse()
+                    .stroke(.white.opacity(0.16), lineWidth: 0.75)
+            }
+            .offset(
+                x: dogX + spriteWidth * 0.19,
+                y: dogBottomY + Self.bottomExtension - Self.height
+            )
+            .animation(.linear(duration: movementDuration), value: dogX)
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
+    }
+}
+
+/// Keeps the clouds drifting even while the Doberman and the rest of the scene are idle.
+struct DobermanScrollingCloudLayer: View {
+    static let depth: CGFloat = 0.10
+    static let travelPointsPerSecond: CGFloat = 24
+
+    let travel: CGFloat
+    let isPaused: Bool
+    let imageName: String
+    @State private var animationStart = Date.now
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: isPaused)) { context in
+            let elapsed = max(0, context.date.timeIntervalSince(animationStart))
+            DobermanParallaxLayer(
+                imageName: imageName,
+                travel: travel + CGFloat(elapsed) * Self.travelPointsPerSecond,
+                depth: Self.depth
+            )
         }
     }
 }
@@ -1911,9 +1977,10 @@ struct DobermanLivePresentationView: View {
 struct DobermanSpriteSheetView: View {
     let frame: DobermanSpriteFrame
     let scale: CGFloat
+    @Default(.dobermanPet) private var selectedPet
 
     var body: some View {
-        Image("doberman-frames")
+        Image(selectedPet.spriteAssetName)
             .resizable()
             .interpolation(.none)
             .antialiased(false)
@@ -1942,9 +2009,44 @@ struct DobermanSpriteSheetView: View {
 struct DobermanSettingsView: View {
     @ObservedObject var needsModel: DobermanNeedsModel
     @Default(.dobermanVirtualPetNeedsEnabled) private var needsEnabled
+    @Default(.dobermanBackground) private var selectedBackground
+    @Default(.dobermanPet) private var selectedPet
+    @Default(.dobermanSceneTime) private var selectedTime
 
     var body: some View {
         Form {
+            Section("Background") {
+                Picker("Background", selection: $selectedBackground) {
+                    ForEach(DobermanBackground.allCases) { background in
+                        Text(background.displayName).tag(background)
+                    }
+                }
+            }
+
+            Section("Pet") {
+                Picker("Pet", selection: $selectedPet) {
+                    ForEach(DobermanPet.allCases) { pet in
+                        Text(pet.displayName).tag(pet)
+                    }
+                }
+            }
+
+            Section("Time") {
+                Picker("Time", selection: $selectedTime) {
+                    ForEach(DobermanSceneTime.allCases) { time in
+                        Text(time.displayName).tag(time)
+                    }
+                }
+
+                Defaults.Toggle(key: .dobermanDynamicTimeEnabled) {
+                    Text("Match time of day automatically")
+                }
+
+                Text("Automatic time matching will use your current time zone in a future update.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section {
                 Defaults.Toggle(key: .dobermanVirtualPetNeedsEnabled) {
                     Text("Enable needs system")

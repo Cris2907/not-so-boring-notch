@@ -68,6 +68,32 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     var id: String { self.rawValue }
 }
 
+enum DobermanBackground: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case city
+
+    var id: Self { self }
+    var displayName: String { "City" }
+}
+
+enum DobermanPet: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case doberman
+
+    var id: Self { self }
+    var displayName: String { "Doberman" }
+    var spriteAssetName: String { "pet-doberman" }
+}
+
+enum DobermanSceneTime: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case morning
+
+    var id: Self { self }
+    var displayName: String { "Morning" }
+
+    func assetName(for layer: String, background: DobermanBackground) -> String {
+        "background-\(background.rawValue)-\(rawValue)-\(layer)"
+    }
+}
+
 extension Defaults.Keys {
     // MARK: Extensions
     static let disabledActivityIDs = Key<[String]>("disabledActivityIDs", default: [])
@@ -190,6 +216,22 @@ extension Defaults.Keys {
     )
     static let dobermanReduceMotion = Key<Bool>(
         "dobermanReduceMotion",
+        default: false
+    )
+    static let dobermanBackground = Key<DobermanBackground>(
+        "dobermanBackground",
+        default: .city
+    )
+    static let dobermanPet = Key<DobermanPet>(
+        "dobermanPet",
+        default: .doberman
+    )
+    static let dobermanSceneTime = Key<DobermanSceneTime>(
+        "dobermanSceneTime",
+        default: .morning
+    )
+    static let dobermanDynamicTimeEnabled = Key<Bool>(
+        "dobermanDynamicTimeEnabled",
         default: false
     )
     
