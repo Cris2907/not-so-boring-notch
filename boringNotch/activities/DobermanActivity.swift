@@ -157,6 +157,12 @@ enum DobermanFoodPlateState: Equatable, Sendable {
     case hidden, full, empty
 }
 
+enum DobermanFoodPlateSide: Equatable, Sendable {
+    case left, right
+
+    var destinationPercent: CGFloat { self == .left ? 18 : 82 }
+}
+
 enum DobermanInterruptibility: Equatable, Sendable {
     case immediate, afterFrame, afterLoop, never
 }
@@ -704,6 +710,7 @@ final class DobermanBehaviorController: ObservableObject {
     @Published private(set) var isExpanded = false
     @Published private(set) var isInteracting = false
     @Published private(set) var foodPlateState: DobermanFoodPlateState = .hidden
+    @Published private(set) var foodPlateSide: DobermanFoodPlateSide = .left
 
     private(set) var generation = 0
 
@@ -758,6 +765,7 @@ final class DobermanBehaviorController: ObservableObject {
 
     func feed() {
         guard isExpanded, needsModel.isEnabled else { return }
+        foodPlateSide = randomDoubleProvider() < 0.5 ? .left : .right
         foodPlateState = .full
         startCareInteraction(.eat) { [weak self] in
             self?.needsModel.feed()
@@ -939,10 +947,12 @@ final class DobermanBehaviorController: ObservableObject {
     ) async {
         do {
             try ensureCurrent(behaviorToken)
-            let destination: DobermanSceneDestination = action == .eat ? .foodBowl : .waterBowl
+            let destinationPercent = action == .eat
+                ? foodPlateSide.destinationPercent
+                : DobermanSceneDestination.waterBowl.percent
             try await animationModel.normalizeForBehavior(to: .standing, token: animationToken)
             try await animationModel.walkForBehavior(
-                toPercent: destination.percent,
+                toPercent: destinationPercent,
                 token: animationToken
             )
             try ensureCurrent(behaviorToken)
@@ -1732,7 +1742,8 @@ struct DobermanExpandedActivityView: View {
         HStack(spacing: 12) {
             DobermanSceneView(
                 model: model,
-                foodPlateState: behaviorController.foodPlateState
+                foodPlateState: behaviorController.foodPlateState,
+                foodPlateSide: behaviorController.foodPlateSide
             )
                 .layoutPriority(1)
 
@@ -1755,6 +1766,7 @@ struct DobermanExpandedActivityView: View {
 struct DobermanSceneView: View {
     @ObservedObject var model: DobermanAnimationModel
     let foodPlateState: DobermanFoodPlateState
+    let foodPlateSide: DobermanFoodPlateSide
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Default(.dobermanReduceMotion) private var activityReduceMotion
     @Default(.dobermanBackground) private var selectedBackground
@@ -1763,7 +1775,6 @@ struct DobermanSceneView: View {
     var body: some View {
         GeometryReader { proxy in
             let scale = DobermanAnimationDefinitions.defaultScale
-            let spriteWidth = DobermanAnimationDefinitions.frameWidth * scale
             let spriteHeight = DobermanAnimationDefinitions.frameHeight * scale
             let groundY = max(0, proxy.size.height - spriteHeight - 12)
             let reducedMotion = systemReduceMotion || activityReduceMotion
@@ -1800,26 +1811,15 @@ struct DobermanSceneView: View {
                         .interpolation(.none)
                         .antialiased(false)
                         .scaledToFit()
-                        .frame(width: 58, height: 34)
+                        .frame(width: 35, height: 20)
                         .offset(
-                            x: max(12, proxy.size.width / 2 - 76),
-                            y: max(0, proxy.size.height - 45)
-                        )
-                        .transition(
-                            .asymmetric(
-                                insertion: .move(edge: .trailing).combined(with: .opacity),
-                                removal: .opacity
-                            )
+                            x: foodPlateSide == .left
+                                ? max(12, proxy.size.width * 0.18 - 18)
+                                : min(proxy.size.width - 47, proxy.size.width * 0.82 - 18),
+                            y: max(0, proxy.size.height - 31)
                         )
                         .accessibilityLabel(foodPlateState == .full ? "Full food plate" : "Empty food plate")
                 }
-
-                DobermanGroundShadowLayer(
-                    dogX: model.renderState.x,
-                    dogBottomY: groundY - 7 + spriteHeight,
-                    spriteWidth: spriteWidth,
-                    movementDuration: reducedMotion ? 0.01 : model.renderState.movementDuration
-                )
 
                 DobermanSpriteSheetView(frame: model.renderState.frame, scale: scale)
                     .scaleEffect(x: model.renderState.facingDirection.scaleX, y: 1, anchor: .center)
@@ -1834,7 +1834,6 @@ struct DobermanSceneView: View {
                 .linear(duration: reducedMotion ? 0.01 : model.renderState.movementDuration),
                 value: model.worldTravel
             )
-            .animation(.easeOut(duration: reducedMotion ? 0.01 : 1), value: foodPlateState)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -1843,35 +1842,6 @@ struct DobermanSceneView: View {
             .onAppear { model.updateExpandedStageWidth(proxy.size.width) }
             .onChange(of: proxy.size.width) { _, width in model.updateExpandedStageWidth(width) }
         }
-    }
-}
-
-/// A separate ground layer that overlaps the dog's lowest pixels and extends
-/// slightly below them, giving the sprite more contact and depth in the scene.
-struct DobermanGroundShadowLayer: View {
-    static let height: CGFloat = 10
-    static let bottomExtension: CGFloat = 3
-
-    let dogX: CGFloat
-    let dogBottomY: CGFloat
-    let spriteWidth: CGFloat
-    let movementDuration: TimeInterval
-
-    var body: some View {
-        Ellipse()
-            .fill(.black.opacity(0.45))
-            .frame(width: spriteWidth * 0.62, height: Self.height)
-            .overlay {
-                Ellipse()
-                    .stroke(.white.opacity(0.16), lineWidth: 0.75)
-            }
-            .offset(
-                x: dogX + spriteWidth * 0.19,
-                y: dogBottomY + Self.bottomExtension - Self.height
-            )
-            .animation(.linear(duration: movementDuration), value: dogX)
-            .accessibilityHidden(true)
-            .allowsHitTesting(false)
     }
 }
 
