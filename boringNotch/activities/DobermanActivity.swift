@@ -711,6 +711,7 @@ final class DobermanBehaviorController: ObservableObject {
     @Published private(set) var isInteracting = false
     @Published private(set) var foodPlateState: DobermanFoodPlateState = .hidden
     @Published private(set) var foodPlateSide: DobermanFoodPlateSide = .left
+    @Published private(set) var isFoodPlateInScene = false
 
     private(set) var generation = 0
 
@@ -759,6 +760,7 @@ final class DobermanBehaviorController: ObservableObject {
         currentAction = nil
         isInteracting = false
         foodPlateState = .hidden
+        isFoodPlateInScene = false
         needsModel.reconcile(mode: currentNeedsMode)
         animationModel.transitionToClosed()
     }
@@ -767,6 +769,7 @@ final class DobermanBehaviorController: ObservableObject {
         guard isExpanded, needsModel.isEnabled else { return }
         foodPlateSide = randomDoubleProvider() < 0.5 ? .left : .right
         foodPlateState = .full
+        isFoodPlateInScene = false
         startCareInteraction(.eat) { [weak self] in
             self?.needsModel.feed()
         }
@@ -951,6 +954,9 @@ final class DobermanBehaviorController: ObservableObject {
                 ? foodPlateSide.destinationPercent
                 : DobermanSceneDestination.waterBowl.percent
             try await animationModel.normalizeForBehavior(to: .standing, token: animationToken)
+            if action == .eat {
+                isFoodPlateInScene = true
+            }
             try await animationModel.walkForBehavior(
                 toPercent: destinationPercent,
                 token: animationToken
@@ -1743,7 +1749,8 @@ struct DobermanExpandedActivityView: View {
             DobermanSceneView(
                 model: model,
                 foodPlateState: behaviorController.foodPlateState,
-                foodPlateSide: behaviorController.foodPlateSide
+                foodPlateSide: behaviorController.foodPlateSide,
+                isFoodPlateInScene: behaviorController.isFoodPlateInScene
             )
                 .layoutPriority(1)
 
@@ -1767,6 +1774,7 @@ struct DobermanSceneView: View {
     @ObservedObject var model: DobermanAnimationModel
     let foodPlateState: DobermanFoodPlateState
     let foodPlateSide: DobermanFoodPlateSide
+    let isFoodPlateInScene: Bool
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Default(.dobermanReduceMotion) private var activityReduceMotion
     @Default(.dobermanBackground) private var selectedBackground
@@ -1813,10 +1821,14 @@ struct DobermanSceneView: View {
                         .scaledToFit()
                         .frame(width: 35, height: 20)
                         .offset(
-                            x: foodPlateSide == .left
-                                ? max(12, proxy.size.width * 0.18 - 18)
-                                : min(proxy.size.width - 47, proxy.size.width * 0.82 - 18),
-                            y: max(0, proxy.size.height - 31)
+                            x: isFoodPlateInScene
+                                ? proxy.size.width / 2 - 72
+                                : (foodPlateSide == .left ? -47 : proxy.size.width + 12),
+                            y: max(0, proxy.size.height - 61)
+                        )
+                        .animation(
+                            .linear(duration: reducedMotion ? 0.01 : 3.5),
+                            value: isFoodPlateInScene
                         )
                         .accessibilityLabel(foodPlateState == .full ? "Full food plate" : "Empty food plate")
                 }
@@ -1916,7 +1928,11 @@ struct DobermanParallaxLayer: View, Animatable {
                     }
                 }
             }
-            .frame(width: proxy.size.width, height: proxy.size.height)
+            .frame(
+                width: proxy.size.width,
+                height: proxy.size.height,
+                alignment: .topLeading
+            )
             .clipped()
         }
         .accessibilityHidden(true)
