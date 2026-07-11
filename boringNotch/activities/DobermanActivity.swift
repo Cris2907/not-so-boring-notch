@@ -160,7 +160,7 @@ enum DobermanFoodPlateState: Equatable, Sendable {
 enum DobermanFoodPlateSide: Equatable, Sendable {
     case left, right
 
-    var destinationPercent: CGFloat { self == .left ? 18 : 82 }
+    var direction: CGFloat { self == .left ? -1 : 1 }
 }
 
 enum DobermanInterruptibility: Equatable, Sendable {
@@ -712,6 +712,11 @@ final class DobermanBehaviorController: ObservableObject {
     @Published private(set) var foodPlateState: DobermanFoodPlateState = .hidden
     @Published private(set) var foodPlateSide: DobermanFoodPlateSide = .left
     @Published private(set) var isFoodPlateInScene = false
+    @Published private(set) var foodPlateSpawnTravel: CGFloat = 0
+    @Published private(set) var waterPlateState: DobermanFoodPlateState = .hidden
+    @Published private(set) var waterPlateSide: DobermanFoodPlateSide = .left
+    @Published private(set) var isWaterPlateInScene = false
+    @Published private(set) var waterPlateSpawnTravel: CGFloat = 0
 
     private(set) var generation = 0
 
@@ -761,6 +766,8 @@ final class DobermanBehaviorController: ObservableObject {
         isInteracting = false
         foodPlateState = .hidden
         isFoodPlateInScene = false
+        waterPlateState = .hidden
+        isWaterPlateInScene = false
         needsModel.reconcile(mode: currentNeedsMode)
         animationModel.transitionToClosed()
     }
@@ -768,6 +775,7 @@ final class DobermanBehaviorController: ObservableObject {
     func feed() {
         guard isExpanded, needsModel.isEnabled else { return }
         foodPlateSide = randomDoubleProvider() < 0.5 ? .left : .right
+        foodPlateSpawnTravel = animationModel.worldTravel
         foodPlateState = .full
         isFoodPlateInScene = false
         startCareInteraction(.eat) { [weak self] in
@@ -777,9 +785,25 @@ final class DobermanBehaviorController: ObservableObject {
 
     func giveWater() {
         guard isExpanded, needsModel.isEnabled else { return }
+        waterPlateSide = randomDoubleProvider() < 0.5 ? .left : .right
+        waterPlateSpawnTravel = animationModel.worldTravel
+        waterPlateState = .full
+        isWaterPlateInScene = false
         startCareInteraction(.drink) { [weak self] in
             self?.needsModel.giveWater()
         }
+    }
+
+    func retireFoodPlate() {
+        guard foodPlateState == .empty else { return }
+        foodPlateState = .hidden
+        isFoodPlateInScene = false
+    }
+
+    func retireWaterPlate() {
+        guard waterPlateState == .empty else { return }
+        waterPlateState = .hidden
+        isWaterPlateInScene = false
     }
 
     static func weightedActions(
@@ -950,12 +974,17 @@ final class DobermanBehaviorController: ObservableObject {
     ) async {
         do {
             try ensureCurrent(behaviorToken)
-            let destinationPercent = action == .eat
-                ? foodPlateSide.destinationPercent
-                : DobermanSceneDestination.waterBowl.percent
+            let destinationPercent: CGFloat
+            if action == .eat {
+                destinationPercent = animationModel.plateDestinationPercent(side: foodPlateSide)
+            } else {
+                destinationPercent = animationModel.plateDestinationPercent(side: waterPlateSide)
+            }
             try await animationModel.normalizeForBehavior(to: .standing, token: animationToken)
             if action == .eat {
                 isFoodPlateInScene = true
+            } else {
+                isWaterPlateInScene = true
             }
             try await animationModel.walkForBehavior(
                 toPercent: destinationPercent,
@@ -967,12 +996,13 @@ final class DobermanBehaviorController: ObservableObject {
                     behaviorToken: behaviorToken,
                     animationToken: animationToken
                 )
-            } else {
-                try await execute(
-                    action,
+            } else if action == .drink {
+                try await runDrinkingInteraction(
                     behaviorToken: behaviorToken,
                     animationToken: animationToken
                 )
+            } else {
+                try await execute(action, behaviorToken: behaviorToken, animationToken: animationToken)
             }
             try ensureCurrent(behaviorToken)
             completion()
@@ -1002,6 +1032,25 @@ final class DobermanBehaviorController: ObservableObject {
 
         defer { emptyPlateTask.cancel() }
         try await animationModel.performBehaviorAnimation(.sitHold, token: animationToken)
+        try await emptyPlateTask.value
+    }
+
+    private func runDrinkingInteraction(
+        behaviorToken: Int,
+        animationToken: Int
+    ) async throws {
+        try await animationModel.normalizeForBehavior(to: .laying, token: animationToken)
+        try ensureCurrent(behaviorToken)
+
+        let emptyPlateTask = Task { @MainActor [weak self] in
+            try await Task.sleep(for: .seconds(5))
+            guard let self else { return }
+            try self.ensureCurrent(behaviorToken)
+            self.waterPlateState = .empty
+        }
+
+        defer { emptyPlateTask.cancel() }
+        try await animationModel.performBehaviorAnimation(.layHold, token: animationToken)
         try await emptyPlateTask.value
     }
 
@@ -1186,6 +1235,16 @@ final class DobermanAnimationModel: ObservableObject {
                 spriteWidth: spriteWidth
             )
         )
+    }
+
+    func plateDestinationPercent(side: DobermanFoodPlateSide) -> CGFloat {
+        let spriteWidth = DobermanAnimationDefinitions.frameWidth
+            * DobermanAnimationDefinitions.defaultScale
+        let grassDepth = DobermanSceneView.grassDepth
+        let dogTravel = expandedStageWidth
+            / (DobermanAnimationDefinitions.worldTravelMultiplier * grassDepth)
+        let targetX = renderState.x + side.direction * dogTravel
+        return min(100, max(0, (targetX + spriteWidth / 2) / expandedStageWidth * 100))
     }
 
     var currentPose: DobermanCanonicalPose {
@@ -1750,7 +1809,14 @@ struct DobermanExpandedActivityView: View {
                 model: model,
                 foodPlateState: behaviorController.foodPlateState,
                 foodPlateSide: behaviorController.foodPlateSide,
-                isFoodPlateInScene: behaviorController.isFoodPlateInScene
+                isFoodPlateInScene: behaviorController.isFoodPlateInScene,
+                foodPlateSpawnTravel: behaviorController.foodPlateSpawnTravel,
+                waterPlateState: behaviorController.waterPlateState,
+                waterPlateSide: behaviorController.waterPlateSide,
+                isWaterPlateInScene: behaviorController.isWaterPlateInScene,
+                waterPlateSpawnTravel: behaviorController.waterPlateSpawnTravel,
+                onRetireFoodPlate: behaviorController.retireFoodPlate,
+                onRetireWaterPlate: behaviorController.retireWaterPlate
             )
                 .layoutPriority(1)
 
@@ -1771,10 +1837,19 @@ struct DobermanExpandedActivityView: View {
 }
 
 struct DobermanSceneView: View {
+    static let grassDepth: CGFloat = 2.3
+
     @ObservedObject var model: DobermanAnimationModel
     let foodPlateState: DobermanFoodPlateState
     let foodPlateSide: DobermanFoodPlateSide
     let isFoodPlateInScene: Bool
+    let foodPlateSpawnTravel: CGFloat
+    let waterPlateState: DobermanFoodPlateState
+    let waterPlateSide: DobermanFoodPlateSide
+    let isWaterPlateInScene: Bool
+    let waterPlateSpawnTravel: CGFloat
+    let onRetireFoodPlate: () -> Void
+    let onRetireWaterPlate: () -> Void
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Default(.dobermanReduceMotion) private var activityReduceMotion
     @Default(.dobermanBackground) private var selectedBackground
@@ -1809,28 +1884,46 @@ struct DobermanSceneView: View {
                 DobermanParallaxLayer(
                     imageName: selectedTime.assetName(for: "grass", background: selectedBackground),
                     travel: model.worldTravel,
-                    depth: 2.3,
+                    depth: Self.grassDepth,
                     usesNearestNeighbor: true
                 )
 
                 if foodPlateState != .hidden {
-                    Image(foodPlateState == .full ? "food-plate-full-day" : "food-plate-empty-day")
-                        .resizable()
-                        .interpolation(.none)
-                        .antialiased(false)
-                        .scaledToFit()
-                        .frame(width: 35, height: 20)
-                        .offset(
-                            x: isFoodPlateInScene
-                                ? proxy.size.width / 2 - 72
-                                : (foodPlateSide == .left ? -47 : proxy.size.width + 12),
-                            y: max(0, proxy.size.height - 61)
-                        )
-                        .animation(
-                            .linear(duration: reducedMotion ? 0.01 : 3.5),
-                            value: isFoodPlateInScene
-                        )
-                        .accessibilityLabel(foodPlateState == .full ? "Full food plate" : "Empty food plate")
+                    let grassTravel = (model.worldTravel - foodPlateSpawnTravel) * Self.grassDepth
+                    let adjacentSceneCenter = proxy.size.width / 2
+                        + foodPlateSide.direction * proxy.size.width
+                    DobermanScenePlateView(
+                        imageName: foodPlateState == .full
+                            ? "food-plate-full-day"
+                            : "food-plate-empty-day",
+                        accessibilityLabel: foodPlateState == .full
+                            ? "Full food plate"
+                            : "Empty food plate",
+                        centerX: adjacentSceneCenter - (isFoodPlateInScene ? grassTravel : 0),
+                        bottomY: max(0, proxy.size.height - 61),
+                        viewportWidth: proxy.size.width,
+                        exitAnimationDuration: reducedMotion ? 0.01 : model.renderState.movementDuration,
+                        onRetire: onRetireFoodPlate
+                    )
+                }
+
+                if waterPlateState != .hidden {
+                    let grassTravel = (model.worldTravel - waterPlateSpawnTravel) * Self.grassDepth
+                    let adjacentSceneCenter = proxy.size.width / 2
+                        + waterPlateSide.direction * proxy.size.width
+                    DobermanScenePlateView(
+                        imageName: waterPlateState == .full
+                            ? "water-plate-full"
+                            : "water-plate-empty-day",
+                        accessibilityLabel: waterPlateState == .full
+                            ? "Full water plate"
+                            : "Empty water plate",
+                        centerX: adjacentSceneCenter - (isWaterPlateInScene ? grassTravel : 0),
+                        bottomY: max(0, proxy.size.height - 61),
+                        viewportWidth: proxy.size.width,
+                        exitAnimationDuration: reducedMotion ? 0.01 : model.renderState.movementDuration,
+                        onRetire: onRetireWaterPlate
+                    )
                 }
 
                 DobermanSpriteSheetView(frame: model.renderState.frame, scale: scale)
@@ -1853,6 +1946,81 @@ struct DobermanSceneView: View {
             )
             .onAppear { model.updateExpandedStageWidth(proxy.size.width) }
             .onChange(of: proxy.size.width) { _, width in model.updateExpandedStageWidth(width) }
+        }
+    }
+}
+
+struct DobermanScenePlateView: View {
+    static let size = CGSize(width: 35, height: 20)
+    static let fadeOutDuration: TimeInterval = 0.5
+
+    let imageName: String
+    let accessibilityLabel: String
+    let centerX: CGFloat
+    let bottomY: CGFloat
+    let viewportWidth: CGFloat
+    let exitAnimationDuration: TimeInterval
+    let onRetire: () -> Void
+    @State private var hasEnteredViewport = false
+    @State private var isFadingOut = false
+    @State private var retirementTask: Task<Void, Never>?
+
+    static func isWithinViewport(centerX: CGFloat, viewportWidth: CGFloat) -> Bool {
+        let halfWidth = size.width / 2
+        return centerX + halfWidth >= 0
+            && centerX - halfWidth <= viewportWidth
+    }
+
+    static func isSafelyOffscreen(centerX: CGFloat, viewportWidth: CGFloat) -> Bool {
+        let doubledEdgeDistance = size.width
+        return centerX + doubledEdgeDistance < 0
+            || centerX - doubledEdgeDistance > viewportWidth
+    }
+
+    var body: some View {
+        Image(imageName)
+            .resizable()
+            .interpolation(.none)
+            .antialiased(false)
+            .scaledToFit()
+            .frame(width: Self.size.width, height: Self.size.height)
+            .offset(x: centerX - Self.size.width / 2, y: bottomY)
+            .opacity(isFadingOut ? 0 : 1)
+            .accessibilityLabel(accessibilityLabel)
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onAppear { updateLifecycle() }
+            .onChange(of: centerX) { _, _ in updateLifecycle() }
+            .onChange(of: viewportWidth) { _, _ in updateLifecycle() }
+            .onDisappear { retirementTask?.cancel() }
+    }
+
+    private func updateLifecycle() {
+        let intersectsViewport = Self.isWithinViewport(
+            centerX: centerX,
+            viewportWidth: viewportWidth
+        )
+
+        if intersectsViewport {
+            retirementTask?.cancel()
+            retirementTask = nil
+            isFadingOut = false
+            hasEnteredViewport = true
+        } else if hasEnteredViewport && Self.isSafelyOffscreen(
+            centerX: centerX,
+            viewportWidth: viewportWidth
+        ) {
+            retirementTask?.cancel()
+            retirementTask = Task { @MainActor in
+                try? await Task.sleep(for: .seconds(exitAnimationDuration))
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeOut(duration: Self.fadeOutDuration)) {
+                    isFadingOut = true
+                }
+                try? await Task.sleep(for: .seconds(Self.fadeOutDuration))
+                guard !Task.isCancelled else { return }
+                onRetire()
+            }
         }
     }
 }

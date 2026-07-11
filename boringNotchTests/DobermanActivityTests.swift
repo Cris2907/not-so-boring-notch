@@ -162,6 +162,24 @@ final class DobermanActivityTests: XCTestCase {
         XCTAssertEqual(DobermanParallaxLayer.wrappedOffset(for: -25, tileWidth: 500), 475)
     }
 
+    func testScenePlateRemainsVisibleUntilFullyOutsideViewport() {
+        let halfWidth = DobermanScenePlateView.size.width / 2
+
+        XCTAssertTrue(DobermanScenePlateView.isWithinViewport(centerX: -halfWidth, viewportWidth: 640))
+        XCTAssertFalse(DobermanScenePlateView.isWithinViewport(centerX: -halfWidth - 0.1, viewportWidth: 640))
+        XCTAssertTrue(DobermanScenePlateView.isWithinViewport(centerX: 640 + halfWidth, viewportWidth: 640))
+        XCTAssertFalse(DobermanScenePlateView.isWithinViewport(centerX: 640 + halfWidth + 0.1, viewportWidth: 640))
+    }
+
+    func testScenePlateUsesDoubledOffscreenDistanceBeforeRetiring() {
+        let doubledEdgeDistance = DobermanScenePlateView.size.width
+
+        XCTAssertFalse(DobermanScenePlateView.isSafelyOffscreen(centerX: -doubledEdgeDistance, viewportWidth: 640))
+        XCTAssertTrue(DobermanScenePlateView.isSafelyOffscreen(centerX: -doubledEdgeDistance - 0.1, viewportWidth: 640))
+        XCTAssertFalse(DobermanScenePlateView.isSafelyOffscreen(centerX: 640 + doubledEdgeDistance, viewportWidth: 640))
+        XCTAssertTrue(DobermanScenePlateView.isSafelyOffscreen(centerX: 640 + doubledEdgeDistance + 0.1, viewportWidth: 640))
+    }
+
     func testCloseNormalizationUsesOnlyJSXDerivedTransitions() {
         XCTAssertEqual(
             DobermanAnimationDefinitions.closeSequence(from: .sleeping),
