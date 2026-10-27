@@ -10,26 +10,37 @@ import Sparkle
 
 final class CheckForUpdatesViewModel: ObservableObject {
     @Published var canCheckForUpdates = false
+    private let updater: SPUUpdater
 
     init(updater: SPUUpdater) {
+        self.updater = updater
         updater.publisher(for: \.canCheckForUpdates)
+            .combineLatest(updater.publisher(for: \.sessionInProgress))
+            // An unstarted updater has no session. Keep the manual action
+            // available so its first click can start Sparkle on demand.
+            .map { canCheck, sessionInProgress in canCheck || !sessionInProgress }
             .assign(to: &$canCheckForUpdates)
+    }
+
+    func checkForUpdates() {
+        do {
+            try updater.start()
+            updater.checkForUpdates()
+        } catch {
+            NSAlert(error: error).runModal()
+        }
     }
 }
 
 struct CheckForUpdatesView: View {
     @ObservedObject private var checkForUpdatesViewModel: CheckForUpdatesViewModel
-    private let updater: SPUUpdater
-    
     init(updater: SPUUpdater) {
-        self.updater = updater
-        
         // Create our view model for our CheckForUpdatesView
         self.checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: updater)
     }
     
     var body: some View {
-        Button("Check for Updates…", action: updater.checkForUpdates)
+        Button("Check for Updates…", action: checkForUpdatesViewModel.checkForUpdates)
             .disabled(!checkForUpdatesViewModel.canCheckForUpdates)
     }
 }

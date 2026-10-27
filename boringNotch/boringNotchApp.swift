@@ -22,9 +22,8 @@ struct DynamicNotchApp: App {
 
     init() {
         updaterController = SPUStandardUpdaterController(
-            // An unsigned XCTest host cannot run Sparkle's installer service. Its
-            // modal error alert also blocks asynchronous tests on the main actor.
-            startingUpdater: NSClassFromString("XCTestCase") == nil,
+            // Start Sparkle only when the user explicitly checks for updates.
+            startingUpdater: false,
             updaterDelegate: nil, userDriverDelegate: nil)
 
         // Initialize the settings window controller with the updater controller
