@@ -135,15 +135,11 @@ struct NotchPanelBackground<PanelShape: Shape>: View {
                 .overlay {
                     LinearGradient(stops: [
                         .init(color: .black, location: 0),
-                        .init(color: .black, location: 0.16),
-                        .init(color: .black.opacity(0.9), location: 0.34),
-                        .init(color: .black.opacity(0.64), location: 0.6),
-                        .init(color: .black.opacity(contrast == .increased ? 0.74 : 0.38), location: 1)
+                        .init(color: .black, location: 0.2),
+                        .init(color: .black.opacity(contrast == .increased ? 0.9 : 0.64), location: 0.34),
+                        .init(color: .black.opacity(contrast == .increased ? 0.8 : 0.22), location: 0.6),
+                        .init(color: .black.opacity(contrast == .increased ? 0.74 : 0.14), location: 1)
                     ], startPoint: .top, endPoint: .bottom)
-                }
-                .overlay {
-                    shape.stroke(.white.opacity(contrast == .increased ? 0.3 : 0.13), lineWidth: 0.75)
-                        .mask(LinearGradient(colors: [.clear, .white], startPoint: .top, endPoint: .bottom))
                 }
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
@@ -155,7 +151,9 @@ struct NotchPanelBackground<PanelShape: Shape>: View {
     @ViewBuilder
     private var glassSurface: some View {
         if #available(macOS 26.0, *) {
-            Color.clear.glassEffect(.clear.tint(.black.opacity(0.12)), in: shape)
+            // Native clear Liquid Glass provides the lens/refraction rather than
+            // a frosted material. This decorative layer must not install gestures.
+            Color.clear.glassEffect(.clear.tint(.black.opacity(0.08)), in: shape)
         } else {
             NotchBackdropMaterial()
         }

@@ -146,11 +146,13 @@ Registration is source-defined and fixed for the process lifetime. Changing `isA
 
 Settings → Appearance → Notch surface offers Solid black (the default) and
 Siri-style glass. Both options use the same notch shape and content layout.
-Glass is applied only to the expanded panel: a native clear Liquid Glass surface
+Glass is applied only to the expanded panel: native clear Liquid Glass (not a frosted material)
 on macOS 26+, or behind-window material on older systems, with a black-to-dark
 vertical gradient. The top stays black around the camera. Closed presentations
 remain black, and Reduce Transparency always resolves the panel to solid black
-without discarding the user's stored choice.
+without discarding the user's stored choice. The glass background is decorative
+and never uses native interactive glass gestures, leaving horizontal input to
+the notch's tab navigation.
 
 Expanded activity roots must remain transparent; the shared shell owns their
 background. Local card surfaces and scene artwork can still draw their own fills.
@@ -158,9 +160,9 @@ background. Local card surfaces and scene artwork can still draw their own fills
 ## Floating tab navigation
 
 Tabs live in a detached dock below the open notch, outside the camera housing and
-black content panel. Each destination is a separate native Liquid Glass capsule
+content panel. In glass mode, each destination is a native Liquid Glass capsule
 on macOS 26+, with a material fallback on earlier supported releases and opaque
-surfaces for Reduce Transparency. The selected destination includes its name.
+surfaces for Reduce Transparency. In solid-black mode, each bubble is black. The selected destination includes its name.
 
 The dock uses the full window width. When destinations overflow, it scrolls
 horizontally and exposes an All tabs menu. Changing selection via swipe, menu, or
@@ -171,8 +173,12 @@ outside the destination identity so its state survives content transitions.
 Window height and the open-notch hover region include the 8-point bridge and
 48-point dock. Content height preferences continue to size the black panel;
 activities do not need to reserve space for the dock themselves. The dock is
-hidden when closed and follows the existing tab-visibility preference. Header
-settings, camera, battery, and HUD controls remain beside the camera cutout.
+hidden when closed and follows the existing tab-visibility preference. The dock
+fades, scales down, and moves upward during closing; the backing window retains
+its previous height until the exit finishes so the icons cannot be clipped.
+Pending shrink operations are cancelled on reopening. Reduce Motion skips the
+animated hold. Header settings, camera, battery, and HUD controls remain beside
+the camera cutout.
 
 ## Dedicated open-notch presentation
 

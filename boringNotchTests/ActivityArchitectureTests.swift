@@ -1117,3 +1117,43 @@ final class NotchSurfaceStyleTests: XCTestCase {
         XCTAssertFalse(NotchSurfaceStyle.solidBlack.usesGlass(isOpen: true, reduceTransparency: false))
     }
 }
+
+@MainActor
+final class NotchWindowHeightRetentionTests: XCTestCase {
+    func testClosingKeepsDockUnclippedUntilExitFinishes() async throws {
+        let sizing = NotchWindowHeightRetention(initialHeight: 376, shrinkDelay: .milliseconds(15))
+        sizing.update(210, reduceMotion: false)
+        XCTAssertEqual(sizing.height, 376)
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 210)
+    }
+
+    func testRapidReopenCancelsPendingWindowShrink() async throws {
+        let sizing = NotchWindowHeightRetention(initialHeight: 376, shrinkDelay: .milliseconds(15))
+        sizing.update(210, reduceMotion: false)
+        sizing.update(400, reduceMotion: false)
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 400)
+    }
+
+    func testLatestClosingSizeWinsAcrossTabHeightChanges() async throws {
+        let sizing = NotchWindowHeightRetention(initialHeight: 376, shrinkDelay: .milliseconds(15))
+        sizing.update(266, reduceMotion: false)
+        sizing.update(210, reduceMotion: false)
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 210)
+    }
+
+    func testReducedMotionAndCancellationDoNotLeaveDelayedResize() async throws {
+        let sizing = NotchWindowHeightRetention(initialHeight: 376, shrinkDelay: .milliseconds(15))
+        sizing.update(210, reduceMotion: false)
+        sizing.update(266, reduceMotion: true)
+        XCTAssertEqual(sizing.height, 266)
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 266)
+        sizing.update(210, reduceMotion: false)
+        sizing.cancel()
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 266)
+    }
+}

@@ -39,6 +39,8 @@ struct ContentView: View {
     @State private var lastLoggedClosedActivityLivePresentation = ""
     @State private var showsTimerCompletionInterruption = false
     @State private var timerCompletionInterruptionTask: Task<Void, Never>?
+    @StateObject private var windowHeightRetention = NotchWindowHeightRetention()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @Namespace var albumArtNamespace
 
@@ -54,8 +56,16 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
-    private var requiredWindowHeight: CGFloat {
+    private var layoutWindowHeight: CGFloat {
         notchWindowHeight(for: vm.notchSize.height) + vm.floatingTabBarReservedHeight
+    }
+
+    private var requiredWindowHeight: CGFloat {
+        max(layoutWindowHeight, windowHeightRetention.height)
+    }
+
+    private var keepsClosingDockVisible: Bool {
+        !reduceMotion && windowHeightRetention.height > layoutWindowHeight
     }
 
     private var topCornerRadius: CGFloat {
@@ -252,12 +262,18 @@ struct ContentView: View {
                             vm.notchState == .closed && vm.effectiveClosedNotchHeight == 0 ? 10 : 0
                         )
 
-                    if vm.notchState == .open && vm.showsFloatingTabBar {
+                    if vm.showsFloatingTabBar && (vm.notchState == .open || keepsClosingDockVisible) {
                         TabSelectionView()
                             .frame(height: floatingTabBarHeight)
                             .padding(.horizontal, 20)
                             .padding(.top, floatingTabBarGap)
-                            .transition(.opacity)
+                            .opacity(vm.notchState == .open ? 1 : 0)
+                            .scaleEffect(vm.notchState == .open ? 1 : 0.86, anchor: .top)
+                            .offset(y: vm.notchState == .open ? 0 : -8)
+                            .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: vm.notchState)
+                            .transition(reduceMotion ? .identity : .opacity.combined(with: .scale(scale: 0.86, anchor: .top)))
+                            .allowsHitTesting(vm.notchState == .open)
+                            .accessibilityHidden(vm.notchState != .open)
                     }
                 }
                 
@@ -428,6 +444,13 @@ struct ContentView: View {
         )
         .animation(.smooth, value: gestureProgress)
         .background(NotchWindowHeightSynchronizer(height: requiredWindowHeight))
+        .onChange(of: layoutWindowHeight, initial: true) { _, height in
+            windowHeightRetention.update(height, reduceMotion: reduceMotion)
+        }
+        .onChange(of: reduceMotion) { _, value in
+            windowHeightRetention.update(layoutWindowHeight, reduceMotion: value)
+        }
+        .onDisappear { windowHeightRetention.cancel() }
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
@@ -1109,6 +1132,39 @@ private enum ClosedActivityMinimalIconPlacement {
     }
 }
 
+/// Keep the transparent backing window large enough for SwiftUI's exit animation.
+/// Shrinking it on the first closed-state frame clips the outgoing dock in half.
+@MainActor
+final class NotchWindowHeightRetention: ObservableObject {
+    @Published private(set) var height: CGFloat
+    private let shrinkDelay: Duration
+    private var shrinkTask: Task<Void, Never>?
+
+    init(initialHeight: CGFloat = windowSize.height, shrinkDelay: Duration = .milliseconds(500)) {
+        height = initialHeight
+        self.shrinkDelay = shrinkDelay
+    }
+
+    func update(_ targetHeight: CGFloat, reduceMotion: Bool) {
+        cancel()
+        if targetHeight >= height || reduceMotion {
+            height = targetHeight
+            return
+        }
+        shrinkTask = Task { @MainActor [weak self, shrinkDelay] in
+            try? await Task.sleep(for: shrinkDelay)
+            guard !Task.isCancelled else { return }
+            self?.height = targetHeight
+            self?.shrinkTask = nil
+        }
+    }
+
+    func cancel() {
+        shrinkTask?.cancel()
+        shrinkTask = nil
+    }
+}
+
 private struct NotchWindowHeightSynchronizer: NSViewRepresentable {
     let height: CGFloat
 
@@ -1150,7 +1206,10 @@ private struct NotchWindowHeightSynchronizer: NSViewRepresentable {
             let topEdge = frame.maxY
             frame.size.height = targetHeight
             frame.origin.y = topEdge - targetHeight
-            window.setFrame(frame, display: true, animate: true)
+            // SwiftUI animates the visible notch inside this transparent window.
+            // Resize its backing window immediately so AppKit's independent
+            // animation cannot move the content away from the fixed top edge.
+            window.setFrame(frame, display: true, animate: false)
         }
     }
 }

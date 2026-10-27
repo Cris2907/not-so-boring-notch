@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import Defaults
 import SwiftUI
 
 struct TabButton: View {
@@ -44,12 +45,19 @@ struct TabButton: View {
 struct FloatingTabBubbleSurface: ViewModifier {
     let selected: Bool
     let tint: Color
+    @Default(.notchSurfaceStyle) private var surfaceStyle
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
 
     @ViewBuilder
     func body(content: Content) -> some View {
-        if reduceTransparency {
+        if surfaceStyle == .solidBlack {
+            content
+                .background(.black, in: Capsule())
+                .overlay {
+                    Capsule().strokeBorder(.white.opacity(contrast == .increased ? 0.65 : selected ? 0.28 : 0.1), lineWidth: 1)
+                }
+        } else if reduceTransparency {
             content
                 .background(selected ? Color(white: 0.3) : Color(white: 0.14), in: Capsule())
                 .overlay { Capsule().strokeBorder(.white.opacity(selected ? 0.6 : 0.3), lineWidth: 1) }
