@@ -43,6 +43,8 @@ func closedActivityFullPresentationAdditionalWidth(
         + closedActivityFullPresentationWidthReserve
 }
 
+let floatingTabBarHeight: CGFloat = 48
+let floatingTabBarGap: CGFloat = 8
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
 let calendarOpenNotchHeight: CGFloat = openNotchSize.height + 20

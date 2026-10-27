@@ -176,11 +176,19 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
     
+    var showsFloatingTabBar: Bool {
+        coordinator.alwaysShowTabs || (!ShelfStateViewModel.shared.isEmpty && Defaults[.boringShelf])
+    }
+
+    var floatingTabBarReservedHeight: CGFloat {
+        notchState == .open && showsFloatingTabBar ? floatingTabBarGap + floatingTabBarHeight : 0
+    }
+
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
         let screenFrame = getScreenFrame(screenUUID)
         if let frame = screenFrame {
             
-            let baseY = frame.maxY - notchSize.height
+            let baseY = frame.maxY - notchSize.height - floatingTabBarReservedHeight
             let baseX = frame.midX - notchSize.width / 2
             
             return position.y >= baseY && position.x >= baseX && position.x <= baseX + notchSize.width

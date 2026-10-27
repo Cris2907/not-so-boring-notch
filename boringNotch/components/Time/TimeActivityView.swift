@@ -37,7 +37,6 @@ struct TimeActivityView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 2)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.black)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Time controls")
         .onAppear {

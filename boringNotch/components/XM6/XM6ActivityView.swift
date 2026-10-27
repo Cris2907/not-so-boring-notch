@@ -21,7 +21,6 @@ struct XM6ActivityView: View {
         .padding(.horizontal, 18)
         .padding(.bottom, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(.black)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("XM6 headphone controls")
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in

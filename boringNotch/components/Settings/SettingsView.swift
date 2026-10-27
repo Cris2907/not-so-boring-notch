@@ -1370,6 +1370,7 @@ struct Shelf: View {
 
 struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.notchSurfaceStyle) private var notchSurfaceStyle
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
     @Default(.useMusicVisualizer) var useMusicVisualizer
@@ -1385,6 +1386,18 @@ struct Appearance: View {
     @State private var speed: CGFloat = 1.0
     var body: some View {
         Form {
+            Section {
+                Picker("Notch surface", selection: $notchSurfaceStyle) {
+                    ForEach(NotchSurfaceStyle.allCases, id: \.self) { style in
+                        Text(style.label).tag(style)
+                    }
+                }
+                Text("Siri-style glass fades from black near the camera into a translucent lower panel. Solid black keeps the classic appearance. Reduce Transparency always uses black.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Notch appearance")
+            }
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
                 Defaults.Toggle(key: .settingsIconInNotch) {

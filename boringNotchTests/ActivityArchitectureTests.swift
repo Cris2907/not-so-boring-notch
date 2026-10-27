@@ -1,4 +1,6 @@
+import AppKit
 import Combine
+import Defaults
 import SwiftUI
 import XCTest
 @testable import boringNotch
@@ -1047,5 +1049,71 @@ private final class LiveTestProvider: LiveActivityPresentationProvider {
 
     func makeMinimalView() -> some View {
         Text(name)
+    }
+}
+
+
+@MainActor
+final class FloatingTabBarTests: XCTestCase {
+    func testAllCurrentTabsFitFullWidthWithXM6Selected() {
+        let width = FloatingTabBarMetrics.contentWidth(tabCount: 8, selectedLabel: "XM6")
+        XCTAssertLessThan(width, openNotchSize.width - 40)
+        XCTAssertEqual(FloatingTabBarMetrics.viewportWidth(contentWidth: width, availableWidth: 600), width)
+    }
+
+    func testOverflowReservesMenuSpaceAndCanFitSelectedBubble() {
+        let contentWidth = FloatingTabBarMetrics.contentWidth(tabCount: 20, selectedLabel: "XM6")
+        let viewport = FloatingTabBarMetrics.viewportWidth(contentWidth: contentWidth, availableWidth: 300)
+        XCTAssertGreaterThan(contentWidth, 300)
+        XCTAssertEqual(viewport, 252)
+        XCTAssertGreaterThan(viewport, FloatingTabBarMetrics.labelWidth("XM6") + 51)
+        XCTAssertEqual(FloatingTabBarMetrics.viewportWidth(contentWidth: contentWidth, availableWidth: 20), 0)
+    }
+
+    func testLongSelectedNamesCannotPushCurrentTabsIntoOverflow() {
+        let label = String(repeating: "Long extension name ", count: 20)
+        XCTAssertEqual(FloatingTabBarMetrics.labelWidth(label), 100)
+        XCTAssertLessThan(FloatingTabBarMetrics.contentWidth(tabCount: 8, selectedLabel: label), 600)
+        XCTAssertEqual(FloatingTabBarMetrics.contentWidth(tabCount: 0, selectedLabel: nil), 0)
+    }
+
+    func testHoverRegionIncludesDetachedDockAndGapOnlyWhileOpen() {
+        let vm = BoringViewModel()
+        let oldTabs = vm.coordinator.alwaysShowTabs
+        defer { vm.coordinator.alwaysShowTabs = oldTabs }
+        vm.coordinator.alwaysShowTabs = true
+        vm.open()
+        vm.updateOpenNotchHeight(300)
+        guard let screen = NSScreen.main else { return XCTFail("No screen for notch hover test") }
+        let y = screen.frame.maxY - vm.notchSize.height - floatingTabBarGap - 20
+        XCTAssertEqual(vm.floatingTabBarReservedHeight, 56)
+        XCTAssertTrue(vm.isMouseHovering(position: NSPoint(x: screen.frame.midX, y: y)))
+        XCTAssertFalse(vm.isMouseHovering(position: NSPoint(x: screen.frame.midX, y: screen.frame.maxY - 370)))
+        vm.close()
+        XCTAssertEqual(vm.floatingTabBarReservedHeight, 0)
+        XCTAssertFalse(vm.isMouseHovering(position: NSPoint(x: screen.frame.midX, y: y)))
+    }
+}
+
+
+final class NotchSurfaceStyleTests: XCTestCase {
+    func testBlackIsDefaultAndGlassChoicePersists() throws {
+        let suiteName = "NotchSurfaceStyleTests.\(UUID().uuidString)"
+        let suite = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { suite.removePersistentDomain(forName: suiteName) }
+        let key = Defaults.Key<NotchSurfaceStyle>("notchSurfaceStyle", default: .solidBlack, suite: suite)
+        XCTAssertEqual(Defaults[key], .solidBlack)
+        Defaults[key] = .siriGlass
+        let restored = Defaults.Key<NotchSurfaceStyle>("notchSurfaceStyle", default: .solidBlack, suite: suite)
+        XCTAssertEqual(Defaults[restored], .siriGlass)
+        Defaults[key] = .solidBlack
+        XCTAssertEqual(Defaults[restored], .solidBlack)
+    }
+
+    func testGlassOnlyAppliesToExpandedPanelWithoutReducedTransparency() {
+        XCTAssertTrue(NotchSurfaceStyle.siriGlass.usesGlass(isOpen: true, reduceTransparency: false))
+        XCTAssertFalse(NotchSurfaceStyle.siriGlass.usesGlass(isOpen: false, reduceTransparency: false))
+        XCTAssertFalse(NotchSurfaceStyle.siriGlass.usesGlass(isOpen: true, reduceTransparency: true))
+        XCTAssertFalse(NotchSurfaceStyle.solidBlack.usesGlass(isOpen: true, reduceTransparency: false))
     }
 }

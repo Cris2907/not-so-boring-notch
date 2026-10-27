@@ -25,6 +25,7 @@ struct ContentView: View {
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var bluetoothAudioManager = BluetoothAudioManager.shared
     @ObservedObject var timeActivityManager = TimeActivityManager.shared
+    @ObservedObject private var shelfState = ShelfStateViewModel.shared
     @ObservedObject private var activityRegistry = ActivityRegistry.shared
     @ObservedObject private var liveProviderRegistry = LiveActivityPresentationProviderRegistry.shared
     @ObservedObject private var activityLivePresentationCoordinator = ActivityLivePresentationCoordinator.shared
@@ -45,6 +46,7 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.clockShowInClosedNotch) var clockShowInClosedNotch
+    @Default(.notchSurfaceStyle) private var notchSurfaceStyle
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.72, blendDuration: 0)
@@ -53,7 +55,7 @@ struct ContentView: View {
     private let zeroHeightHoverPadding: CGFloat = 10
 
     private var requiredWindowHeight: CGFloat {
-        notchWindowHeight(for: vm.notchSize.height)
+        notchWindowHeight(for: vm.notchSize.height) + vm.floatingTabBarReservedHeight
     }
 
     private var topCornerRadius: CGFloat {
@@ -209,39 +211,55 @@ struct ContentView: View {
         
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                let mainLayout = NotchLayout(livePresentationStack: livePresentationStack)
-                    .frame(alignment: .top)
-                    .padding(
-                        .horizontal,
-                        vm.notchState == .open
-                        ? Defaults[.cornerRadiusScaling]
-                        ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
-                        : cornerRadiusInsets.closed.bottom
-                    )
-                    .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                    // Keep the visible shell at a stable height. Applying this frame
-                    // after the background/clip only fixes the outer layout frame,
-                    // allowing short tab content to shrink the rendered notch.
-                    .frame(
-                        height: vm.notchState == .open ? vm.notchSize.height : nil,
-                        alignment: .top
-                    )
-                    .background(.black)
-                    .clipShape(currentNotchShape)
-                    .overlay(alignment: .top) {
-                        Rectangle()
-                            .fill(.black)
-                            .frame(height: 1)
-                            .padding(.horizontal, topCornerRadius)
+                let mainLayout = VStack(spacing: 0) {
+                    NotchLayout(livePresentationStack: livePresentationStack)
+                        .frame(alignment: .top)
+                        .padding(
+                            .horizontal,
+                            vm.notchState == .open
+                            ? Defaults[.cornerRadiusScaling]
+                            ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
+                            : cornerRadiusInsets.closed.bottom
+                        )
+                        .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
+                        // Keep the visible shell at a stable height. Applying this frame
+                        // after the background/clip only fixes the outer layout frame,
+                        // allowing short tab content to shrink the rendered notch.
+                        .frame(
+                            height: vm.notchState == .open ? vm.notchSize.height : nil,
+                            alignment: .top
+                        )
+                        .background {
+                            NotchPanelBackground(
+                                shape: currentNotchShape,
+                                style: notchSurfaceStyle,
+                                isOpen: vm.notchState == .open
+                            )
+                        }
+                        .clipShape(currentNotchShape)
+                        .overlay(alignment: .top) {
+                            Rectangle()
+                                .fill(.black)
+                                .frame(height: 1)
+                                .padding(.horizontal, topCornerRadius)
+                        }
+                        .shadow(
+                            color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
+                                ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
+                        )
+                        .padding(
+                            .bottom,
+                            vm.notchState == .closed && vm.effectiveClosedNotchHeight == 0 ? 10 : 0
+                        )
+
+                    if vm.notchState == .open && vm.showsFloatingTabBar {
+                        TabSelectionView()
+                            .frame(height: floatingTabBarHeight)
+                            .padding(.horizontal, 20)
+                            .padding(.top, floatingTabBarGap)
+                            .transition(.opacity)
                     }
-                    .shadow(
-                        color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
-                            ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
-                    )
-                    .padding(
-                        .bottom,
-                        vm.effectiveClosedNotchHeight == 0 ? 10 : 0
-                    )
+                }
                 
                 mainLayout
                     .conditionalModifier(true) { view in
@@ -587,8 +605,6 @@ struct ContentView: View {
                     }
                     .frame(maxHeight: .infinity)
 
-                    NotchPaginationDots()
-                        .frame(height: 18)
                 }
                 .id(coordinator.currentView)
                 .transition(

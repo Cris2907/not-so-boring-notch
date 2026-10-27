@@ -86,7 +86,6 @@ struct QuickNotesActivityView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(.black)
     }
 
     private var noteBinding: Binding<String> {

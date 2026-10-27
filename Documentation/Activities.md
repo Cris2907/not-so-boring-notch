@@ -28,7 +28,7 @@ The open-notch and closed-notch paths share the same registered activity instanc
 Concrete NotchActivity
     -> AnyNotchActivity
         -> ActivityRegistry
-            -> open-notch tabs, pagination, swipe navigation
+            -> open-notch floating tabs, swipe navigation
             -> Extensions Settings
                 -> ActivityConfigurationView
                     -> type-erased makeConfigurationView()
@@ -47,7 +47,7 @@ The important implementation files are:
 | `boringNotch/activities/NotchActivity.swift` | IDs, metadata, protocols, type erasure, live-provider adapters, selection, recency, sizing, expanded/configuration hosts |
 | `boringNotch/activities/ActivityRegistry.swift` | Production registration, duplicate-ID validation, order, availability, and active filtering |
 | `boringNotch/ContentView.swift` | Open destination rendering, closed-notch interruption precedence, chin layout, hover routing, and window width |
-| `boringNotch/components/Tabs/TabSelectionView.swift` | Tab models, visible page order, fallback resolution, and pagination dots |
+| `boringNotch/components/Tabs/TabSelectionView.swift` | Tab models, floating bottom dock, visible page order, and fallback resolution |
 | `boringNotch/extensions/PanGesture.swift` | Horizontal swipe routing over the same visible page order |
 | `boringNotch/sizing/matters.swift` | Open-notch bounds, preferred-height propagation, and closed-notch measurements |
 | `boringNotch/components/Settings/SettingsView.swift` | Generic registered-extension list, enablement controls, and configuration navigation |
@@ -100,7 +100,7 @@ Metadata drives the tab label, tab SF Symbol, selected-tab tint, automatic chin 
 
 | Property | Default | Actual consumer |
 | --- | --- | --- |
-| `isAvailable` | `true` | Tab/pagination/swipe inclusion and registered live-provider eligibility |
+| `isAvailable` | `true` | Tab/swipe inclusion and registered live-provider eligibility |
 | `isActive` | `false` | `ActivityRegistry.activeActivities` only |
 | `supportsCompactPresentation` | `false` | Capability metadata only; production UI does not currently mount the compact view |
 | `livePresentationState` | `.hidden` | Closed-notch eligibility and visible/hidden transitions |
@@ -125,15 +125,14 @@ return try ActivityRegistry {
 
 No separate edit to `TabSelectionView` is needed. Registration automatically contributes `.activity(activity.id)` to all of these locations when `isAvailable` is true:
 
-- The tab strip in `BoringHeader`.
+- The floating glass tab dock below the open notch.
 - The open-notch destination switch in `ContentView`.
-- Pagination dots.
 - Horizontal two-finger navigation.
 - Live-activity hover routing back to the activity's tab.
 
 Registration also contributes an Extensions Settings row without any activity-specific Settings code. Every registered activity remains listed there even when the user disables it or `isAvailable` is false, so the user can restore enablement. The row uses `metadata.name`, `metadata.systemImage`, and optional `metadata.summary`; it shows generic configuration navigation only when `supportsConfiguration` is true.
 
-`BoringHeader` can hide the entire tab strip through the global `alwaysShowTabs` preference, but the activity remains a distinct destination in pagination and swipe navigation. An activity must not add a second, private tab control to work around that global choice.
+The global `alwaysShowTabs` preference controls the floating tab dock, but the activity remains a distinct destination in swipe navigation. An activity must not add a second, private tab control to work around that global choice.
 
 The current page order is Home, each available registered activity in registry order, the legacy Activities page, and Shelf when Shelf is enabled. The legacy `.activities` page is `TimeActivityView` for Timer and Stopwatch; it is not a registered `NotchActivity` and must not be used as the destination for new custom activities.
 
@@ -142,6 +141,38 @@ When an activity becomes unavailable, `ContentView` recomputes the visible pages
 Registration is source-defined and fixed for the process lifetime. Changing `isAvailable` can hide a registered entry, but activities cannot be dynamically added to or removed from the registry at runtime.
 
 `ActivityRegistryBuilder` supports conditionals, optionals, and arrays for source composition. Those branches run only while the registry is constructed; they are not a runtime installation mechanism. Prefer registering the activity once and publishing `isAvailable` when visibility must change while the app runs.
+
+## Shared notch appearance
+
+Settings → Appearance → Notch surface offers Solid black (the default) and
+Siri-style glass. Both options use the same notch shape and content layout.
+Glass is applied only to the expanded panel: a native clear Liquid Glass surface
+on macOS 26+, or behind-window material on older systems, with a black-to-dark
+vertical gradient. The top stays black around the camera. Closed presentations
+remain black, and Reduce Transparency always resolves the panel to solid black
+without discarding the user's stored choice.
+
+Expanded activity roots must remain transparent; the shared shell owns their
+background. Local card surfaces and scene artwork can still draw their own fills.
+
+## Floating tab navigation
+
+Tabs live in a detached dock below the open notch, outside the camera housing and
+black content panel. Each destination is a separate native Liquid Glass capsule
+on macOS 26+, with a material fallback on earlier supported releases and opaque
+surfaces for Reduce Transparency. The selected destination includes its name.
+
+The dock uses the full window width. When destinations overflow, it scrolls
+horizontally and exposes an All tabs menu. Changing selection via swipe, menu, or
+live-activity routing scrolls the selected bubble into view. Horizontal scrolling
+over an overflowing dock is excluded from page-swipe navigation. The dock is
+outside the destination identity so its state survives content transitions.
+
+Window height and the open-notch hover region include the 8-point bridge and
+48-point dock. Content height preferences continue to size the black panel;
+activities do not need to reserve space for the dock themselves. The dock is
+hidden when closed and follows the existing tab-visibility preference. Header
+settings, camera, battery, and HUD controls remain beside the camera cutout.
 
 ## Dedicated open-notch presentation
 
@@ -430,7 +461,7 @@ Manual review must cover open and closed notch states, one/two/three simultaneou
 An activity is ready only when every applicable item is true:
 
 - It has a permanent namespaced `ActivityID` that does not collide with registered activities, Timer, or Media.
-- It is registered once and automatically receives its own available tab, page dot, swipe destination, and Extensions Settings row.
+- It is registered once and automatically receives its own available tab, floating tab bubble, swipe destination, and Extensions Settings row.
 - Its expanded tab is complete and usable without the chin.
 - It explicitly implements both `makeLivePresentationView()` and `makeMinimalLivePresentationView()`.
 - It publishes a deliberate hidden/running/paused/ended `livePresentationState`.

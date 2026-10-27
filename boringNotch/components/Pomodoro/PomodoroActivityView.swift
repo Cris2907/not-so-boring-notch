@@ -16,7 +16,6 @@ struct PomodoroActivityView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 4)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.black)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Pomodoro controls")
