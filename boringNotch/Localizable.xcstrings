@@ -1,6 +1,978 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Default Bluetooth accessory" : {
+      "comment" : "XM6 default accessory preference",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default Bluetooth accessory"
+          }
+        }
+      }
+    },
+    "Last connected or auto-detect" : {
+      "comment" : "XM6 default accessory preference",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last connected or auto-detect"
+          }
+        }
+      }
+    },
+    "%@ (not currently paired)" : {
+      "comment" : "XM6 default accessory preference",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (not currently paired)"
+          }
+        }
+      }
+    },
+    "Treat this accessory as your XM6 headphones. The choice is saved for Connect and automatic reconnection; an active connection stays open until you disconnect." : {
+      "comment" : "XM6 default accessory preference",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Treat this accessory as your XM6 headphones. The choice is saved for Connect and automatic reconnection; an active connection stays open until you disconnect."
+          }
+        }
+      }
+    },
+    "Reconnect to your default accessory or last connected headphones on launch, wake, and headphone reconnection. Disconnect pauses this until Connect or the next app launch." : {
+      "comment" : "XM6 default accessory preference",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnect to your default accessory or last connected headphones on launch, wake, and headphone reconnection. Disconnect pauses this until Connect or the next app launch."
+          }
+        }
+      }
+    },
+    "Bluetooth access is disabled. Allow boring.notch in Bluetooth Privacy settings, then retry." : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth access is disabled. Allow boring.notch in Bluetooth Privacy settings, then retry."
+          }
+        }
+      }
+    },
+    "+%lld" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld"
+          }
+        }
+      }
+    },
+    "A personalized preset is active. Choosing a preset replaces it." : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A personalized preset is active. Choosing a preset replaces it."
+          }
+        }
+      }
+    },
+    "AMB" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AMB"
+          }
+        }
+      }
+    },
+    "After your first connection, reconnect on launch, wake, and headphone reconnection. Disconnect pauses this until Connect or the next app launch." : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After your first connection, reconnect on launch, wake, and headphone reconnection. Disconnect pauses this until Connect or the next app launch."
+          }
+        }
+      }
+    },
+    "Ambient" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ambient"
+          }
+        }
+      }
+    },
+    "Ambient level" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ambient level"
+          }
+        }
+      }
+    },
+    "Ambient sound level" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ambient sound level"
+          }
+        }
+      }
+    },
+    "Auto" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
+    "Automatic power off" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic power off"
+          }
+        }
+      }
+    },
+    "Background Music" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background Music"
+          }
+        }
+      }
+    },
+    "Band levels not reported. Editing starts from flat." : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Band levels not reported. Editing starts from flat."
+          }
+        }
+      }
+    },
+    "Battery %lld percent" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Battery %lld percent"
+          }
+        }
+      }
+    },
+    "Battery %lld percent, charging" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Battery %lld percent, charging"
+          }
+        }
+      }
+    },
+    "Battery not reported" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Battery not reported"
+          }
+        }
+      }
+    },
+    "Bluetooth Permission" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth Permission"
+          }
+        }
+      }
+    },
+    "Bluetooth Settings" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth Settings"
+          }
+        }
+      }
+    },
+    "Cafe" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cafe"
+          }
+        }
+      }
+    },
+    "Choose paired headphones" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose paired headphones"
+          }
+        }
+      }
+    },
+    "Cinema" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cinema"
+          }
+        }
+      }
+    },
+    "Clear" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear"
+          }
+        }
+      }
+    },
+    "Connect" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect"
+          }
+        }
+      }
+    },
+    "Connected devices" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected devices"
+          }
+        }
+      }
+    },
+    "Connecting to your headphones…" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting to your headphones…"
+          }
+        }
+      }
+    },
+    "Connection" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection"
+          }
+        }
+      }
+    },
+    "Control your Sony WH-1000XM6 headphones." : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Control your Sony WH-1000XM6 headphones."
+          }
+        }
+      }
+    },
+    "Diagnostics" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostics"
+          }
+        }
+      }
+    },
+    "Disconnect" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect"
+          }
+        }
+      }
+    },
+    "Equalizer" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalizer"
+          }
+        }
+      }
+    },
+    "Equalizer band %lld" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalizer band %lld"
+          }
+        }
+      }
+    },
+    "Equalizer preset" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalizer preset"
+          }
+        }
+      }
+    },
+    "Focus on Voice" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Focus on Voice"
+          }
+        }
+      }
+    },
+    "Hard" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard"
+          }
+        }
+      }
+    },
+    "Heavy" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heavy"
+          }
+        }
+      }
+    },
+    "Listening mode" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listening mode"
+          }
+        }
+      }
+    },
+    "Living Room" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Room"
+          }
+        }
+      }
+    },
+    "Long" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long"
+          }
+        }
+      }
+    },
+    "My Room" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My Room"
+          }
+        }
+      }
+    },
+    "NC" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NC"
+          }
+        }
+      }
+    },
+    "Never" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Never"
+          }
+        }
+      }
+    },
+    "No connected devices" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No connected devices"
+          }
+        }
+      }
+    },
+    "No paired devices" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No paired devices"
+          }
+        }
+      }
+    },
+    "Noise Cancelling" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noise Cancelling"
+          }
+        }
+      }
+    },
+    "Noise mode not reported" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noise mode not reported"
+          }
+        }
+      }
+    },
+    "Not connected" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not connected"
+          }
+        }
+      }
+    },
+    "Not reported" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not reported"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        }
+      }
+    },
+    "Off by default. Records Bluetooth protocol traffic inside boring.notch’s application container for troubleshooting." : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off by default. Records Bluetooth protocol traffic inside boring.notch’s application container for troubleshooting."
+          }
+        }
+      }
+    },
+    "Only WH-1000XM6 headphones are supported. You can select them manually if renamed." : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only WH-1000XM6 headphones are supported. You can select them manually if renamed."
+          }
+        }
+      }
+    },
+    "Pair your WH-1000XM6 in Bluetooth settings, then connect. Headphone settings stay as they are." : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair your WH-1000XM6 in Bluetooth settings, then connect. Headphone settings stay as they are."
+          }
+        }
+      }
+    },
+    "Pause when taken off" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause when taken off"
+          }
+        }
+      }
+    },
+    "Personalized" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalized"
+          }
+        }
+      }
+    },
+    "Play from %@" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play from %@"
+          }
+        }
+      }
+    },
+    "Play here" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play here"
+          }
+        }
+      }
+    },
+    "Playing" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playing"
+          }
+        }
+      }
+    },
+    "Protocol logging" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protocol logging"
+          }
+        }
+      }
+    },
+    "Reconnect automatically" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnect automatically"
+          }
+        }
+      }
+    },
+    "Refresh headphone state" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh headphone state"
+          }
+        }
+      }
+    },
+    "Refresh paired devices" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh paired devices"
+          }
+        }
+      }
+    },
+    "Remembered headphones" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remembered headphones"
+          }
+        }
+      }
+    },
+    "Reset to flat" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset to flat"
+          }
+        }
+      }
+    },
+    "Resume audio" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume audio"
+          }
+        }
+      }
+    },
+    "Retry" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        }
+      }
+    },
+    "Room" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Room"
+          }
+        }
+      }
+    },
+    "Sensitivity" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensitivity"
+          }
+        }
+      }
+    },
+    "Short" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Short"
+          }
+        }
+      }
+    },
+    "Show protocol log" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show protocol log"
+          }
+        }
+      }
+    },
+    "Soft" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soft"
+          }
+        }
+      }
+    },
+    "Some settings were not reported. Refresh to request them again." : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some settings were not reported. Refresh to request them again."
+          }
+        }
+      }
+    },
+    "Speak-to-Chat" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speak-to-Chat"
+          }
+        }
+      }
+    },
+    "Standard" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard"
+          }
+        }
+      }
+    },
+    "When Taken Off" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When Taken Off"
+          }
+        }
+      }
+    },
+    "XM6" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "XM6"
+          }
+        }
+      }
+    },
+    "XM6 headphone controls" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "XM6 headphone controls"
+          }
+        }
+      }
+    },
+    "XM6, %@, %@" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "XM6, %@, %@"
+          }
+        }
+      }
+    },
+    "—" : {
+      "comment" : "XM6 headphone extension",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "—"
+          }
+        }
+      }
+    },
     "" : {
       "localizations" : {
         "ar" : {

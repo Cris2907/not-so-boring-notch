@@ -22,7 +22,10 @@ struct DynamicNotchApp: App {
 
     init() {
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            // An unsigned XCTest host cannot run Sparkle's installer service. Its
+            // modal error alert also blocks asynchronous tests on the main actor.
+            startingUpdater: NSClassFromString("XCTestCase") == nil,
+            updaterDelegate: nil, userDriverDelegate: nil)
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
@@ -82,6 +85,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DistributedNotificationCenter.default().removeObserver(observer)
             screenUnlockedObserver = nil
         }
+        XM6Manager.shared.stop()
         BluetoothAudioManager.shared.stop()
         MusicManager.shared.destroy()
         cleanupDragDetectors()
@@ -283,6 +287,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         BluetoothAudioManager.shared.start()
+        XM6Manager.shared.start()
 
         NotificationCenter.default.addObserver(
             self,

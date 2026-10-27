@@ -169,6 +169,12 @@
 		C1A500012F00000100000001 /* DobermanActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A500112F00000100000001 /* DobermanActivity.swift */; };
 		C1A500022F00000100000001 /* DobermanActivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A500122F00000100000001 /* DobermanActivityTests.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		C1A600002F00000100000001 /* XM6Activity.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A600102F00000100000001 /* XM6Activity.swift */; };
+		C1A600012F00000100000001 /* XM6Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A600112F00000100000001 /* XM6Manager.swift */; };
+		C1A600022F00000100000001 /* XM6ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A600122F00000100000001 /* XM6ActivityView.swift */; };
+		C1A600032F00000100000001 /* XM6ActivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A600132F00000100000001 /* XM6ActivityTests.swift */; };
+		C1A600322F00000100000001 /* SonyHeadphonesKit in Frameworks */ = {isa = PBXBuildFile; productRef = C1A600302F00000100000001 /* SonyHeadphonesKit */; };
+		C1A600332F00000100000001 /* SonyHeadphonesKit in Frameworks */ = {isa = PBXBuildFile; productRef = C1A600302F00000100000001 /* SonyHeadphonesKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -369,6 +375,10 @@
 		C1A500112F00000100000001 /* DobermanActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DobermanActivity.swift; sourceTree = "<group>"; };
 		C1A500122F00000100000001 /* DobermanActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DobermanActivityTests.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		C1A600102F00000100000001 /* XM6Activity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XM6Activity.swift"; sourceTree = "<group>"; };
+		C1A600112F00000100000001 /* XM6Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XM6Manager.swift"; sourceTree = "<group>"; };
+		C1A600122F00000100000001 /* XM6ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XM6/XM6ActivityView.swift"; sourceTree = "<group>"; };
+		C1A600132F00000100000001 /* XM6ActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XM6ActivityTests.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -398,6 +408,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1A600322F00000100000001 /* SonyHeadphonesKit in Frameworks */,
 				C0DEB1000000000000000004 /* IOBluetooth.framework in Frameworks */,
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
@@ -419,6 +430,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1A600332F00000100000001 /* SonyHeadphonesKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -554,6 +566,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				C1A600122F00000100000001 /* XM6ActivityView.swift */,
 				C1A300202F00000100000001 /* QuickNotes */,
 				C1A200202F00000100000001 /* Pomodoro */,
 				A10000070000000000000001 /* Time */,
@@ -581,6 +594,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				C1A600112F00000100000001 /* XM6Manager.swift */,
 				C1A300122F00000100000001 /* QuickNotesManager.swift */,
 				C1A200132F00000100000001 /* PomodoroManager.swift */,
 				A10000030000000000000001 /* TimeActivityManager.swift */,
@@ -751,6 +765,7 @@
 		A10000130000000000000001 /* boringNotchTests */ = {
 			isa = PBXGroup;
 			children = (
+				C1A600132F00000100000001 /* XM6ActivityTests.swift */,
 				C1A400112F00000100000001 /* NotchWindowKeyboardFocusTests.swift */,
 				C1A500122F00000100000001 /* DobermanActivityTests.swift */,
 				C1A300142F00000100000001 /* QuickNotesActivityTests.swift */,
@@ -865,6 +880,7 @@
 		C1A100202F00000100000001 /* activities */ = {
 			isa = PBXGroup;
 			children = (
+				C1A600102F00000100000001 /* XM6Activity.swift */,
 				C1A100112F00000100000001 /* NotchActivity.swift */,
 				C1A100122F00000100000001 /* ActivityRegistry.swift */,
 				C1A100132F00000100000001 /* ExampleActivity.swift */,
@@ -937,6 +953,7 @@
 			);
 			name = boringNotch;
 			packageProductDependencies = (
+				C1A600302F00000100000001 /* SonyHeadphonesKit */,
 				14D032192C68F32E0096E6A1 /* LaunchAtLogin */,
 				14D0321C2C68F3350096E6A1 /* Sparkle */,
 				B18654382C6F4990000B926A /* KeyboardShortcuts */,
@@ -969,6 +986,7 @@
 			);
 			name = boringNotchTests;
 			packageProductDependencies = (
+				C1A600302F00000100000001 /* SonyHeadphonesKit */,
 			);
 			productName = boringNotchTests;
 			productReference = A10000120000000000000001 /* boringNotchTests.xctest */;
@@ -1007,6 +1025,7 @@
 			);
 			mainGroup = 14CEF4092C5CAED200855D72;
 			packageReferences = (
+				C1A600312F00000100000001 /* XCLocalSwiftPackageReference "Packages/SonyHeadphonesKit" */,
 				14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 				14D0321B2C68F3350096E6A1 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				B18654372C6F4990000B926A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
@@ -1072,6 +1091,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1A600022F00000100000001 /* XM6ActivityView.swift in Sources */,
+				C1A600012F00000100000001 /* XM6Manager.swift in Sources */,
+				C1A600002F00000100000001 /* XM6Activity.swift in Sources */,
 				C1A300012F00000100000001 /* QuickNotesActivity.swift in Sources */,
 				C1A500012F00000100000001 /* DobermanActivity.swift in Sources */,
 				C1A300022F00000100000001 /* QuickNotesManager.swift in Sources */,
@@ -1212,6 +1234,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1A600032F00000100000001 /* XM6ActivityTests.swift in Sources */,
 				C1A400012F00000100000001 /* NotchWindowKeyboardFocusTests.swift in Sources */,
 				C1A500022F00000100000001 /* DobermanActivityTests.swift in Sources */,
 				C1A300042F00000100000001 /* QuickNotesActivityTests.swift in Sources */,
@@ -1637,6 +1660,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+        C1A600312F00000100000001 /* XCLocalSwiftPackageReference "Packages/SonyHeadphonesKit" */ = {
+            isa = XCLocalSwiftPackageReference;
+            relativePath = Packages/SonyHeadphonesKit;
+        };
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		111BE95B2ECD71E10079DD4E /* XCRemoteSwiftPackageReference "AsyncXPCConnection" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -1787,6 +1817,11 @@
 			package = B19016202CC15B3D00E3F12E /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
 		};
+        C1A600302F00000100000001 /* SonyHeadphonesKit */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = C1A600312F00000100000001 /* XCLocalSwiftPackageReference "Packages/SonyHeadphonesKit" */;
+            productName = SonyHeadphonesKit;
+        };
 /* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 14CEF40A2C5CAED200855D72 /* Project object */;
