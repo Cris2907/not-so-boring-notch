@@ -47,7 +47,6 @@ struct ContentView: View {
     @ObservedObject var timeActivityManager = TimeActivityManager.shared
     @ObservedObject private var shelfState = ShelfStateViewModel.shared
     @ObservedObject private var activityRegistry = ActivityRegistry.shared
-    @ObservedObject private var liveProviderRegistry = LiveActivityPresentationProviderRegistry.shared
     @ObservedObject private var activityLivePresentationCoordinator = ActivityLivePresentationCoordinator.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
@@ -224,10 +223,10 @@ struct ContentView: View {
     }
 
     var body: some View {
-        let livePresentationStack = selectedActivityLivePresentationStack(
-            from: liveProviderRegistry.providers,
-            snapshot: activityLivePresentationCoordinator.snapshot
-        )
+        // Eligibility and recency must come from the same resolved update.
+        // Reading live providers here can briefly reverse the split slots
+        // before the coordinator assigns the newly started activity's order.
+        let livePresentationStack = activityLivePresentationCoordinator.selectedStack
         let renderedLivePresentationDescription = closedActivityLivePresentationDisplayDescription(
             for: livePresentationStack
         )
@@ -970,7 +969,7 @@ struct MediaMinimalLivePresentationView: View {
     }
 }
 
-private struct ClosedActivityLivePresentationStackView: View {
+struct ClosedActivityLivePresentationStackView: View {
     let stack: ActivityLivePresentationStack
     let openLiveActivity: (ActivityID) -> Void
     let openMediaTab: () -> Void

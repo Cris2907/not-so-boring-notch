@@ -547,6 +547,63 @@ final class ActivityArchitectureTests: XCTestCase {
         )
     }
 
+    func testMediaStartPublishesOnlyTheResolvedSplitOrder() async throws {
+        let companion = LiveTestActivity(id: ActivityID.doberman.rawValue, state: .visible(priority: .low))
+        let activities = try ActivityRegistry { companion }
+        let media = LiveTestProvider(id: .media)
+        let providers = LiveActivityPresentationProviderRegistry(
+            activityRegistry: activities,
+            additionalProviders: [AnyLiveActivityPresentationProvider(media)]
+        )
+        let coordinator = ActivityLivePresentationCoordinator(registry: providers)
+        var selections: [String] = []
+        var sequences: [Int?] = []
+        let observation = coordinator.$presentation.dropFirst().sink { resolved in
+            selections.append(resolved.stack.identity)
+            sequences.append(resolved.snapshot.startedSequence(for: .media))
+        }
+        defer { observation.cancel() }
+
+        media.livePresentationState = .visible(priority: .normal)
+        // Before the batch commits, keep the previous composition rather than
+        // combining new eligibility with the previous recency snapshot.
+        assertStack(coordinator.selectedStack, contains: [.doberman])
+        await coordinator.waitForPendingReconciliation()
+
+        XCTAssertEqual(selections, ["split:builtin.doberman:builtin.media"])
+        XCTAssertEqual(sequences.count, 1)
+        XCTAssertNotNil(sequences[0])
+        assertStack(coordinator.selectedStack, contains: [.doberman, .media])
+
+        media.livePresentationState = .visible(priority: .low)
+        media.objectWillChange.send() // Artwork and progress do not restart selection.
+        await coordinator.waitForPendingReconciliation()
+        XCTAssertEqual(selections.count, 1)
+    }
+
+    func testEligibilityBatchDoesNotPublishTemporaryFullMedia() async throws {
+        let companion = LiveTestActivity(id: ActivityID.doberman.rawValue, state: .visible(priority: .low))
+        let activities = try ActivityRegistry { companion }
+        let media = LiveTestProvider(id: .media, state: .visible(priority: .normal))
+        let providers = LiveActivityPresentationProviderRegistry(
+            activityRegistry: activities,
+            additionalProviders: [AnyLiveActivityPresentationProvider(media)]
+        )
+        let coordinator = ActivityLivePresentationCoordinator(registry: providers)
+        let initialIdentity = coordinator.selectedStack.identity
+        var selections: [String] = []
+        let observation = coordinator.$presentation.dropFirst().sink { selections.append($0.stack.identity) }
+        defer { observation.cancel() }
+
+        companion.livePresentationState = .hidden
+        media.objectWillChange.send()
+        companion.livePresentationState = .visible(priority: .low)
+        await coordinator.waitForPendingReconciliation()
+
+        XCTAssertEqual(coordinator.selectedStack.identity, initialIdentity)
+        XCTAssertTrue(selections.isEmpty)
+    }
+
     func testCoordinatorRemovesHiddenActivityAndPromotesNextMostRecent() async throws {
         let first = LiveTestActivity(id: "first", state: .hidden)
         let second = LiveTestActivity(id: "second", state: .hidden)
@@ -920,10 +977,7 @@ private func selectedStack(
     from registry: LiveActivityPresentationProviderRegistry,
     coordinator: ActivityLivePresentationCoordinator
 ) -> ActivityLivePresentationStack {
-    selectedActivityLivePresentationStack(
-        from: registry.providers,
-        snapshot: coordinator.snapshot
-    )
+    coordinator.selectedStack
 }
 
 @MainActor

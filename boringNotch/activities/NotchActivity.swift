@@ -529,12 +529,21 @@ struct ActivityLivePresentationSnapshot: Equatable, Sendable {
 }
 
 @MainActor
+struct ResolvedActivityLivePresentation {
+    let snapshot: ActivityLivePresentationSnapshot
+    let stack: ActivityLivePresentationStack
+}
+
+@MainActor
 final class ActivityLivePresentationCoordinator: ObservableObject {
     static let shared = ActivityLivePresentationCoordinator(
         registry: LiveActivityPresentationProviderRegistry.shared
     )
 
-    @Published private(set) var snapshot: ActivityLivePresentationSnapshot = .empty
+    @Published private(set) var presentation = ResolvedActivityLivePresentation(snapshot: .empty, stack: .none)
+
+    var snapshot: ActivityLivePresentationSnapshot { presentation.snapshot }
+    var selectedStack: ActivityLivePresentationStack { presentation.stack }
 
     private let registry: LiveActivityPresentationProviderRegistry
     private var knownEligibility: [ActivityID: Bool] = [:]
@@ -569,10 +578,13 @@ final class ActivityLivePresentationCoordinator: ObservableObject {
     }
 
     private func scheduleReconcile() {
-        reconcileTask?.cancel()
+        // objectWillChange precedes the mutations. Resolve once after the
+        // current batch, without repeatedly cancelling on artwork/pet updates.
+        guard reconcileTask == nil else { return }
         reconcileTask = Task { @MainActor [weak self] in
             await Task.yield()
             guard !Task.isCancelled else { return }
+            self?.reconcileTask = nil
             self?.reconcile(recordStartsForNewEligibility: true)
         }
     }
@@ -629,7 +641,11 @@ final class ActivityLivePresentationCoordinator: ObservableObject {
 
         knownEligibility = nextEligibility
         startedSequences = nextStartedSequences
-        snapshot = ActivityLivePresentationSnapshot(startedSequences: startedSequences)
+        let nextSnapshot = ActivityLivePresentationSnapshot(startedSequences: startedSequences)
+        let nextStack = selectedActivityLivePresentationStack(from: registry.providers, snapshot: nextSnapshot)
+        if nextSnapshot != snapshot || nextStack.identity != selectedStack.identity {
+            presentation = ResolvedActivityLivePresentation(snapshot: nextSnapshot, stack: nextStack)
+        }
 
         #if DEBUG
         ActivityLivePresentationDebugLogger.logReconciled(

@@ -251,6 +251,8 @@ The same selected stack calculates the window width and renders the UI. An activ
 
 `ActivityLivePresentationCoordinator` observes the unified provider registry and assigns an in-memory sequence when a provider changes from ineligible to eligible. The selector filters eligible providers and sorts by that start sequence, not by priority.
 
+The coordinator coalesces provider changes and publishes the selected stack and recency snapshot together. Render `selectedStack` from that committed result; do not combine current provider eligibility with an older snapshot in the view. Artwork, progress, and other updates that leave selection and recency unchanged do not publish a new composition.
+
 - Zero eligible providers: render no activity stack and preserve the normal idle fallback.
 - One eligible provider: render its full presentation.
 - Two or more eligible providers: render the two most recently started using their minimal presentations.
@@ -260,6 +262,8 @@ The same selected stack calculates the window width and renders the UI. An activ
 - On launch, already-eligible providers have no sequence. Registry order is the deterministic fallback; the first two eligible providers win, with the second on the leading side and the first on the trailing side.
 
 The production provider order is all registered activities, followed by the Timer adapter and Media adapter. Recency is not persisted across launches.
+
+Opening an expanded view must not end an otherwise ongoing chin activity. The host hides the chin while the notch is open. Doberman stays eligible across expanded-view appearances and delayed exit transitions; its lifecycle hooks still manage animation resources independently. This preserves its slot and recency when closing, including when media is playing.
 
 ### Hover and opening behavior
 
