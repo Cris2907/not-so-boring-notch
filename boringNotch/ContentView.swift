@@ -13,6 +13,26 @@ import KeyboardShortcuts
 import SwiftUI
 import SwiftUIIntrospect
 
+private struct NotchContentAnimationKey: TransactionKey {
+    static let defaultValue: Animation? = nil
+}
+
+/// The hosting viewport never inherits hover, tab-selection or toggle animations.
+/// Restore those transactions only inside the visible shell, below the viewport.
+@MainActor
+struct NotchWindowRoot: View {
+    @ObservedObject var viewModel: BoringViewModel
+
+    var body: some View {
+        ContentView()
+            .environmentObject(viewModel)
+            .transaction { transaction in
+                transaction[NotchContentAnimationKey.self] = transaction.animation
+                transaction.animation = nil
+            }
+    }
+}
+
 @MainActor
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -86,7 +106,7 @@ struct ContentView: View {
     private func computedChinWidth(
         livePresentationStack: ActivityLivePresentationStack
     ) -> CGFloat {
-        var chinWidth: CGFloat = vm.closedNotchSize.width
+        var chinWidth: CGFloat = vm.notchSafeZoneWidth
 
         if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
@@ -94,7 +114,7 @@ struct ContentView: View {
             chinWidth = 640
         } else if shouldShowBluetoothActivity && vm.notchState == .closed && !vm.hideOnClosed
         {
-            chinWidth += bluetoothSneakSize.width
+            chinWidth += 2 * bluetoothNotificationSideWidth + 2 * cornerRadiusInsets.closed.bottom
         } else if showsTimerCompletionInterruption && clockShowInClosedNotch
             && vm.notchState == .closed && !vm.hideOnClosed
         {
@@ -111,7 +131,7 @@ struct ContentView: View {
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 2 * cornerRadiusInsets.closed.bottom)
         }
 
         return chinWidth
@@ -435,11 +455,14 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        // This is the AppKit-sized viewport, not an animated part of the notch.
-        // Interpolating it while the window already has its final size briefly
-        // centers a shorter root view below the screen's top edge.
-        .frame(width: windowSize.width, height: requiredWindowHeight, alignment: .top)
-        .animation(nil, value: requiredWindowHeight)
+        .transaction { transaction in
+            transaction.animation = transaction[NotchContentAnimationKey.self] ?? transaction.animation
+        }
+        // Follow AppKit's actual viewport, including the frame before a pending
+        // resize is applied. A state-sized root can be briefly centered in a
+        // differently sized hosting view during opening or the delayed shrink.
+        .frame(width: windowSize.width)
+        .frame(maxHeight: .infinity, alignment: .top)
         .compositingGroup()
         .scaleEffect(
             x: gestureScale,
@@ -506,7 +529,7 @@ struct ContentView: View {
                     if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {
-                        HStack(spacing: 0) {
+                        NotchSafeZoneLayout(centerWidth: vm.notchSafeZoneWidth) {
                             HStack {
                                 Text(batteryModel.statusText)
                                     .font(.subheadline)
@@ -515,7 +538,7 @@ struct ContentView: View {
 
                             Rectangle()
                                 .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 10)
+                                .frame(width: vm.notchSafeZoneWidth)
 
                             HStack {
                                 BoringBatteryView(
@@ -534,7 +557,7 @@ struct ContentView: View {
                           BluetoothDeviceActivity(
                               device: bluetoothAudioManager.activeNotificationDevice,
                               profile: bluetoothAudioManager.activeProfile,
-                              closedNotchWidth: vm.closedNotchSize.width,
+                              closedNotchWidth: vm.notchSafeZoneWidth,
                               height: vm.effectiveClosedNotchHeight
                           )
                           .transition(.opacity)
@@ -565,7 +588,7 @@ struct ContentView: View {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
                            BoringHeader()
-                               .frame(height: max(24, vm.effectiveClosedNotchHeight))
+                               .frame(height: max(24, vm.notchSafeZoneHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
@@ -653,7 +676,7 @@ struct ContentView: View {
     @ViewBuilder
     func BoringFaceAnimation() -> some View {
         HStack {
-            HStack {
+            NotchSafeZoneLayout(centerWidth: vm.notchSafeZoneWidth) {
                 Rectangle()
                     .fill(.clear)
                     .frame(
@@ -662,7 +685,7 @@ struct ContentView: View {
                     )
                 Rectangle()
                     .fill(.black)
-                    .frame(width: vm.closedNotchSize.width - 20)
+                    .frame(width: vm.notchSafeZoneWidth)
                 MinimalFaceFeatures()
             }
         }.frame(
@@ -989,12 +1012,9 @@ private struct ClosedActivityFullLivePresentationView: View {
             accessorySize: accessorySize
         )
         let edgeSpacing = closedActivityNotchEdgeSpacing(accessorySize: accessorySize)
-        let centerWidth = max(
-            0,
-            vm.closedNotchSize.width - cornerRadiusInsets.closed.top
-        )
+        let centerWidth = vm.notchSafeZoneWidth
 
-        HStack(spacing: edgeSpacing) {
+        NotchSafeZoneLayout(centerWidth: centerWidth, spacing: edgeSpacing) {
             activity.makeAccessoryView()
                 .frame(width: accessorySize, height: accessorySize)
                 .frame(
@@ -1002,6 +1022,7 @@ private struct ClosedActivityFullLivePresentationView: View {
                     height: vm.effectiveClosedNotchHeight,
                     alignment: .center
                 )
+                .clipped()
                 .contentShape(Rectangle())
                 .onHover { hovering in
                     guard hovering else { return }
@@ -1023,6 +1044,7 @@ private struct ClosedActivityFullLivePresentationView: View {
                     width: sideWidth,
                     alignment: .leading
                 )
+                .clipped()
                 .contentShape(Rectangle())
                 .onHover { hovering in
                     guard hovering else { return }
@@ -1043,7 +1065,10 @@ private struct ClosedActivitySplitLivePresentationView: View {
     var body: some View {
         let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
 
-        HStack(spacing: closedActivityNotchEdgeSpacing(accessorySize: accessorySize)) {
+        NotchSafeZoneLayout(
+            centerWidth: vm.notchSafeZoneWidth,
+            spacing: closedActivityNotchEdgeSpacing(accessorySize: accessorySize)
+        ) {
             ClosedActivityMinimalLivePresentationView(
                 activity: leadingActivity,
                 iconPlacement: .trailing,
@@ -1054,10 +1079,7 @@ private struct ClosedActivitySplitLivePresentationView: View {
             Rectangle()
                 .fill(.black)
                 .frame(
-                    width: max(
-                        0,
-                        vm.closedNotchSize.width - cornerRadiusInsets.closed.top
-                    )
+                    width: vm.notchSafeZoneWidth
                 )
                 .contentShape(Rectangle())
                 .onHover { hovering in
@@ -1109,6 +1131,7 @@ private struct ClosedActivityMinimalLivePresentationView: View {
             height: vm.effectiveClosedNotchHeight,
             alignment: alignment
         )
+        .clipped()
         .contentShape(Rectangle())
         .onHover { hovering in
             guard hovering else { return }

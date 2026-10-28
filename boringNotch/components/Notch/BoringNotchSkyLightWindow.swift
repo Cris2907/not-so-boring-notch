@@ -34,6 +34,7 @@ extension SkyLightOperator {
 class BoringNotchSkyLightWindow: NSPanel {
     private var isSkyLightEnabled: Bool = false
     private var keyboardFocusBinding: NotchWindowKeyboardFocusBinding?
+    private var sizeBinding: NotchWindowSizeBinding?
     
     override init(
         contentRect: NSRect,
@@ -110,6 +111,10 @@ class BoringNotchSkyLightWindow: NSPanel {
     }
     
     private var observers: Set<AnyCancellable> = []
+
+    func bindSizing(to viewModel: BoringViewModel) {
+        sizeBinding = NotchWindowSizeBinding(window: self, viewModel: viewModel)
+    }
 
     func bindKeyboardFocus(to viewModel: BoringViewModel) {
         keyboardFocusBinding = NotchWindowKeyboardFocusBinding(

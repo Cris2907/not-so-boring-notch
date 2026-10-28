@@ -17,7 +17,7 @@ struct BluetoothDeviceActivity: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
+        NotchSafeZoneLayout(centerWidth: closedNotchWidth) {
             HStack(spacing: 8) {
                 deviceIcon
                     .frame(width: iconSize, height: iconSize)
@@ -30,12 +30,12 @@ struct BluetoothDeviceActivity: View {
                 .font(.caption)
                 .fontWeight(.medium)
             }
-            .frame(width: 174, alignment: .leading)
+            .frame(width: bluetoothNotificationSideWidth - 8, alignment: .leading)
             .padding(.leading, 8)
 
             Rectangle()
                 .fill(.black)
-                .frame(width: closedNotchWidth + 10)
+                .frame(width: closedNotchWidth)
 
             HStack(spacing: 5) {
                 Image(systemName: "checkmark.circle.fill")

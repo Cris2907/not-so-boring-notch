@@ -688,12 +688,14 @@ enum ActivityLivePresentationStack {
                 accessorySize: accessorySize
             )
         case .split(let leading, let trailing):
-            return minimalPresentationWidth(
+            let leadingWidth = minimalPresentationWidth(
                 for: leading,
                 accessorySize: accessorySize
             )
-                + minimalPresentationWidth(for: trailing, accessorySize: accessorySize)
-                + 20
+            let trailingWidth = minimalPresentationWidth(for: trailing, accessorySize: accessorySize)
+            return 2 * max(leadingWidth, trailingWidth)
+                + 2 * closedActivityNotchEdgeSpacing(accessorySize: accessorySize)
+                + 2 * cornerRadiusInsets.closed.bottom
         }
     }
 

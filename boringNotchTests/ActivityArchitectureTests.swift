@@ -338,7 +338,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             fullStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            ((42 + closedActivityFullPresentationContentLeadingPadding) * 2) + 20
+            ((42 + closedActivityFullPresentationContentLeadingPadding) * 2) + 36
         )
 
         let mediaProvider = LiveTestProvider(
@@ -356,7 +356,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             mediaStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            ((accessorySize + closedActivityFullPresentationContentLeadingPadding) * 2) + 20
+            ((accessorySize + closedActivityFullPresentationContentLeadingPadding) * 2) + 36
         )
 
         let leadingProvider = LiveTestProvider(
@@ -388,7 +388,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             splitStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            (30 + accessorySize + 6) + accessorySize + 20
+            2 * (30 + accessorySize + 6) + 36
         )
 
         let iconOnlyProvider = LiveTestProvider(
@@ -419,7 +419,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             iconOnlyStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            accessorySize + 12 + 20
+            2 * accessorySize + 36
         )
     }
 
@@ -846,7 +846,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             stack.requiredAdditionalWidth(accessorySize: accessorySize),
-            accessorySize + 12 + 20
+            2 * accessorySize + 36
         )
     }
 
@@ -1159,7 +1159,125 @@ final class NotchWindowHeightRetentionTests: XCTestCase {
 }
 
 @MainActor
+final class NotchSafeZoneTests: XCTestCase {
+    func testHardwareCutoutHasClearanceEvenWithCustomClosedSize() {
+        XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 185, hardwareWidth: 181), 197)
+        XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 120, hardwareWidth: 210), 226)
+        XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 240, hardwareWidth: 181), 240)
+        XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 185, hardwareWidth: nil), 185)
+    }
+
+    func testRenderedUnequalActivitiesLeaveTheHardwareCenterEmpty() throws {
+        let centerWidth: CGFloat = 200
+        for (leading, trailing): (CGFloat, CGFloat) in [(36, 70), (70, 36), (182, 100)] {
+            let hosting = NSHostingView(rootView:
+                NotchSafeZoneLayout(centerWidth: centerWidth, spacing: 4) {
+                    Color.red.frame(width: leading, height: 32)
+                    Color.black.frame(width: centerWidth, height: 32)
+                    Color.green.frame(width: trailing, height: 32)
+                }
+                .frame(width: 600, height: 32)
+                .background(.blue)
+            )
+            hosting.sizingOptions = []
+            let window = NSPanel(contentRect: CGRect(x: 0, y: 0, width: 600, height: 32),
+                                 styleMask: .borderless, backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.contentView = hosting
+            defer { window.close() }
+            hosting.layoutSubtreeIfNeeded()
+            let bitmap = try XCTUnwrap(hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds))
+            hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+            let scale = CGFloat(bitmap.pixelsWide) / hosting.bounds.width
+            let midX = bitmap.pixelsWide / 2
+            let halfCenter = Int(centerWidth * scale / 2)
+            for x in (midX - halfCenter)..<(midX + halfCenter) {
+                let color = try XCTUnwrap(bitmap.colorAt(x: x, y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
+                XCTAssertLessThan(color.redComponent + color.greenComponent + color.blueComponent, 0.05,
+                                  "Activity content entered safe zone at x=\(x), sides \(leading)/\(trailing)")
+                XCTAssertGreaterThan(color.alphaComponent, 0.95)
+            }
+            let left = try XCTUnwrap(bitmap.colorAt(x: midX - halfCenter - Int(6 * scale), y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
+            let right = try XCTUnwrap(bitmap.colorAt(x: midX + halfCenter + Int(6 * scale), y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
+            XCTAssertGreaterThan(left.redComponent, 0.7)
+            XCTAssertGreaterThan(right.greenComponent, 0.7)
+        }
+    }
+}
+
+@MainActor
 final class NotchTopAnchorTests: XCTestCase {
+    func testRenderedNotchStaysAttachedThroughoutOpenAndClose() async throws {
+        let screen = try XCTUnwrap(NSScreen.main)
+        let vm = BoringViewModel(screenUUID: screen.displayUUID)
+        vm.hideOnClosed = false
+        let oldStyle = Defaults[.notchSurfaceStyle]
+        let oldTabs = vm.coordinator.alwaysShowTabs
+        let oldView = vm.coordinator.currentView
+        Defaults[.notchSurfaceStyle] = .solidBlack
+        vm.coordinator.alwaysShowTabs = true
+        vm.coordinator.currentView = .activity(.xm6)
+        let window = BoringNotchSkyLightWindow(
+            contentRect: CGRect(x: screen.frame.midX - 320, y: screen.frame.maxY - 210, width: 640, height: 210),
+            styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
+            backing: .buffered, defer: false
+        )
+        let hosting = NSHostingView(rootView: NotchWindowRoot(viewModel: vm))
+        window.bindSizing(to: vm)
+        hosting.sizingOptions = []
+        hosting.safeAreaRegions = []
+        window.contentView = hosting
+        window.orderFrontRegardless()
+        defer {
+            window.close()
+            vm.destroy()
+            Defaults[.notchSurfaceStyle] = oldStyle
+            vm.coordinator.alwaysShowTabs = oldTabs
+            vm.coordinator.currentView = oldView
+        }
+        try await Task.sleep(for: .milliseconds(100))
+        let transitions: [(isOpen: Bool, height: CGFloat, samples: Int)] = [
+            (true, openNotchSize.height, 25),
+            (false, 0, 25),
+            (true, 300, 25),
+            (false, 0, 3), // Reopen before the retained window can shrink.
+            (true, maximumOpenNotchHeight, 25),
+            (false, 0, 25)
+        ]
+        for (isOpen, height, samples) in transitions {
+            if isOpen {
+                // The center selects media; a side selects its live activity.
+                // Selection starts its own animation before hover opens the shell.
+                withAnimation(.smooth(duration: 0.25)) {
+                    vm.coordinator.currentView = height == 300 ? .activity(.xm6) : .home
+                }
+                try await Task.sleep(for: .milliseconds(50))
+            }
+            withAnimation(.interactiveSpring(response: 0.38, dampingFraction: 0.72)) {
+                if isOpen {
+                    vm.open()
+                    if vm.coordinator.currentView == .activity(.xm6) {
+                        XCTAssertEqual(vm.notchSize.height, 300)
+                    }
+                    vm.updateOpenNotchHeight(height)
+                    XCTAssertGreaterThanOrEqual(window.frame.height,
+                                                notchWindowHeight(for: vm.notchSize.height) + vm.floatingTabBarReservedHeight)
+                } else {
+                    vm.close()
+                }
+            }
+            for sample in 0..<samples {
+                try await Task.sleep(for: .milliseconds(20))
+                hosting.layoutSubtreeIfNeeded()
+                let bitmap = try XCTUnwrap(hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds))
+                hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+                let topPixel = try XCTUnwrap(bitmap.colorAt(x: bitmap.pixelsWide / 2, y: 0))
+                XCTAssertGreaterThan(topPixel.alphaComponent, 0.95, "Detached during \(isOpen ? "opening" : "closing"), height \(height), sample \(sample)")
+                XCTAssertEqual(window.frame.maxY, screen.frame.maxY, accuracy: 0.5)
+            }
+        }
+    }
+
     func testEveryOpenCloseHeightKeepsTheScreenTopAndHorizontalPosition() {
         let screen = CGRect(x: 0, y: 0, width: 1920, height: 1080)
         var frame = CGRect(x: 640, y: 870, width: 640, height: 210)

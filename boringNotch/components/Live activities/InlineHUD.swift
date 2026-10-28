@@ -16,7 +16,7 @@ struct InlineHUD: View {
     @Binding var hoverAnimation: Bool
     @Binding var gestureProgress: CGFloat
     var body: some View {
-        HStack {
+        NotchSafeZoneLayout(centerWidth: vm.notchSafeZoneWidth) {
             HStack(spacing: 5) {
                 Group {
                     switch (type) {
@@ -65,7 +65,7 @@ struct InlineHUD: View {
             
             Rectangle()
                 .fill(.black)
-                .frame(width: vm.closedNotchSize.width - 20)
+                .frame(width: vm.notchSafeZoneWidth)
             
             HStack {
                 if (type == .mic) {

@@ -13,18 +13,14 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var body: some View {
-        HStack(spacing: 0) {
+        NotchSafeZoneLayout(centerWidth: vm.notchSafeZoneWidth, expandsToFit: true) {
             Color.clear
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            if vm.notchState == .open {
-                Rectangle()
-                    .fill(NSScreen.screen(withUUID: coordinator.selectedScreenUUID)?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
-                    .frame(width: vm.closedNotchSize.width)
-                    .mask {
-                        NotchShape()
-                    }
-            }
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.notchSafeZoneWidth)
+                .mask { NotchShape() }
 
             HStack(spacing: 4) {
                 if vm.notchState == .open {
@@ -84,6 +80,7 @@ struct BoringHeader: View {
             }
             .font(.system(.headline, design: .rounded))
             .frame(maxWidth: .infinity, alignment: .trailing)
+            .clipped()
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
             .zIndex(2)

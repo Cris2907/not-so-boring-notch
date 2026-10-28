@@ -241,6 +241,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let window = BoringNotchSkyLightWindow(contentRect: rect, styleMask: styleMask, backing: .buffered, defer: false)
         window.bindKeyboardFocus(to: viewModel)
+        window.bindSizing(to: viewModel)
         
         // Enable SkyLight only when screen is locked
         if isScreenLocked {
@@ -250,8 +251,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let hostingView = NSHostingView(
-            rootView: ContentView()
-                .environmentObject(viewModel)
+            rootView: NotchWindowRoot(viewModel: viewModel)
         )
         // The notch manages its own top-anchored window size. Hosting-view
         // intrinsic constraints must not move it while SwiftUI animates content.

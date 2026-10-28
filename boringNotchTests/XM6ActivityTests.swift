@@ -280,7 +280,7 @@ final class XM6ActivityTests: XCTestCase {
         let split = selectedActivityLivePresentationStack(from: providers.providers, snapshot: .empty)
         guard case .split(let leading, let trailing) = split else { return XCTFail("Expected split chin") }
         XCTAssertEqual(Set([leading.id, trailing.id]), [.xm6, other.id])
-        XCTAssertEqual(split.requiredAdditionalWidth(accessorySize: 20), 44 + 26 + 56 + 26 + 20)
+        XCTAssertEqual(split.requiredAdditionalWidth(accessorySize: 20), 2 * (56 + 26) + 36)
         registry.setActivityShownOnChin(false, for: .xm6)
         XCTAssertFalse(providers.providers.contains { $0.id == .xm6 })
         registry.setActivityShownOnChin(true, for: .xm6)

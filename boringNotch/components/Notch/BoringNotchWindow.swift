@@ -8,6 +8,25 @@
 import Cocoa
 import Combine
 
+/// Grow the transparent viewport before SwiftUI receives the opening size.
+/// Shrinking remains delayed by ContentView so outgoing content is not clipped.
+@MainActor
+final class NotchWindowSizeBinding {
+    private var observation: AnyCancellable?
+
+    init(window: NSPanel, viewModel: BoringViewModel) {
+        observation = viewModel.$notchSize.removeDuplicates().sink { [weak window, weak viewModel] size in
+            guard let window, let viewModel, size.width == openNotchSize.width else { return }
+            let height = notchWindowHeight(for: size.height)
+                + (viewModel.showsFloatingTabBar ? floatingTabBarGap + floatingTabBarHeight : 0)
+            guard height > window.frame.height else { return }
+            let screen = viewModel.screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? window.screen
+            let frame = topAnchoredNotchWindowFrame(window.frame, height: height, screenFrame: screen?.frame)
+            window.setFrame(frame, display: false, animate: false)
+        }
+    }
+}
+
 @MainActor
 final class NotchWindowKeyboardFocusBinding {
     private weak var window: NSPanel?
@@ -57,6 +76,7 @@ final class NotchWindowKeyboardFocusBinding {
 
 class BoringNotchWindow: NSPanel {
     private var keyboardFocusBinding: NotchWindowKeyboardFocusBinding?
+    private var sizeBinding: NotchWindowSizeBinding?
 
     override init(
         contentRect: NSRect,
@@ -91,6 +111,10 @@ class BoringNotchWindow: NSPanel {
         hasShadow = false
     }
     
+    func bindSizing(to viewModel: BoringViewModel) {
+        sizeBinding = NotchWindowSizeBinding(window: self, viewModel: viewModel)
+    }
+
     func bindKeyboardFocus(to viewModel: BoringViewModel) {
         keyboardFocusBinding = NotchWindowKeyboardFocusBinding(
             window: self,
