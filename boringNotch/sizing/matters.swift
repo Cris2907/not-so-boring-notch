@@ -60,6 +60,14 @@ func notchWindowHeight(for notchHeight: CGFloat) -> CGFloat {
     max(openNotchSize.height, clampedOpenNotchHeight(notchHeight)) + shadowPadding
 }
 
+func topAnchoredNotchWindowFrame(_ currentFrame: CGRect, height: CGFloat, screenFrame: CGRect?) -> CGRect {
+    var frame = currentFrame
+    let top = screenFrame?.maxY ?? currentFrame.maxY
+    frame.size.height = height
+    frame.origin.y = top - height
+    return frame
+}
+
 struct OpenNotchHeightPreferenceKey: PreferenceKey {
     static let defaultValue = openNotchSize.height
 

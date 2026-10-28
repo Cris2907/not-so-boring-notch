@@ -170,6 +170,13 @@ live-activity routing scrolls the selected bubble into view. Horizontal scrollin
 over an overflowing dock is excluded from page-swipe navigation. The dock is
 outside the destination identity so its state survives content transitions.
 
+The outer hosting viewport has an explicit, nonanimated size and top alignment.
+Its hosting view disables automatic sizing constraints and safe-area insertion;
+the notch already handles the camera region itself. AppKit resizing anchors to
+the selected display's actual top edge, including when repairing an existing gap.
+Only the inner notch and dock animate, so resizing cannot temporarily center a
+shorter SwiftUI root below the top of the screen.
+
 Window height and the open-notch hover region include the 8-point bridge and
 48-point dock. Content height preferences continue to size the black panel;
 activities do not need to reserve space for the dock themselves. The dock is

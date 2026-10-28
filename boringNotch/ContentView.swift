@@ -435,7 +435,11 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: requiredWindowHeight, alignment: .top)
+        // This is the AppKit-sized viewport, not an animated part of the notch.
+        // Interpolating it while the window already has its final size briefly
+        // centers a shorter root view below the screen's top edge.
+        .frame(width: windowSize.width, height: requiredWindowHeight, alignment: .top)
+        .animation(nil, value: requiredWindowHeight)
         .compositingGroup()
         .scaleEffect(
             x: gestureScale,
@@ -443,7 +447,7 @@ struct ContentView: View {
             anchor: .top
         )
         .animation(.smooth, value: gestureProgress)
-        .background(NotchWindowHeightSynchronizer(height: requiredWindowHeight))
+        .background(NotchWindowHeightSynchronizer(height: requiredWindowHeight, screenUUID: vm.screenUUID))
         .onChange(of: layoutWindowHeight, initial: true) { _, height in
             windowHeightRetention.update(height, reduceMotion: reduceMotion)
         }
@@ -1165,22 +1169,25 @@ final class NotchWindowHeightRetention: ObservableObject {
     }
 }
 
-private struct NotchWindowHeightSynchronizer: NSViewRepresentable {
+struct NotchWindowHeightSynchronizer: NSViewRepresentable {
     let height: CGFloat
+    let screenUUID: String?
 
     func makeNSView(context: Context) -> WindowSizingView {
-        WindowSizingView(height: height)
+        WindowSizingView(height: height, screenUUID: screenUUID)
     }
 
     func updateNSView(_ nsView: WindowSizingView, context: Context) {
-        nsView.updateHeight(height)
+        nsView.updateHeight(height, screenUUID: screenUUID)
     }
 
     final class WindowSizingView: NSView {
         private var targetHeight: CGFloat
+        private var screenUUID: String?
 
-        init(height: CGFloat) {
+        init(height: CGFloat, screenUUID: String?) {
             targetHeight = height
+            self.screenUUID = screenUUID
             super.init(frame: .zero)
         }
 
@@ -1193,19 +1200,20 @@ private struct NotchWindowHeightSynchronizer: NSViewRepresentable {
             applyHeight()
         }
 
-        func updateHeight(_ height: CGFloat) {
+        func updateHeight(_ height: CGFloat, screenUUID: String?) {
             targetHeight = height
+            self.screenUUID = screenUUID
             DispatchQueue.main.async { [weak self] in
                 self?.applyHeight()
             }
         }
 
         private func applyHeight() {
-            guard let window, abs(window.frame.height - targetHeight) > 0.5 else { return }
-            var frame = window.frame
-            let topEdge = frame.maxY
-            frame.size.height = targetHeight
-            frame.origin.y = topEdge - targetHeight
+            guard let window else { return }
+            let screen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? window.screen
+            let frame = topAnchoredNotchWindowFrame(window.frame, height: targetHeight, screenFrame: screen?.frame)
+            guard abs(window.frame.height - frame.height) > 0.5
+                    || abs(window.frame.minY - frame.minY) > 0.5 else { return }
             // SwiftUI animates the visible notch inside this transparent window.
             // Resize its backing window immediately so AppKit's independent
             // animation cannot move the content away from the fixed top edge.

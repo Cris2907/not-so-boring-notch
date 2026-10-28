@@ -249,10 +249,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.disableSkyLight()
         }
 
-        window.contentView = NSHostingView(
+        let hostingView = NSHostingView(
             rootView: ContentView()
                 .environmentObject(viewModel)
         )
+        // The notch manages its own top-anchored window size. Hosting-view
+        // intrinsic constraints must not move it while SwiftUI animates content.
+        hostingView.sizingOptions = []
+        hostingView.safeAreaRegions = []
+        window.contentView = hostingView
 
         window.orderFrontRegardless()
         NotchSpaceManager.shared.notchSpace.windows.insert(window)

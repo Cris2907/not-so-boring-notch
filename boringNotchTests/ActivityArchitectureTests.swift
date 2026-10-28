@@ -1157,3 +1157,59 @@ final class NotchWindowHeightRetentionTests: XCTestCase {
         XCTAssertEqual(sizing.height, 266)
     }
 }
+
+@MainActor
+final class NotchTopAnchorTests: XCTestCase {
+    func testEveryOpenCloseHeightKeepsTheScreenTopAndHorizontalPosition() {
+        let screen = CGRect(x: 0, y: 0, width: 1920, height: 1080)
+        var frame = CGRect(x: 640, y: 870, width: 640, height: 210)
+        for height: CGFloat in [266, 376, 396, 266, 210, 376, 210] {
+            frame = topAnchoredNotchWindowFrame(frame, height: height, screenFrame: screen)
+            XCTAssertEqual(frame.maxY, screen.maxY)
+            XCTAssertEqual(frame.minX, 640)
+            XCTAssertEqual(frame.width, 640)
+            XCTAssertEqual(frame.height, height)
+        }
+    }
+
+    func testAWindowAlreadyDisplacedDownwardIsReattachedWithoutChangingHeight() {
+        let screen = CGRect(x: -1920, y: 240, width: 1920, height: 1080)
+        let displaced = CGRect(x: -1280, y: screen.maxY - 376 - 30, width: 640, height: 376)
+        let repaired = topAnchoredNotchWindowFrame(displaced, height: 376, screenFrame: screen)
+        XCTAssertEqual(repaired.maxY, screen.maxY)
+        XCTAssertEqual(repaired.minX, displaced.minX)
+    }
+
+    func testSecondaryScreenBelowMainAndMissingScreenFallback() {
+        let screen = CGRect(x: 1920, y: -1200, width: 1920, height: 1200)
+        let original = CGRect(x: 2560, y: -210, width: 640, height: 210)
+        let expanded = topAnchoredNotchWindowFrame(original, height: 396, screenFrame: screen)
+        XCTAssertEqual(expanded.maxY, 0)
+        let closed = topAnchoredNotchWindowFrame(expanded, height: 210, screenFrame: nil)
+        XCTAssertEqual(closed.maxY, expanded.maxY)
+    }
+
+    func testNativeWindowResizeAndSameHeightRepairKeepTopEdge() async throws {
+        let screen = try XCTUnwrap(NSScreen.main)
+        let window = BoringNotchWindow(
+            contentRect: CGRect(x: screen.frame.midX - 320, y: screen.frame.maxY - 210, width: 640, height: 210),
+            styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false
+        )
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let sizing = NotchWindowHeightSynchronizer.WindowSizingView(height: 210, screenUUID: nil)
+        let container = NSView(frame: CGRect(x: 0, y: 0, width: 640, height: 210))
+        window.contentView = container
+        container.addSubview(sizing)
+        for height: CGFloat in [376, 266, 210] {
+            sizing.updateHeight(height, screenUUID: nil)
+            try await Task.sleep(for: .milliseconds(15))
+            XCTAssertEqual(window.frame.maxY, screen.frame.maxY, accuracy: 0.5)
+            XCTAssertEqual(window.frame.height, height, accuracy: 0.5)
+        }
+        window.setFrameOrigin(NSPoint(x: window.frame.minX, y: window.frame.minY - 30))
+        sizing.updateHeight(210, screenUUID: nil)
+        try await Task.sleep(for: .milliseconds(15))
+        XCTAssertEqual(window.frame.maxY, screen.frame.maxY, accuracy: 0.5)
+    }
+}
