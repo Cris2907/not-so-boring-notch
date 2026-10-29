@@ -1,3 +1,4 @@
+import Combine
 import CoreAudio
 import Defaults
 import Foundation
@@ -10,6 +11,8 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
     @Published private(set) var currentOutputDevice: BluetoothAudioDevice?
     @Published private(set) var activeNotificationDevice: BluetoothAudioDevice?
     @Published private(set) var activeProfile: BluetoothHeadphoneProfile = BluetoothHeadphoneProfileStore.fallbackProfile
+
+    private var assignmentObservation: AnyCancellable?
 
     private var isStarted = false
     private var audioListenersInstalled = false
@@ -24,6 +27,13 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
 
     private override init() {
         super.init()
+        assignmentObservation = HeadphoneModelAssignments.shared.$assignments
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] assignments in
+                guard let self, let device = self.activeNotificationDevice else { return }
+                // Update an existing notification without restarting its animation or timeout.
+                self.activeProfile = BluetoothHeadphoneProfileStore.profile(for: device, assignments: assignments)
+            }
     }
 
     func start() {
@@ -142,7 +152,7 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
         lastNotifiedSignature = deviceSignature
         lastNotificationDate = now
 
-        let profile = BluetoothHeadphoneProfileStore.profile(for: device)
+        let profile = HeadphoneModelAssignments.shared.profile(for: device)
         activeNotificationDevice = device
         activeProfile = profile
 
@@ -195,14 +205,21 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
             scope: kAudioObjectPropertyScopeGlobal
         )
 
+        let deviceUID = readStringProperty(
+            deviceID: deviceID, selector: kAudioDevicePropertyDeviceUID,
+            scope: kAudioObjectPropertyScopeGlobal
+        )
+        let address = BluetoothAddress.fromDeviceUID(deviceUID)
+
         return BluetoothAudioDevice(
             audioObjectID: deviceID,
             name: name,
             manufacturer: manufacturer,
             modelUID: modelUID,
             transportType: transportType,
-            bluetoothAddress: nil,
-            isBluetooth: transportType == UInt32(kIOAudioDeviceTransportTypeBluetooth),
+            bluetoothAddress: address,
+            isBluetooth: transportType == UInt32(kIOAudioDeviceTransportTypeBluetooth)
+                || (transportType == UInt32(kIOAudioDeviceTransportTypeWireless) && address != nil),
             detectedAt: Date()
         )
     }
@@ -222,33 +239,30 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
             manufacturer: audioDevice.manufacturer,
             modelUID: audioDevice.modelUID,
             transportType: audioDevice.transportType,
-            bluetoothAddress: bluetoothDevice.addressString,
+            bluetoothAddress: BluetoothAddress.canonical(bluetoothDevice.addressString),
             isBluetooth: audioDevice.isBluetooth || audioDevice.transportType == UInt32(kIOAudioDeviceTransportTypeWireless),
             detectedAt: audioDevice.detectedAt
         )
     }
 
-    private func matchingBluetoothDevice(for audioDevice: BluetoothAudioDevice) -> IOBluetoothDevice? {
-        let pairedDevices = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []
-        let connectedDevices = pairedDevices.filter { $0.isConnected() }
-
-        if let connectedMatch = firstBluetoothMatch(in: connectedDevices, for: audioDevice) {
-            return connectedMatch
-        }
-
-        return firstBluetoothMatch(in: pairedDevices, for: audioDevice)
+    static func pairedHeadphones() -> [PairedHeadphoneIdentity] {
+        ((IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []).compactMap { device in
+            guard let address = BluetoothAddress.canonical(device.addressString) else { return nil }
+            return PairedHeadphoneIdentity(address: address, name: device.name ?? device.addressString ?? address,
+                                           isConnected: device.isConnected())
+        }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
-    private func firstBluetoothMatch(in devices: [IOBluetoothDevice], for audioDevice: BluetoothAudioDevice) -> IOBluetoothDevice? {
-        let normalizedAudioName = BluetoothHeadphoneProfileStore.normalize(audioDevice.name)
-        guard !normalizedAudioName.isEmpty else { return nil }
-
-        return devices.first { device in
-            let normalizedDeviceName = BluetoothHeadphoneProfileStore.normalize(device.name)
-            guard normalizedDeviceName.count > 2 else { return false }
-            return normalizedAudioName.contains(normalizedDeviceName)
-                || normalizedDeviceName.contains(normalizedAudioName)
+    private func matchingBluetoothDevice(for audioDevice: BluetoothAudioDevice) -> IOBluetoothDevice? {
+        let devices = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []
+        let identities = devices.compactMap { device -> PairedHeadphoneIdentity? in
+            guard let address = BluetoothAddress.canonical(device.addressString) else { return nil }
+            return PairedHeadphoneIdentity(address: address, name: device.name ?? "", isConnected: device.isConnected())
         }
+        guard let identity = BluetoothHeadphoneAssociation.match(
+            address: audioDevice.bluetoothAddress, name: audioDevice.name, devices: identities
+        ) else { return nil }
+        return devices.first { BluetoothAddress.canonical($0.addressString) == identity.address }
     }
 
     private func registerDisconnectNotification(for device: IOBluetoothDevice) {

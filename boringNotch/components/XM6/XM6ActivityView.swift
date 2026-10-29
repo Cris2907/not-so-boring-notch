@@ -5,7 +5,13 @@ import SwiftUI
 
 struct XM6ActivityView: View {
     @ObservedObject var manager: XM6Manager
+    @ObservedObject private var modelAssignments: HeadphoneModelAssignments
     private var controller: HeadphonesController { manager.controller }
+
+    init(manager: XM6Manager, modelAssignments: HeadphoneModelAssignments = .shared) {
+        self.manager = manager
+        self.modelAssignments = modelAssignments
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -30,8 +36,10 @@ struct XM6ActivityView: View {
 
     private var header: some View {
         HStack(spacing: 9) {
-            Image(systemName: "headphones")
-                .font(.system(size: 17, weight: .medium))
+            XM6DeviceArtwork(
+                profile: modelAssignments.profile(name: controller.deviceName ?? "", address: controller.deviceAddress),
+                isConnected: manager.isConnected
+            )
                 .frame(width: 30, height: 30)
                 .background(.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 9))
                 .accessibilityHidden(true)
@@ -151,6 +159,23 @@ struct XM6ActivityView: View {
         }
         return controller.lastError.map { String(localized: String.LocalizationValue($0)) }
             ?? String(localized: "Pair your WH-1000XM6 in Bluetooth settings, then connect. Headphone settings stay as they are.")
+    }
+}
+
+/// The extension uses its RFCOMM device identity, never the current audio output.
+struct XM6DeviceArtwork: View {
+    let profile: BluetoothHeadphoneProfile
+    let isConnected: Bool
+
+    var body: some View {
+        Group {
+            if isConnected, profile.id == "sony-wh-1000xm6",
+               let asset = profile.imageAssetName, let image = NSImage(named: asset) {
+                Image(nsImage: image).resizable().scaledToFit().padding(1)
+            } else {
+                Image(systemName: "headphones").font(.system(size: 17, weight: .medium))
+            }
+        }
     }
 }
 

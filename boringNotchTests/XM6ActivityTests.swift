@@ -311,6 +311,13 @@ final class XM6ActivityTests: XCTestCase {
         await settle()
         try render(XM6ActivityView(manager: manager), name: "connected", width: 520, height: 250)
         try render(XM6ActivityView(manager: manager), name: "connected-compact", width: 450, height: 250)
+        let assignments = HeadphoneModelAssignments(defaults: defaults)
+        assignments.assign("sony-wh-1000xm6", to: device.id)
+        // The RFCOMM device is renamed; artwork comes from its address, without
+        // reading or changing whichever device is currently the Mac audio output.
+        XCTAssertEqual(assignments.profile(name: manager.controller.deviceName ?? "", address: manager.controller.deviceAddress).id,
+                       "sony-wh-1000xm6")
+        try render(XM6ActivityView(manager: manager, modelAssignments: assignments), name: "connected-assigned-xm6", width: 450, height: 250)
         try render(XM6DetailsView(controller: manager.controller, showsMoreSettings: true), name: "details-expanded", width: 426, height: 160)
         try render(XM6ChinView(manager: manager, minimal: false), name: "chin-full", width: 108, height: 32)
         try render(XM6ChinView(manager: manager, minimal: true), name: "chin-minimal", width: 44, height: 32)

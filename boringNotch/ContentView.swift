@@ -975,9 +975,15 @@ private struct ClosedActivityFullLivePresentationView: View {
 
     var body: some View {
         let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
-        // Match the shell's reserved sides even for small full presentations
-        // such as the companion. Activity changes must not resize the layout
-        // inside the fixed shell or alter its glass/background geometry.
+        let fullContentWidth = activity.livePresentationSizing.fullContentWidth.resolved(
+            accessorySize: accessorySize
+        )
+        let usesMinimalContent = fullContentWidth > collapsedNotchContentWidth
+        let contentWidth = usesMinimalContent
+            ? min(collapsedNotchContentWidth, activity.livePresentationSizing.minimalContentWidth.resolved(
+                accessorySize: accessorySize
+            ))
+            : fullContentWidth
         let sideWidth = closedActivityFullPresentationSideWidth(
             contentWidth: collapsedNotchContentWidth,
             accessorySize: accessorySize
@@ -1009,10 +1015,14 @@ private struct ClosedActivityFullLivePresentationView: View {
                     openMediaTab()
                 }
 
-            activity.makeFullView()
-                .frame(width: activity.livePresentationSizing.fullContentWidth.resolved(
-                    accessorySize: accessorySize
-                ))
+            Group {
+                if usesMinimalContent {
+                    activity.makeMinimalView()
+                } else {
+                    activity.makeFullView()
+                }
+            }
+                .frame(width: contentWidth)
                 .padding(.leading, closedActivityFullPresentationContentLeadingPadding)
                 .frame(
                     width: sideWidth,

@@ -1218,7 +1218,7 @@ final class NotchSafeZoneTests: XCTestCase {
         let center: CGFloat = 200
         let accessory: CGFloat = 20
         let resting = collapsedNotchShellWidth(centerWidth: center, accessorySize: accessory)
-        XCTAssertEqual(resting, center + 2 * 148 + 2 * 4 + 2 * cornerRadiusInsets.closed.bottom)
+        XCTAssertEqual(resting, center + 2 * 72 + 2 * 4 + 2 * cornerRadiusInsets.closed.bottom)
         let notification = collapsedNotchShellWidth(
             centerWidth: center, accessorySize: accessory, showsBluetoothNotification: true
         )

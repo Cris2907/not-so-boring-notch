@@ -72,22 +72,31 @@ The animation should not trigger when:
 
 Profiles are matched in this order:
 
-1. Exact model UID or Bluetooth address prefix.
-2. Manufacturer key plus name pattern.
-3. Name pattern only.
-4. Generic Bluetooth headphones fallback.
+1. Saved model assignment for the canonical Bluetooth address.
+2. Model UID (including exact Sony models), when macOS exposes it.
+3. Model-specific Sony name match, with case/separator normalization and model boundaries.
+4. Existing manufacturer/name family profiles, then the generic fallback.
 
-Initial profiles include:
+The catalog retains AirPods, AirPods Pro, AirPods Max, Beats, Bose QuietComfort,
+and generic Sony profiles. It also includes all 14 Sony models with renders:
+WH-1000XM2/3/4/5/6, WH-CH520, WH-CH720N, WH-XB900N, WH-XB910N,
+MDR-XB950BT, WF-1000XM4/5, WF-C700N, and LinkBuds S.
 
-- AirPods
-- AirPods Pro
-- AirPods Max
-- Beats
-- Sony WH/WF series
-- Bose QuietComfort
-- Generic Bluetooth headphones
+Settings → Media → Bluetooth headphones lists paired devices and lets users
+choose a model or Automatic. Assignments use the `bluetoothHeadphoneModelAssignments`
+UserDefaults dictionary: canonical twelve-digit lowercase Bluetooth address → profile ID.
+Automatic removes the assignment; unknown saved model IDs fall back to automatic matching.
+Assignments change artwork only, never protocol compatibility or connection preferences.
 
-This matching is intentionally tolerant because users can rename their headphones and macOS does not always expose a commercial model name.
+CoreAudio device UIDs supply addresses when available. Otherwise, only a unique
+normalized name among connected paired devices may establish an association.
+Ambiguous names and conflicting addresses never inherit another device's assignment.
+Settings discovery reads the paired-device registry without connecting headphones.
+
+The XM6 header uses its own connected RFCOMM device name/address and the same
+resolver. It displays the XM6 render only for a resolved WH-1000XM6, independently
+of the active audio output. Assignment edits update artwork without replaying the
+connection notification. Collapsed activity artwork and notification timing stay unchanged.
 
 ## Image Assets
 
@@ -95,7 +104,7 @@ Profiles can specify an optional `imageAssetName`, such as `headphones-airpods-p
 
 Images should live in `boringNotch/Assets.xcassets` using normal `.imageset` folders. The current UI does not require these assets to exist. If an image is missing, `BluetoothDeviceActivity` falls back to the profile's SF Symbol.
 
-This means the feature works without bundling product artwork, and images can be added incrementally later.
+The 14 Sony renders are bundled as transparent PNGs copied from SonyBridge; attribution is included in `THIRD_PARTY_LICENSES`. Missing artwork continues to use the existing symbol fallback.
 
 ## Settings
 

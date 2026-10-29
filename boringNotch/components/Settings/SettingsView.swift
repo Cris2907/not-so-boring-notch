@@ -880,6 +880,7 @@ struct Media: View {
                 Defaults.Toggle(key: .useBluetoothDeviceMatching) {
                     Text("Use Bluetooth device matching")
                 }
+                BluetoothHeadphoneAssignmentsView()
             } header: {
                 Text("Bluetooth headphones")
             } footer: {
@@ -2020,4 +2021,69 @@ func warningBadge(_ text: String, _ description: String) -> some View {
 
 #Preview {
     HUD()
+}
+
+
+private struct BluetoothHeadphoneAssignmentsView: View {
+    @ObservedObject private var assignments = HeadphoneModelAssignments.shared
+    @ObservedObject private var audio = BluetoothAudioManager.shared
+    @State private var devices: [PairedHeadphoneIdentity] = []
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Headphone models").font(.headline)
+                Spacer()
+                Button { refresh() } label: { Image(systemName: "arrow.clockwise") }
+                    .accessibilityLabel("Refresh paired headphones")
+                    .help("Refresh paired Bluetooth devices")
+            }
+            if devices.isEmpty {
+                Text("Pair your headphones in Bluetooth settings, then refresh.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            ForEach(devices) { device in
+                VStack(alignment: .leading, spacing: 4) {
+                    Picker(selection: Binding<String>(
+                        get: { assignments.assignedProfileID(for: device.address) ?? "" },
+                        set: { assignments.assign($0.isEmpty ? nil : $0, to: device.address) }
+                    )) {
+                        Text("Automatic").tag("")
+                        ForEach(BluetoothHeadphoneProfileStore.profiles) { profile in
+                            Text(profile.displayName).tag(profile.id)
+                        }
+                    } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(device.name).lineLimit(1)
+                            Text(device.isConnected ? "Connected" : "Not connected")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                    Text("Detected: \(automaticProfile(for: device).displayName)")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Text(device.address.uppercased().enumerated().map { index, char in
+                        (index > 0 && index % 2 == 0 ? ":" : "") + String(char)
+                    }.joined())
+                        .font(.caption2.monospaced()).foregroundStyle(.tertiary)
+                }
+            }
+            Text("Choose a model for renamed headphones. The choice is remembered for this Bluetooth address and changes artwork only.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        .onAppear { refresh() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in refresh() }
+    }
+
+    private func refresh() { devices = BluetoothAudioManager.pairedHeadphones() }
+
+    private func automaticProfile(for device: PairedHeadphoneIdentity) -> BluetoothHeadphoneProfile {
+        if let output = audio.currentOutputDevice,
+           BluetoothAddress.canonical(output.bluetoothAddress) == device.address {
+            return BluetoothHeadphoneProfileStore.profile(for: output)
+        }
+        return BluetoothHeadphoneProfileStore.profile(for: BluetoothAudioDevice(
+            audioObjectID: 0, name: device.name, manufacturer: nil, modelUID: nil,
+            transportType: 0, bluetoothAddress: device.address, isBluetooth: true, detectedAt: .distantPast
+        ))
+    }
 }
