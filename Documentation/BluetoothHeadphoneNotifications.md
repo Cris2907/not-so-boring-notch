@@ -94,8 +94,9 @@ Ambiguous names and conflicting addresses never inherit another device's assignm
 Settings discovery reads the paired-device registry without connecting headphones.
 
 The XM6 header uses its own connected RFCOMM device name/address and the same
-resolver. It displays the XM6 render only for a resolved WH-1000XM6, independently
-of the active audio output. Assignment edits update artwork without replaying the
+resolver. It displays the resolved Sony render independently of the active audio output.
+The XM6 actions menu also offers Illustration → Automatic or any of the 14 Sony
+models, using the same saved address assignment as Media settings. Assignment edits update artwork without replaying the
 connection notification. Collapsed activity artwork and notification timing stay unchanged.
 
 ## Image Assets

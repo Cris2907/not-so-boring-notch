@@ -58,6 +58,7 @@ struct XM6ActivityView: View {
                 }
                 Menu {
                     Button("Refresh headphone state", systemImage: "arrow.clockwise") { controller.refreshState() }
+                    illustrationMenu
                     Divider()
                     Button("Disconnect", systemImage: "bolt.horizontal.circle") { manager.disconnect() }
                 } label: {
@@ -65,7 +66,7 @@ struct XM6ActivityView: View {
                 }
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
                 .accessibilityLabel("Headphone actions")
-                .help("Refresh or disconnect headphones")
+                .help("Refresh, choose an illustration, or disconnect headphones")
             } else {
                 Button(manager.isConnecting ? "Cancel" : "Connect") {
                     if manager.isConnecting { manager.disconnect() } else { manager.connect() }
@@ -73,6 +74,29 @@ struct XM6ActivityView: View {
                 .controlSize(.small)
             }
         }
+    }
+
+    private var illustrationMenu: some View {
+        Menu("Illustration") {
+            Button {
+                if let address = controller.deviceAddress { modelAssignments.assign(nil, to: address) }
+            } label: {
+                if modelAssignments.assignedProfileID(for: controller.deviceAddress) == nil {
+                    Label("Automatic", systemImage: "checkmark")
+                } else { Text("Automatic") }
+            }
+            Divider()
+            ForEach(BluetoothHeadphoneProfileStore.sonyProfiles) { profile in
+                Button {
+                    if let address = controller.deviceAddress { modelAssignments.assign(profile.id, to: address) }
+                } label: {
+                    if modelAssignments.assignedProfileID(for: controller.deviceAddress) == profile.id {
+                        Label(profile.displayName, systemImage: "checkmark")
+                    } else { Text(profile.displayName) }
+                }
+            }
+        }
+        .disabled(BluetoothAddress.canonical(controller.deviceAddress) == nil)
     }
 
     private var batterySymbol: String {
@@ -95,7 +119,9 @@ struct XM6ActivityView: View {
                     controller.setAmbientSound(state)
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: mode.xm6Symbol).font(.system(size: 15))
+                        Image(systemName: mode.xm6Symbol)
+                            .font(.system(size: 15))
+                            .foregroundStyle(controller.ambientSound?.mode == mode ? mode.xm6SelectedColor : Color.secondary)
                         Text(mode.xm6Label).font(.system(size: 11, weight: .medium))
                     }
                     .frame(maxWidth: .infinity, minHeight: 32)
@@ -169,7 +195,7 @@ struct XM6DeviceArtwork: View {
 
     var body: some View {
         Group {
-            if isConnected, profile.id == "sony-wh-1000xm6",
+            if isConnected, BluetoothHeadphoneProfileStore.sonyProfiles.contains(where: { $0.id == profile.id }),
                let asset = profile.imageAssetName, let image = NSImage(named: asset) {
                 Image(nsImage: image).resizable().scaledToFit().padding(1)
             } else {
@@ -601,6 +627,13 @@ extension AmbientSoundMode {
         case .off: String(localized: "Off")
         case .noiseCancelling: String(localized: "Noise Cancelling")
         case .ambientSound: String(localized: "Ambient")
+        }
+    }
+    var xm6SelectedColor: Color {
+        switch self {
+        case .off: .green
+        case .noiseCancelling: .red
+        case .ambientSound: .blue
         }
     }
     var xm6Symbol: String {
