@@ -16,6 +16,22 @@ let closedTimeActivityCompactTextWidth: CGFloat = 52
 let closedTimeActivityMinimumTextWidth: CGFloat = 64
 let closedActivityFullPresentationContentLeadingPadding: CGFloat = 8
 
+/// Reserve the same room on both sides, including the widest built-in chin
+/// (Quick Notes: 140 points plus its leading padding), even when no app is active.
+func collapsedNotchShellWidth(
+    centerWidth: CGFloat,
+    accessorySize: CGFloat,
+    showsBluetoothNotification: Bool = false
+) -> CGFloat {
+    if showsBluetoothNotification {
+        return centerWidth + 2 * bluetoothNotificationSideWidth + 2 * cornerRadiusInsets.closed.bottom
+    }
+    return centerWidth + closedActivityFullPresentationAdditionalWidth(
+        contentWidth: 140,
+        accessorySize: accessorySize
+    )
+}
+
 /// Content must stay outside the hardware cutout, with eight points of clearance.
 func protectedNotchCenterWidth(closedWidth: CGFloat, hardwareWidth: CGFloat?) -> CGFloat {
     max(closedWidth, hardwareWidth.map { $0 + 16 } ?? 0)

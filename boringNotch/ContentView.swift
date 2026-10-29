@@ -102,45 +102,16 @@ struct ContentView: View {
         )
     }
 
-    private func computedChinWidth(
-        livePresentationStack: ActivityLivePresentationStack
-    ) -> CGFloat {
-        var chinWidth: CGFloat = vm.notchSafeZoneWidth
-
+    private var collapsedShellWidth: CGFloat {
         if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-        {
-            chinWidth = 640
-        } else if shouldShowBluetoothActivity && vm.notchState == .closed && !vm.hideOnClosed
-        {
-            chinWidth += 2 * bluetoothNotificationSideWidth + 2 * cornerRadiusInsets.closed.bottom
-        } else if showsTimerCompletionInterruption && clockShowInClosedNotch
-            && vm.notchState == .closed && !vm.hideOnClosed
-        {
-            chinWidth += closedActivityFullPresentationAdditionalWidth(
-                contentWidth: closedTimeActivityCompactTextWidth,
-                accessorySize: max(0, vm.effectiveClosedNotchHeight - 12)
-            )
-        } else if let livePresentationWidth = activityLivePresentationAdditionalWidth(
-            for: livePresentationStack
-        ), vm.notchState == .closed && !vm.hideOnClosed
-        {
-            chinWidth += livePresentationWidth
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
-            && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 2 * cornerRadiusInsets.closed.bottom)
+            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
+            return 640
         }
-
-        return chinWidth
-    }
-
-    private func activityLivePresentationAdditionalWidth(
-        for stack: ActivityLivePresentationStack
-    ) -> CGFloat? {
-        let accessorySize = max(0, vm.effectiveClosedNotchHeight - 12)
-        return stack.requiredAdditionalWidth(accessorySize: accessorySize)
+        return collapsedNotchShellWidth(
+            centerWidth: vm.notchSafeZoneWidth,
+            accessorySize: max(0, vm.effectiveClosedNotchHeight - 12),
+            showsBluetoothNotification: shouldShowBluetoothActivity && !vm.hideOnClosed
+        )
     }
 
     private func closedActivityLivePresentationDisplayDescription(
@@ -255,6 +226,7 @@ struct ContentView: View {
                         // after the background/clip only fixes the outer layout frame,
                         // allowing short tab content to shrink the rendered notch.
                         .frame(
+                            width: vm.notchState == .closed ? collapsedShellWidth : nil,
                             height: vm.notchState == .open ? vm.notchSize.height : nil,
                             alignment: .top
                         )
@@ -447,7 +419,7 @@ struct ContentView: View {
                     Rectangle()
                         .fill(Color.black.opacity(0.01))
                         .frame(
-                            width: computedChinWidth(livePresentationStack: livePresentationStack),
+                            width: collapsedShellWidth,
                             height: vm.chinHeight
                         )
                 }

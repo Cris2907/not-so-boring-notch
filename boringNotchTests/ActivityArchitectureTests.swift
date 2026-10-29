@@ -1214,6 +1214,21 @@ final class NotchWindowHeightRetentionTests: XCTestCase {
 
 @MainActor
 final class NotchSafeZoneTests: XCTestCase {
+    func testCollapsedShellReservesBothSidesAndRestoresWidthAfterBluetooth() {
+        let center: CGFloat = 200
+        let accessory: CGFloat = 20
+        let resting = collapsedNotchShellWidth(centerWidth: center, accessorySize: accessory)
+        XCTAssertEqual(resting, center + 2 * 148 + 2 * 4 + 2 * cornerRadiusInsets.closed.bottom)
+        let notification = collapsedNotchShellWidth(
+            centerWidth: center, accessorySize: accessory, showsBluetoothNotification: true
+        )
+        XCTAssertEqual(notification, center + 2 * bluetoothNotificationSideWidth + 2 * cornerRadiusInsets.closed.bottom)
+        XCTAssertGreaterThan(notification, resting)
+        XCTAssertEqual(
+            collapsedNotchShellWidth(centerWidth: center, accessorySize: accessory), resting
+        )
+    }
+
     func testHardwareCutoutHasClearanceEvenWithCustomClosedSize() {
         XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 185, hardwareWidth: 181), 197)
         XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 120, hardwareWidth: 210), 226)
