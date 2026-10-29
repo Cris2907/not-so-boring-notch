@@ -1400,3 +1400,28 @@ final class NotchTopAnchorTests: XCTestCase {
         XCTAssertEqual(window.frame.maxY, screen.frame.maxY, accuracy: 0.5)
     }
 }
+
+final class NotchCloseScrollOwnershipTests: XCTestCase {
+    func testContentRetainsGestureAtEdgesAndThroughMomentum() {
+        var ownership = NotchCloseScrollOwnership()
+        XCTAssertTrue(ownership.shouldIgnore(phase: .began, momentumPhase: [], startsInContent: true))
+        XCTAssertTrue(ownership.shouldIgnore(phase: .changed, momentumPhase: [], startsInContent: false))
+        XCTAssertTrue(ownership.shouldIgnore(phase: .ended, momentumPhase: [], startsInContent: false))
+        XCTAssertTrue(ownership.shouldIgnore(phase: [], momentumPhase: .began, startsInContent: false))
+        XCTAssertTrue(ownership.shouldIgnore(phase: [], momentumPhase: .ended, startsInContent: false))
+        XCTAssertFalse(ownership.shouldIgnore(phase: .began, momentumPhase: [], startsInContent: false))
+    }
+
+    func testHeaderGestureRemainsAvailableAndOtherExtensionsAreUnaffected() {
+        var ownership = NotchCloseScrollOwnership()
+        XCTAssertFalse(ownership.shouldIgnore(phase: .began, momentumPhase: [], startsInContent: false))
+        XCTAssertFalse(ownership.shouldIgnore(phase: .changed, momentumPhase: [], startsInContent: true))
+        XCTAssertFalse(ownership.shouldIgnore(phase: [], momentumPhase: .changed, startsInContent: true))
+    }
+
+    func testMouseWheelEventsChooseTheirOwnRegion() {
+        var ownership = NotchCloseScrollOwnership()
+        XCTAssertTrue(ownership.shouldIgnore(phase: [], momentumPhase: [], startsInContent: true))
+        XCTAssertFalse(ownership.shouldIgnore(phase: [], momentumPhase: [], startsInContent: false))
+    }
+}

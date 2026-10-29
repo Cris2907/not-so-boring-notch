@@ -8,19 +8,19 @@ struct XM6ActivityView: View {
     private var controller: HeadphonesController { manager.controller }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             header
             if manager.isConnected {
                 noiseControls
-                Divider().overlay(.white.opacity(0.12))
                 XM6DetailsView(controller: controller)
             } else {
                 connectionPrompt
             }
         }
-        .padding(.horizontal, 18)
+        .frame(maxWidth: 520)
+        .padding(.horizontal, 12)
         .padding(.bottom, 10)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("XM6 headphone controls")
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -29,65 +29,83 @@ struct XM6ActivityView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "headphones").accessibilityHidden(true)
-            Text(controller.deviceName ?? manager.defaultDevice?.name ?? manager.rememberedDevice?.name ?? "WH-1000XM6")
-                .font(.headline).lineLimit(1)
-            if manager.isConnected {
-                XM6BatteryView(battery: controller.battery)
+        HStack(spacing: 9) {
+            Image(systemName: "headphones")
+                .font(.system(size: 17, weight: .medium))
+                .frame(width: 30, height: 30)
+                .background(.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 9))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(controller.deviceName ?? manager.defaultDevice?.name ?? manager.rememberedDevice?.name ?? "WH-1000XM6")
+                    .font(.system(size: 12, weight: .semibold)).lineLimit(1)
+                Text(manager.isConnected ? "Connected" : manager.isConnecting ? "Connecting…" : "Not connected")
+                    .font(.system(size: 10)).foregroundStyle(.secondary)
             }
-            Spacer(minLength: 0)
+            Spacer(minLength: 6)
             if manager.isConnected {
-                Button { controller.refreshState() } label: {
-                    Image(systemName: "arrow.clockwise")
+                HStack(spacing: 5) {
+                    Image(systemName: batterySymbol)
+                        .foregroundStyle(.secondary).accessibilityHidden(true)
+                    XM6BatteryView(battery: controller.battery)
                 }
-                .accessibilityLabel("Refresh headphone state")
-                .help("Refresh headphone state")
-            }
-            if manager.isConnected || manager.isConnecting {
-                Button(manager.isConnecting ? String(localized: "Cancel") : String(localized: "Disconnect")) {
-                    manager.disconnect()
+                Menu {
+                    Button("Refresh headphone state", systemImage: "arrow.clockwise") { controller.refreshState() }
+                    Divider()
+                    Button("Disconnect", systemImage: "bolt.horizontal.circle") { manager.disconnect() }
+                } label: {
+                    Image(systemName: "ellipsis.circle").font(.system(size: 16))
                 }
+                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                .accessibilityLabel("Headphone actions")
+                .help("Refresh or disconnect headphones")
             } else {
-                Button("Connect") { manager.connect() }
+                Button(manager.isConnecting ? "Cancel" : "Connect") {
+                    if manager.isConnecting { manager.disconnect() } else { manager.connect() }
+                }
+                .controlSize(.small)
             }
         }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
+    }
+
+    private var batterySymbol: String {
+        guard let battery = controller.battery else { return "battery.0percent" }
+        switch battery.level {
+        case ..<13: return "battery.0percent"
+        case ..<38: return "battery.25percent"
+        case ..<63: return "battery.50percent"
+        case ..<88: return "battery.75percent"
+        default: return "battery.100percent"
+        }
     }
 
     private var noiseControls: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 5) {
             ForEach(AmbientSoundMode.allCases, id: \.self) { mode in
                 Button {
                     var state = controller.ambientSound ?? AmbientSoundState()
                     state.mode = mode
                     controller.setAmbientSound(state)
                 } label: {
-                    Text(mode.xm6Label)
-                        .font(.system(size: 12, weight: .medium))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 7)
-                        .background(
-                            .white.opacity(controller.ambientSound?.mode == mode ? 0.22 : 0.07),
-                            in: RoundedRectangle(cornerRadius: 7)
-                        )
+                    HStack(spacing: 6) {
+                        Image(systemName: mode.xm6Symbol).font(.system(size: 15))
+                        Text(mode.xm6Label).font(.system(size: 11, weight: .medium))
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 32)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(XM6ModeButtonStyle(isSelected: controller.ambientSound?.mode == mode))
                 .accessibilityAddTraits(controller.ambientSound?.mode == mode ? .isSelected : [])
-                .help(mode.xm6Label)
-            }
-            if controller.ambientSound == nil {
-                Text("Not reported").font(.caption).foregroundStyle(.secondary)
+                .help(controller.ambientSound == nil ? String(localized: "Noise mode not reported") : mode.xm6Label)
             }
         }
+        .padding(4)
+        .background(.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var connectionPrompt: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 if manager.isConnecting {
-                    HStack {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), alignment: .leading)], alignment: .leading, spacing: 8) {
                         ProgressView().controlSize(.small)
                         Text("Connecting to your headphones…")
                     }
@@ -124,6 +142,7 @@ struct XM6ActivityView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 6)
         }
+        .preservesNotchContentScrolling()
     }
 
     private var connectionMessage: String {
@@ -135,27 +154,53 @@ struct XM6ActivityView: View {
     }
 }
 
-private struct XM6DetailsView: View {
+struct XM6DetailsView: View {
     @ObservedObject var controller: HeadphonesController
+
+    @State private var showsMoreSettings = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(controller: HeadphonesController, showsMoreSettings: Bool = false) {
+        self.controller = controller
+        _showsMoreSettings = State(initialValue: showsMoreSettings)
+    }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 7) {
                 if controller.initialStateTimedOut {
-                    Text("Some settings were not reported. Refresh to request them again.")
+                    Label("Some settings are unavailable. Refresh to try again.", systemImage: "exclamationmark.circle")
                         .font(.caption).foregroundStyle(.secondary)
                 }
-                if controller.ambientSound?.mode == .ambientSound {
-                    ambientControls
+                HStack(alignment: .top, spacing: 8) {
+                    soundControls
+                    equalizerControls
                 }
-                soundControls
-                equalizerControls
                 behaviorControls
-                deviceControls
+                DisclosureGroup(isExpanded: $showsMoreSettings) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        if controller.ambientSound?.mode == .ambientSound { ambientControls }
+                        if controller.listeningMode == .backgroundMusic { roomControls }
+                        if controller.equalizer?.preset == .custom {
+                            Text("Custom equalizer").font(.caption.weight(.medium))
+                            customBands
+                        }
+                        powerControls
+                        deviceControls
+                    }
+                    .padding(.top, 8)
+                } label: {
+                    Text(controller.equalizer?.preset == .custom ? "More settings · Custom EQ" : "More settings")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+                .tint(.secondary)
             }
-            .padding(.trailing, 6)
-            .padding(.bottom, 8)
+            .padding(.bottom, 4)
+            .padding(.horizontal, 1)
         }
+        .scrollIndicators(.hidden)
+        .preservesNotchContentScrolling()
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: controller.speakToChatEnabled)
     }
 
     private var ambientControls: some View {
@@ -181,14 +226,15 @@ private struct XM6DetailsView: View {
                         controller.setAmbientSound(state)
                     }
                 ))
-                .toggleStyle(.checkbox)
+                .toggleStyle(.switch).controlSize(.mini).tint(.secondary)
             }
         }
         .font(.caption)
     }
 
     private var soundControls: some View {
-        HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 4) {
+            Label("Listening mode", systemImage: "waveform").font(.system(size: 10)).foregroundStyle(.secondary)
             Picker("Listening mode", selection: Binding<ListeningMode?>(
                 get: { controller.listeningMode },
                 set: { if let value = $0 { controller.setListeningMode(value) } }
@@ -198,43 +244,45 @@ private struct XM6DetailsView: View {
                     Text(LocalizedStringKey(mode.label)).tag(Optional(mode))
                 }
             }
-            if controller.listeningMode == .backgroundMusic {
-                Picker("Room", selection: Binding<BGMRoomSize?>(
-                    get: { controller.bgmRoomSize },
-                    set: { if let value = $0 { controller.setBGMRoomSize(value) } }
-                )) {
-                    if controller.bgmRoomSize == nil { Text("Not reported").tag(nil as BGMRoomSize?) }
-                    ForEach(BGMRoomSize.allCases) { room in
-                        Text(LocalizedStringKey(room.label)).tag(Optional(room))
-                    }
-                }
+            .labelsHidden().pickerStyle(.menu)
+        }
+        .modifier(XM6SettingCard())
+    }
+
+    private var roomControls: some View {
+        Picker("Room", selection: Binding<BGMRoomSize?>(
+            get: { controller.bgmRoomSize },
+            set: { if let value = $0 { controller.setBGMRoomSize(value) } }
+        )) {
+            if controller.bgmRoomSize == nil { Text("Not reported").tag(nil as BGMRoomSize?) }
+            ForEach(BGMRoomSize.allCases) { room in
+                Text(LocalizedStringKey(room.label)).tag(Optional(room))
             }
         }
         .controlSize(.small)
     }
 
     private var equalizerControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Equalizer").font(.caption.weight(.semibold))
-                Spacer()
-                Menu {
-                    ForEach(EqualizerPreset.allCases) { preset in
-                        Button(LocalizedStringKey(preset.label)) { controller.setEqualizerPreset(preset) }
+        VStack(alignment: .leading, spacing: 4) {
+            Label("Equalizer", systemImage: "slider.vertical.3").font(.system(size: 10)).foregroundStyle(.secondary)
+            Menu {
+                ForEach(EqualizerPreset.allCases) { preset in
+                    Button {
+                        controller.setEqualizerPreset(preset)
+                    } label: {
+                        if controller.equalizer?.preset == preset {
+                            Label(LocalizedStringKey(preset.label), systemImage: "checkmark")
+                        } else { Text(LocalizedStringKey(preset.label)) }
                     }
-                } label: {
-                    Text(controller.equalizer.map { $0.preset.map { String(localized: String.LocalizationValue($0.label)) } ?? String(localized: "Personalized") } ?? String(localized: "Not reported"))
                 }
-                .fixedSize()
-                .accessibilityLabel("Equalizer preset")
+            } label: {
+                Text(controller.equalizer.map { $0.preset.map { String(localized: String.LocalizationValue($0.label)) } ?? String(localized: "Personalized") } ?? String(localized: "Not reported"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            if controller.equalizer?.preset == .custom {
-                customBands
-            } else if let state = controller.equalizer, state.preset == nil {
-                Text("A personalized preset is active. Choosing a preset replaces it.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
+            .accessibilityLabel("Equalizer preset")
+            .help("Choosing a preset replaces the current equalizer. Custom band controls are in More settings.")
         }
+        .modifier(XM6SettingCard())
     }
 
     private var bands: [Int] {
@@ -289,50 +337,60 @@ private struct XM6DetailsView: View {
     }
 
     private var behaviorControls: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Divider()
-            HStack {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 16) {
                 reportedToggle("Speak-to-Chat", value: controller.speakToChatEnabled, set: controller.setSpeakToChatEnabled)
                 Spacer()
                 reportedToggle("Pause when taken off", value: controller.pauseWhenTakenOff, set: controller.setPauseWhenTakenOff)
             }
-            HStack(spacing: 12) {
-                Picker("Sensitivity", selection: Binding<SpeakToChatSensitivity?>(
-                    get: { controller.speakToChatConfig?.sensitivity },
-                    set: { value in
-                        guard let value, var config = controller.speakToChatConfig else { return }
-                        config.sensitivity = value
-                        controller.setSpeakToChatConfig(config)
+            if controller.speakToChatEnabled == true {
+                HStack(spacing: 12) {
+                    Picker("Sensitivity", selection: Binding<SpeakToChatSensitivity?>(
+                        get: { controller.speakToChatConfig?.sensitivity },
+                        set: { value in
+                            guard let value, var config = controller.speakToChatConfig else { return }
+                            config.sensitivity = value
+                            controller.setSpeakToChatConfig(config)
+                        }
+                    )) {
+                        if controller.speakToChatConfig == nil { Text("Not reported").tag(nil as SpeakToChatSensitivity?) }
+                        ForEach(SpeakToChatSensitivity.allCases) { value in
+                            Text(LocalizedStringKey(value.label)).tag(Optional(value))
+                        }
                     }
-                )) {
-                    if controller.speakToChatConfig == nil { Text("Not reported").tag(nil as SpeakToChatSensitivity?) }
-                    ForEach(SpeakToChatSensitivity.allCases) { value in
-                        Text(LocalizedStringKey(value.label)).tag(Optional(value))
+                    Picker("Resume audio", selection: Binding<SpeakToChatTimeout?>(
+                        get: { controller.speakToChatConfig?.timeout },
+                        set: { value in
+                            guard let value, var config = controller.speakToChatConfig else { return }
+                            config.timeout = value
+                            controller.setSpeakToChatConfig(config)
+                        }
+                    )) {
+                        if controller.speakToChatConfig == nil { Text("Not reported").tag(nil as SpeakToChatTimeout?) }
+                        ForEach(SpeakToChatTimeout.allCases) { value in
+                            Text(LocalizedStringKey(value.label)).tag(Optional(value))
+                        }
                     }
                 }
-                Picker("Resume audio", selection: Binding<SpeakToChatTimeout?>(
-                    get: { controller.speakToChatConfig?.timeout },
-                    set: { value in
-                        guard let value, var config = controller.speakToChatConfig else { return }
-                        config.timeout = value
-                        controller.setSpeakToChatConfig(config)
-                    }
-                )) {
-                    if controller.speakToChatConfig == nil { Text("Not reported").tag(nil as SpeakToChatTimeout?) }
-                    ForEach(SpeakToChatTimeout.allCases) { value in
-                        Text(LocalizedStringKey(value.label)).tag(Optional(value))
-                    }
-                }
+                .disabled(controller.speakToChatConfig == nil || controller.speakToChatEnabled != true)
             }
-            .disabled(controller.speakToChatConfig == nil || controller.speakToChatEnabled != true)
-            Picker("Automatic power off", selection: Binding<AutomaticPowerOffMode?>(
-                get: { controller.automaticPowerOff },
-                set: { if let value = $0 { controller.setAutomaticPowerOff(value) } }
-            )) {
-                if controller.automaticPowerOff == nil { Text("Not reported").tag(nil as AutomaticPowerOffMode?) }
-                ForEach(AutomaticPowerOffMode.allCases) { value in
-                    Text(LocalizedStringKey(value.label)).tag(Optional(value))
-                }
+        }
+        .controlSize(.mini)
+        .font(.system(size: 11))
+        .padding(8)
+        .background(.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 10))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Smart features")
+    }
+
+    private var powerControls: some View {
+        Picker("Automatic power off", selection: Binding<AutomaticPowerOffMode?>(
+            get: { controller.automaticPowerOff },
+            set: { if let value = $0 { controller.setAutomaticPowerOff(value) } }
+        )) {
+            if controller.automaticPowerOff == nil { Text("Not reported").tag(nil as AutomaticPowerOffMode?) }
+            ForEach(AutomaticPowerOffMode.allCases) { value in
+                Text(LocalizedStringKey(value.label)).tag(Optional(value))
             }
         }
         .controlSize(.small)
@@ -341,7 +399,7 @@ private struct XM6DetailsView: View {
     private func reportedToggle(_ label: LocalizedStringKey, value: Bool?, set: @escaping (Bool) -> Void) -> some View {
         HStack(spacing: 5) {
             Toggle(label, isOn: Binding(get: { value ?? false }, set: set))
-                .toggleStyle(.checkbox).disabled(value == nil)
+                .toggleStyle(.switch).controlSize(.mini).tint(.secondary).disabled(value == nil)
             if value == nil { Text("Not reported").font(.caption).foregroundStyle(.secondary) }
         }
     }
@@ -373,6 +431,34 @@ private struct XM6DetailsView: View {
                 Text("Not reported").font(.caption).foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+private struct XM6SettingCard: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: 12, weight: .medium))
+            .controlSize(.small)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(8)
+            .background(.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.primary.opacity(0.06)))
+    }
+}
+
+private struct XM6ModeButtonStyle: ButtonStyle {
+    let isSelected: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(isSelected ? .primary : .secondary)
+            .background(.primary.opacity(configuration.isPressed ? 0.18 : isSelected ? 0.12 : isHovered ? 0.06 : 0), in: RoundedRectangle(cornerRadius: 9))
+            .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.primary.opacity(isSelected ? 0.2 : 0)))
+            .onHover { isHovered = $0 }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: isSelected)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovered)
     }
 }
 
@@ -490,6 +576,13 @@ extension AmbientSoundMode {
         case .off: String(localized: "Off")
         case .noiseCancelling: String(localized: "Noise Cancelling")
         case .ambientSound: String(localized: "Ambient")
+        }
+    }
+    var xm6Symbol: String {
+        switch self {
+        case .off: "speaker.slash"
+        case .noiseCancelling: "waveform.slash"
+        case .ambientSound: "ear"
         }
     }
     var xm6Abbreviation: String {

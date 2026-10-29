@@ -64,6 +64,29 @@ final class DobermanActivityTests: XCTestCase {
         XCTAssertEqual(activity.livePresentationState, .visible(priority: .low))
     }
 
+    func testDobermanOnlyUsesTheSameFullChinWidthAsMedia() {
+        let model = DobermanAnimationModel(timingScale: 0, startsSleeping: false)
+        let vm = BoringViewModel()
+        defer { model.cancelAll(); vm.destroy() }
+        let providers = [
+            AnyLiveActivityPresentationProvider(activity: AnyNotchActivity(DobermanActivity(model: model))),
+            AnyLiveActivityPresentationProvider(ChinMediaRenderProbe())
+        ]
+        let expectedWidth = collapsedNotchShellWidth(
+            centerWidth: vm.notchSafeZoneWidth,
+            accessorySize: max(0, vm.effectiveClosedNotchHeight - 12)
+        ) - 2 * cornerRadiusInsets.closed.bottom
+        for provider in providers {
+            let hosting = NSHostingView(rootView:
+                ClosedActivityLivePresentationStackView(
+                    stack: .full(provider), openLiveActivity: { _ in }, openMediaTab: {}
+                ).environmentObject(vm)
+            )
+            XCTAssertEqual(hosting.fittingSize.width, expectedWidth, accuracy: 0.5,
+                           "Full chin width changed for \(provider.id)")
+        }
+    }
+
     func testClosingWithMusicNeverRendersAnInterimFullMediaChin() async throws {
         let model = DobermanAnimationModel(timingScale: 0, startsSleeping: false)
         let activity = DobermanActivity(model: model)

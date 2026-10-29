@@ -309,7 +309,9 @@ final class XM6ActivityTests: XCTestCase {
         transports.last?.emit([0x29, 5, 0x10, 0])
         transports.last?.emit([0x37, 2, 1] + Array("AA:BB:CC:DD:EE:FF".utf8) + [2, 0, 0, 0, 3] + Array("Mac".utf8) + [1], type: .command2)
         await settle()
-        try render(XM6ActivityView(manager: manager), name: "connected", width: 640, height: 250)
+        try render(XM6ActivityView(manager: manager), name: "connected", width: 520, height: 250)
+        try render(XM6ActivityView(manager: manager), name: "connected-compact", width: 450, height: 250)
+        try render(XM6DetailsView(controller: manager.controller, showsMoreSettings: true), name: "details-expanded", width: 426, height: 160)
         try render(XM6ChinView(manager: manager, minimal: false), name: "chin-full", width: 108, height: 32)
         try render(XM6ChinView(manager: manager, minimal: true), name: "chin-minimal", width: 44, height: 32)
         manager.stop()
@@ -339,7 +341,13 @@ final class XM6ActivityTests: XCTestCase {
         attachment.name = "XM6 \(name)"
         attachment.lifetime = .keepAlways
         add(attachment)
-        if name == "connected" {
+        if name == "connected" || name == "connected-compact" {
+            let scroll = try XCTUnwrap(findScrollView(in: hosting))
+            let document = try XCTUnwrap(scroll.documentView)
+            XCTAssertLessThanOrEqual(document.bounds.height, scroll.contentView.bounds.height + 1,
+                                     "Primary controls should fit without scrolling")
+        }
+        if name == "details-expanded" {
             let scroll = try XCTUnwrap(findScrollView(in: hosting))
             let document = try XCTUnwrap(scroll.documentView)
             XCTAssertGreaterThan(document.bounds.height, scroll.contentView.bounds.height)
