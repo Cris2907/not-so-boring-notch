@@ -651,6 +651,20 @@ class MusicManager: ObservableObject {
         seek(to: newPos)
     }
     
+    @MainActor
+    func modeChangeDuckingTarget() -> XM6PlaybackDucker.Target? {
+        guard isPlaying, let bundleID = bundleIdentifier else { return nil }
+        if bundleID == "com.apple.Music" || bundleID == "com.spotify.client" {
+            return .init(id: bundleID,
+                         read: { await MediaPlayerVolume.read(bundleID: bundleID) },
+                         write: { await MediaPlayerVolume.write($0, bundleID: bundleID) })
+        }
+        guard let controller = activeController as? YouTubeMusicController,
+              controller.supportsVolumeControl else { return nil }
+        return .init(id: bundleID, read: { await controller.currentVolume() },
+                     write: { await controller.setVolume($0) })
+    }
+
     func setVolume(to level: Double) {
         if let controller = activeController {
             Task {

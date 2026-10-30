@@ -15,7 +15,8 @@ let bluetoothNotificationSideWidth: CGFloat = 182
 let closedTimeActivityCompactTextWidth: CGFloat = 52
 let closedTimeActivityMinimumTextWidth: CGFloat = 64
 let closedActivityFullPresentationContentLeadingPadding: CGFloat = 8
-let collapsedNotchContentWidth: CGFloat = 64
+// Adjust this to change the resting chin width on each side (in points).
+let collapsedNotchContentWidth: CGFloat = 44
 
 /// Keep a compact, stable footprint around the hardware cutout. Wider
 /// activities use their minimal content rather than expanding the resting shell.
@@ -62,16 +63,16 @@ struct NotchSafeZoneLayout: Layout {
         let sideWidth = max(0, (bounds.width - centerWidth) / 2 - spacing)
         let sideProposal = ProposedViewSize(width: sideWidth, height: bounds.height)
         subviews[0].place(
-            at: CGPoint(x: bounds.midX - centerWidth / 2 - spacing, y: bounds.midY),
-            anchor: .trailing, proposal: sideProposal
+            at: CGPoint(x: bounds.midX - centerWidth / 2 - spacing - sideWidth / 2, y: bounds.midY),
+            anchor: .center, proposal: sideProposal
         )
         subviews[1].place(
             at: CGPoint(x: bounds.midX, y: bounds.midY),
             anchor: .center, proposal: ProposedViewSize(width: centerWidth, height: bounds.height)
         )
         subviews[2].place(
-            at: CGPoint(x: bounds.midX + centerWidth / 2 + spacing, y: bounds.midY),
-            anchor: .leading, proposal: sideProposal
+            at: CGPoint(x: bounds.midX + centerWidth / 2 + spacing + sideWidth / 2, y: bounds.midY),
+            anchor: .center, proposal: sideProposal
         )
     }
 }
@@ -106,7 +107,7 @@ let floatingTabBarGap: CGFloat = 8
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
 let calendarOpenNotchHeight: CGFloat = openNotchSize.height + 20
-let maximumOpenNotchHeight: CGFloat = 320
+let maximumOpenNotchHeight: CGFloat = 388
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 

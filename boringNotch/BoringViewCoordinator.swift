@@ -231,6 +231,16 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
+    /// Updating artwork may lengthen the current notification, but cannot reopen one.
+    @MainActor
+    @discardableResult
+    func extendBluetoothSneakPeek(duration: TimeInterval) -> Bool {
+        guard sneakPeek.show, sneakPeek.type == .bluetooth else { return false }
+        sneakPeekDuration = duration
+        scheduleSneakPeekHide(after: duration)
+        return true
+    }
+
     private var sneakPeekDuration: TimeInterval = 1.5
     private var sneakPeekTask: Task<Void, Never>?
 

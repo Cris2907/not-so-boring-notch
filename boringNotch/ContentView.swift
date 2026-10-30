@@ -50,6 +50,7 @@ struct ContentView: View {
     @ObservedObject private var activityLivePresentationCoordinator = ActivityLivePresentationCoordinator.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
+    @State private var retainedHoverRect: CGRect?
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
     @State private var gestureProgress: CGFloat = .zero
@@ -279,6 +280,16 @@ struct ContentView: View {
                             .animation(.smooth, value: gestureProgress)
                     }
                     .contentShape(Rectangle())
+                    .onChange(of: vm.notchSize) { oldSize, newSize in
+                        guard vm.notchState == .open, isHovering,
+                              newSize.height < oldSize.height || newSize.width < oldSize.width,
+                              let screen = vm.screenUUID.flatMap({ NSScreen.screen(withUUID: $0) }) else { return }
+                        let previous = CGRect(x: screen.frame.midX - oldSize.width / 2 - extendedHoverPadding,
+                                              y: screen.frame.maxY - oldSize.height - vm.floatingTabBarReservedHeight - extendedHoverPadding,
+                                              width: oldSize.width + extendedHoverPadding * 2,
+                                              height: oldSize.height + vm.floatingTabBarReservedHeight + extendedHoverPadding * 2)
+                        retainedHoverRect = retainedHoverRect.map { $0.union(previous) } ?? previous
+                    }
                     .onHover { hovering in
                         handleHover(hovering)
                     }
@@ -733,6 +744,7 @@ struct ContentView: View {
         hoverTask?.cancel()
         
         if hovering {
+            retainedHoverRect = nil
             withAnimation(animationSpring) {
                 isHovering = true
             }
@@ -762,7 +774,17 @@ struct ContentView: View {
                 try? await Task.sleep(for: .milliseconds(100))
                 guard !Task.isCancelled else { return }
                 
+                // A resize can move the surface away from a stationary pointer.
+                // Keep the old region until the pointer returns or leaves it.
+                while !Task.isCancelled,
+                      self.vm.notchState == .open,
+                      let rect = self.retainedHoverRect,
+                      rect.contains(NSEvent.mouseLocation) {
+                    try? await Task.sleep(for: .milliseconds(30))
+                }
+                guard !Task.isCancelled else { return }
                 await MainActor.run {
+                    self.retainedHoverRect = nil
                     withAnimation(animationSpring) {
                         self.isHovering = false
                     }
@@ -1023,10 +1045,10 @@ private struct ClosedActivityFullLivePresentationView: View {
                 }
             }
                 .frame(width: contentWidth)
-                .padding(.leading, closedActivityFullPresentationContentLeadingPadding)
+                .padding(.horizontal, closedActivityFullPresentationContentLeadingPadding / 2)
                 .frame(
                     width: sideWidth,
-                    alignment: .leading
+                    alignment: .center
                 )
                 .clipped()
                 .contentShape(Rectangle())
@@ -1056,7 +1078,6 @@ private struct ClosedActivitySplitLivePresentationView: View {
             ClosedActivityMinimalLivePresentationView(
                 activity: leadingActivity,
                 iconPlacement: .trailing,
-                alignment: .trailing,
                 openLiveActivity: openLiveActivity
             )
 
@@ -1074,7 +1095,6 @@ private struct ClosedActivitySplitLivePresentationView: View {
             ClosedActivityMinimalLivePresentationView(
                 activity: trailingActivity,
                 iconPlacement: .leading,
-                alignment: .leading,
                 openLiveActivity: openLiveActivity
             )
         }
@@ -1087,7 +1107,6 @@ private struct ClosedActivityMinimalLivePresentationView: View {
     @ObservedObject var activity: AnyLiveActivityPresentationProvider
 
     let iconPlacement: ClosedActivityMinimalIconPlacement
-    let alignment: Alignment
     let openLiveActivity: (ActivityID) -> Void
 
     var body: some View {
@@ -1104,7 +1123,7 @@ private struct ClosedActivityMinimalLivePresentationView: View {
             }
 
             activity.makeMinimalView()
-                .frame(width: contentWidth, alignment: iconPlacement.contentAlignment)
+                .frame(width: contentWidth, alignment: .center)
 
             if showsAccessory && iconPlacement == .trailing {
                 icon(accessorySize: accessorySize)
@@ -1113,7 +1132,7 @@ private struct ClosedActivityMinimalLivePresentationView: View {
         .frame(
             width: contentWidth + (showsAccessory ? accessorySize + accessorySpacing : 0),
             height: vm.effectiveClosedNotchHeight,
-            alignment: alignment
+            alignment: .center
         )
         .clipped()
         .contentShape(Rectangle())

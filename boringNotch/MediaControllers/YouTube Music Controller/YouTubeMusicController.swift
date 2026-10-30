@@ -85,6 +85,16 @@ final class YouTubeMusicController: MediaControllerProtocol {
         await sendCommand(endpoint: "/seek-to", method: "POST", body: payload)
     }
 
+    func currentVolume() async -> Double? {
+        guard isActive() else { return nil }
+        do {
+            let token = try await authManager.authenticate()
+            guard let volume = try await httpClient.getPlaybackInfo(token: token).volume,
+                  volume.isFinite, (0...100).contains(volume) else { return nil }
+            return volume / 100
+        } catch { return nil }
+    }
+
     func setVolume(_ level: Double) async {
         let clampedLevel = max(0.0, min(1.0, level))
         let volumePercentage = Int(clampedLevel * 100)

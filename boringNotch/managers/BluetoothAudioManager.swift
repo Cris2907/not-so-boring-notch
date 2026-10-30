@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import CoreAudio
 import Defaults
@@ -13,6 +14,9 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
     @Published private(set) var activeProfile: BluetoothHeadphoneProfile = BluetoothHeadphoneProfileStore.fallbackProfile
 
     private var assignmentObservation: AnyCancellable?
+    private var artworkObservation: AnyCancellable?
+    private var notificationPresented = false
+    private var notificationHasAnimatedDuration = false
 
     private var isStarted = false
     private var audioListenersInstalled = false
@@ -39,6 +43,13 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
     func start() {
         guard !isStarted else { return }
         isStarted = true
+        Task { @MainActor [weak self] in
+            guard let self, self.isStarted else { return }
+            SonyDeviceIdentityStore.shared.start(audio: self, controls: XM6Manager.shared.controller)
+            self.artworkObservation = SonyArtworkStore.shared.$files.receive(on: DispatchQueue.main).sink { [weak self] _ in
+                Task { @MainActor in self?.refreshSonyNotificationProfile() }
+            }
+        }
 
         installAudioListenersIfNeeded()
         installBluetoothNotificationsIfNeeded()
@@ -47,6 +58,9 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
 
     func stop() {
         isStarted = false
+        artworkObservation = nil
+        notificationPresented = false
+        Task { @MainActor in SonyDeviceIdentityStore.shared.stop() }
         refreshWorkItem?.cancel()
         refreshWorkItem = nil
         clearNotificationWorkItem?.cancel()
@@ -152,26 +166,58 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
         lastNotifiedSignature = deviceSignature
         lastNotificationDate = now
 
-        let profile = HeadphoneModelAssignments.shared.profile(for: device)
+        notificationPresented = false
+        notificationHasAnimatedDuration = false
         activeNotificationDevice = device
-        activeProfile = profile
+        activeProfile = HeadphoneModelAssignments.shared.profile(for: device)
+        Task { @MainActor [weak self] in
+            guard let self, self.activeNotificationDevice == device else { return }
+            self.refreshSonyNotificationProfile()
+            let profile = self.activeProfile
+            let entry = SonyDeviceIdentityStore.shared.artworkEntry(address: device.bluetoothAddress, profile: profile)
+            let hasAnimation = SonyArtworkStore.shared.localFile(for: entry?.animationURL) != nil
+            let animated = hasAnimation && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+            self.notificationPresented = true
+            self.notificationHasAnimatedDuration = animated
+            self.presentBluetoothNotification(duration: animated ? 5.5 : 2.5, profile: profile)
 
-        Task { @MainActor in
-            BoringViewCoordinator.shared.toggleSneakPeek(
-                status: true,
-                type: .bluetooth,
-                duration: 2.5,
-                icon: profile.symbolName
-            )
         }
+    }
 
+    @MainActor
+    func refreshSonyNotificationProfile() {
+        guard let device = activeNotificationDevice else { return }
+        activeProfile = SonyDeviceIdentityStore.shared.profile(for: device)
+        // Extend only a still-visible notification when its first render becomes ready.
+        // Never resurrect an expired notification or restart its animation on state updates.
+        let coordinator = BoringViewCoordinator.shared
+        if notificationPresented, !notificationHasAnimatedDuration,
+           coordinator.sneakPeek.show, coordinator.sneakPeek.type == .bluetooth,
+           !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
+           let entry = SonyDeviceIdentityStore.shared.artworkEntry(address: device.bluetoothAddress, profile: activeProfile),
+           SonyArtworkStore.shared.localFile(for: entry.animationURL) != nil {
+            if coordinator.extendBluetoothSneakPeek(duration: 5.5) {
+                notificationHasAnimatedDuration = true
+                scheduleBluetoothNotificationClear(after: 6.0)
+            }
+        }
+    }
+
+    @MainActor
+    private func presentBluetoothNotification(duration: TimeInterval, profile: BluetoothHeadphoneProfile) {
+        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .bluetooth, duration: duration, icon: profile.symbolName)
+        scheduleBluetoothNotificationClear(after: duration + 0.5)
+    }
+
+    private func scheduleBluetoothNotificationClear(after duration: TimeInterval) {
         clearNotificationWorkItem?.cancel()
-        let clearWorkItem = DispatchWorkItem { [weak self] in
+        let clear = DispatchWorkItem { [weak self] in
+            self?.notificationPresented = false
             self?.activeNotificationDevice = nil
             self?.activeProfile = BluetoothHeadphoneProfileStore.fallbackProfile
         }
-        clearNotificationWorkItem = clearWorkItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: clearWorkItem)
+        clearNotificationWorkItem = clear
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: clear)
     }
 
     private func makeAudioDevice(from deviceID: AudioObjectID) -> BluetoothAudioDevice? {

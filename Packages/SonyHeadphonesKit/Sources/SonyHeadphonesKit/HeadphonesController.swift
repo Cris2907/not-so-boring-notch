@@ -11,6 +11,14 @@ import Combine
 @MainActor
 public final class HeadphonesController: ObservableObject {
     @Published public private(set) var connectionState: ConnectionState = .disconnected
+    @Published public private(set) var identity = SonyDeviceIdentity()
+    public let purpose: SonySessionPurpose
+    public var canControlXM6: Bool { purpose == .controls && connectionState == .connected && identity.supportsXM6Controls }
+    private var requestedControlState = false
+    private final class Owner { weak var controller: HeadphonesController?; init(_ value: HeadphonesController) { controller = value } }
+    private static var owners: [String: Owner] = [:]
+    private var ownedAddress: String?
+    private static func addressKey(_ address: String) -> String { address.lowercased().filter { $0.isHexDigit } }
     @Published public private(set) var deviceName: String?
     @Published public private(set) var protocolVersion: ProtocolVersion = .unknown
     @Published public private(set) var pairedDevices: [PairedDeviceInfo] = []
@@ -65,11 +73,13 @@ public final class HeadphonesController: ObservableObject {
     private var connectRetryCount = 0
     private var connectTarget: (address: String, name: String?)?
     public init(
+        purpose: SonySessionPurpose = .controls,
         connectionFactory: @escaping () -> HeadphonesTransport = { RFCOMMConnection() },
         pairedDevicesProvider: @escaping () -> [PairedDeviceInfo] = { RFCOMMConnection.pairedDevices() },
         timing: HeadphonesSessionTiming = HeadphonesSessionTiming(),
         defaults: UserDefaults = .standard
     ) {
+        self.purpose = purpose
         self.connectionFactory = connectionFactory
         self.pairedDevicesProvider = pairedDevicesProvider
         self.timing = timing
@@ -82,6 +92,8 @@ public final class HeadphonesController: ObservableObject {
     public var protocolLogURL: URL? { protocolLog.url }
 
     private func closeTransport() {
+        if let key = ownedAddress, Self.owners[key]?.controller === self { Self.owners[key] = nil }
+        ownedAddress = nil
         sessionGeneration = UUID()
         connection?.onEvent = nil
         connection?.disconnect()
@@ -116,6 +128,11 @@ public final class HeadphonesController: ObservableObject {
     }
 
     public func connect(toAddress address: String, name: String?) {
+        let key = Self.addressKey(address)
+        if let owner = Self.owners[key]?.controller, owner !== self {
+            guard purpose == .controls && owner.purpose == .identityOnly else { return }
+            owner.disconnect()
+        }
         connectRetryCount = 0
         connectTarget = (address, name)
         attemptConnect()
@@ -127,6 +144,10 @@ public final class HeadphonesController: ObservableObject {
         // channel leaks it and leaves two delegates fighting over one session.
         closeTransport()
         resetSessionState()
+        let key = Self.addressKey(target.address)
+        if let owner = Self.owners[key]?.controller, owner !== self { return }
+        Self.owners[key] = Owner(self)
+        ownedAddress = key
         let transport = connectionFactory()
         connection = transport
         let generation = sessionGeneration
@@ -162,7 +183,7 @@ public final class HeadphonesController: ObservableObject {
     private func handleConnectTimeout() {
         guard connectionState == .connecting || connectionState == .initializing else { return }
         guard connectRetryCount < 1 else {
-            endSession(error: "The headphones didn\u{2019}t answer. Make sure they\u{2019}re on and connected as an audio device, then try again.")
+            endSession(error: "The Sony control connection did not answer. Audio may still be connected. Retry to reconnect the headphone controls.")
             return
         }
         connectRetryCount += 1
@@ -176,7 +197,7 @@ public final class HeadphonesController: ObservableObject {
 
     /// Re-requests all device state (e.g. after the initial read timed out).
     public func refreshState() {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         requestFullState()
     }
 
@@ -187,36 +208,36 @@ public final class HeadphonesController: ObservableObject {
 
     /// Queues a raw payload; used by the XM6Probe tool to verify command layouts.
     public func sendRaw(_ payload: [UInt8], type: SonyMessageType = .command1) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         enqueue(payload, type: type)
     }
 
     public func setAmbientSound(_ state: AmbientSoundState) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         ambientSound = state // optimistic; a NOTIFY will reconcile if the device disagrees
         enqueue(SonyCommands.buildAmbientSoundSet(state))
     }
 
     public func setSpeakToChatEnabled(_ enabled: Bool) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         speakToChatEnabled = enabled
         enqueue(SonyCommands.buildSpeakToChatEnabledSet(enabled))
     }
 
     public func setSpeakToChatConfig(_ config: SpeakToChatConfigState) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         speakToChatConfig = config
         enqueue(SonyCommands.buildSpeakToChatConfigSet(config))
     }
 
     public func setAutomaticPowerOff(_ mode: AutomaticPowerOffMode) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         automaticPowerOff = mode
         enqueue(SonyCommands.buildAutomaticPowerOffSet(mode))
     }
 
     public func setPauseWhenTakenOff(_ enabled: Bool) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         pauseWhenTakenOff = enabled
         enqueue(SonyCommands.buildPauseWhenTakenOffSet(enabled))
     }
@@ -229,7 +250,7 @@ public final class HeadphonesController: ObservableObject {
     /// the user let go. Only the latest curve is ever in flight, so dragging stays
     /// responsive and the headphones follow within a moment of the slider settling.
     public func setEqualizerBands(_ bands: [Int]) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         guard bands.count == SonyCommands.defaultBandCount else { return }
         let bands = bands.map { min(max($0, -6), 6) }
         let subtype = equalizer?.subtype ?? 0x04
@@ -249,7 +270,7 @@ public final class HeadphonesController: ObservableObject {
     }
 
     public func setEqualizerPreset(_ preset: EqualizerPreset) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         // A queued curve from a drag would otherwise land after this and drag the
         // device back to the custom preset.
         equalizerWriteTask?.cancel()
@@ -260,7 +281,7 @@ public final class HeadphonesController: ObservableObject {
     }
 
     public func setListeningMode(_ mode: ListeningMode) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         listeningMode = mode
         let roomSize = bgmRoomSize ?? .middle
         enqueue(SonyCommands.buildBGMModeSet(enabled: mode == .backgroundMusic, roomSize: roomSize))
@@ -268,14 +289,14 @@ public final class HeadphonesController: ObservableObject {
     }
 
     public func setBGMRoomSize(_ roomSize: BGMRoomSize) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         bgmRoomSize = roomSize
         enqueue(SonyCommands.buildBGMModeSet(enabled: listeningMode == .backgroundMusic, roomSize: roomSize))
     }
 
     /// Switch the active playback source to another connected device.
     public func switchPlayback(to device: MultipointDevice) {
-        guard connectionState == .connected else { return }
+        guard canControlXM6 else { return }
         guard device.isConnected, !device.isPlayback else { return }
         guard let payload = SonyCommands.buildSourceSwitchSet(macAddress: device.macAddress) else { return }
         devices = devices?.map { d in
@@ -315,6 +336,8 @@ public final class HeadphonesController: ObservableObject {
         bgmEnabled = nil
         cinemaEnabled = nil
         protocolVersion = .unknown
+        identity = SonyDeviceIdentity()
+        requestedControlState = false
     }
 
     private func handle(_ event: RFCOMMConnectionEvent) {
@@ -397,6 +420,20 @@ public final class HeadphonesController: ObservableObject {
         send(SonyMessage(type: .ack, sequenceNumber: ackSeq, payload: []), note: "ack")
 
         rawMessageHandler?(message.type, message.payload)
+        if message.type == .command1, connectionState == .connected,
+           let reply = SonyIdentityProtocol.decode(message.payload) {
+            var next = identity
+            switch reply {
+            case .modelName(let name): next.modelName = name
+            case .seriesAndColor(let series, let color): next.series = series; next.color = color
+            }
+            identity = next
+            if canControlXM6, !requestedControlState {
+                requestedControlState = true
+                requestFullState()
+            }
+            return
+        }
 
         guard let event = SonyEventDecoder.decode(payload: message.payload, messageType: message.type) else { return }
         apply(event)
@@ -410,8 +447,9 @@ public final class HeadphonesController: ObservableObject {
             initRetryTask?.cancel()
             connectTimeoutTask?.cancel()
             connectionState = .connected
-            requestFullState()
-            startStateTimeout()
+            enqueue(SonyIdentityProtocol.modelRequest)
+            enqueue(SonyIdentityProtocol.colorRequest)
+            if purpose == .controls { startStateTimeout() }
 
         case .ambientSound(let state):
             ambientSound = state
@@ -491,6 +529,7 @@ public final class HeadphonesController: ObservableObject {
 
     private func enqueue(_ payload: [UInt8], type: SonyMessageType = .command1) {
         guard connectionState == .connected else { return }
+        if purpose == .identityOnly, type != .command1 || (payload != SonyIdentityProtocol.modelRequest && payload != SonyIdentityProtocol.colorRequest) { return }
         if payload.first == Opcode.equalizerSet, payload.count > 4 {
             removeQueuedEqualizerCurves()
         }

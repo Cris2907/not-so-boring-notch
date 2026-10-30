@@ -48,7 +48,7 @@ final class XM6ActivityTests: XCTestCase {
         defaults.removePersistentDomain(forName: suite)
         super.tearDown()
     }
-    private func makeManager(remember: Bool = false) -> XM6Manager {
+    private func makeManager(remember: Bool = false, recoveryDelays: [UInt64] = [2_000_000_000, 5_000_000_000]) -> XM6Manager {
         if remember {
             defaults.set(device.id, forKey: "xm6.deviceAddress")
             defaults.set(device.name, forKey: "xm6.deviceName")
@@ -56,7 +56,7 @@ final class XM6ActivityTests: XCTestCase {
         let controller = HeadphonesController(connectionFactory: { [unowned self] in
             let transport = XM6TestTransport(); self.transports.append(transport); return transport
         }, pairedDevicesProvider: { [device] in [device] }, defaults: defaults)
-        return XM6Manager(controller: controller, defaults: defaults, enablement: enablement, monitor: monitor)
+        return XM6Manager(controller: controller, defaults: defaults, enablement: enablement, monitor: monitor, recoveryDelays: recoveryDelays)
     }
     private func settle() async { for _ in 0..<30 { await Task.yield() } }
     private func finishConnection() async {
@@ -64,6 +64,32 @@ final class XM6ActivityTests: XCTestCase {
         await settle()
         transports.last?.emit([1, 0, 0, 0, 0, 0, 0, 0])
         await settle()
+        transports.last?.emit([5, 1, 10] + Array("WH-1000XM6".utf8))
+        await settle()
+    }
+
+    func testControlFailureRetriesWithoutAnotherBluetoothEventAndStopsAtLimit() async throws {
+        let manager = makeManager(remember: true, recoveryDelays: [5_000_000, 5_000_000])
+        manager.start()
+        for count in 1...3 {
+            XCTAssertEqual(transports.count, count)
+            transports.last?.onEvent?(.failed("Control connection timed out"))
+            await settle()
+            try await Task.sleep(nanoseconds: 25_000_000)
+        }
+        XCTAssertEqual(transports.count, 3)
+        manager.stop()
+    }
+
+    func testManualDisconnectCancelsPendingControlRecovery() async throws {
+        let manager = makeManager(remember: true, recoveryDelays: [20_000_000])
+        manager.start()
+        transports.last?.onEvent?(.failed("Control connection timed out"))
+        await settle()
+        manager.disconnect()
+        try await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertEqual(transports.count, 1)
+        manager.stop()
     }
 
     func testRegistrationMetadataNavigationAndSizing() throws {
@@ -73,7 +99,7 @@ final class XM6ActivityTests: XCTestCase {
         let activity = XM6Activity(manager: manager)
         let registry = try ActivityRegistry { activity }
         XCTAssertEqual(activity.metadata.name, "XM6")
-        XCTAssertEqual(activity.metadata.preferredExpandedHeight, 300)
+        XCTAssertEqual(activity.metadata.preferredExpandedHeight, 388)
         XCTAssertEqual(activity.livePresentationSizing.fullContentWidth, .fixed(108))
         XCTAssertEqual(activity.livePresentationSizing.minimalContentWidth, .fixed(44))
         XCTAssertTrue(activity.supportsConfiguration)
@@ -295,7 +321,7 @@ final class XM6ActivityTests: XCTestCase {
     /// Static, hardware-free review artifacts cover the actual SwiftUI surfaces.
     func testRenderExpandedAndChinPresentations() async throws {
         let manager = makeManager()
-        try render(XM6ActivityView(manager: manager), name: "disconnected", width: 640, height: 250)
+        try render(XM6ActivityView(manager: manager), name: "disconnected", width: 640, height: 318)
         manager.start()
         manager.connect(to: device)
         await finishConnection()
@@ -309,19 +335,126 @@ final class XM6ActivityTests: XCTestCase {
         transports.last?.emit([0x29, 5, 0x10, 0])
         transports.last?.emit([0x37, 2, 1] + Array("AA:BB:CC:DD:EE:FF".utf8) + [2, 0, 0, 0, 3] + Array("Mac".utf8) + [1], type: .command2)
         await settle()
-        try render(XM6ActivityView(manager: manager), name: "connected", width: 520, height: 250)
-        try render(XM6ActivityView(manager: manager), name: "connected-compact", width: 450, height: 250)
+        try render(XM6ActivityView(manager: manager), name: "connected", width: 520, height: 388)
+        try render(XM6ActivityView(manager: manager), name: "connected-compact", width: 450, height: 388)
         let assignments = HeadphoneModelAssignments(defaults: defaults)
         assignments.assign("sony-wh-1000xm6", to: device.id)
         // The RFCOMM device is renamed; artwork comes from its address, without
         // reading or changing whichever device is currently the Mac audio output.
         XCTAssertEqual(assignments.profile(name: manager.controller.deviceName ?? "", address: manager.controller.deviceAddress).id,
                        "sony-wh-1000xm6")
-        try render(XM6ActivityView(manager: manager, modelAssignments: assignments), name: "connected-assigned-xm6", width: 450, height: 250)
+        try render(XM6ActivityView(manager: manager, modelAssignments: assignments), name: "connected-assigned-xm6", width: 450, height: 388)
         try render(XM6DetailsView(controller: manager.controller, showsMoreSettings: true), name: "details-expanded", width: 426, height: 160)
         try render(XM6ChinView(manager: manager, minimal: false), name: "chin-full", width: 108, height: 32)
         try render(XM6ChinView(manager: manager, minimal: true), name: "chin-minimal", width: 44, height: 32)
         manager.stop()
+    }
+
+    func testRenderCachedSonyAnimationInLargerHeader() async throws {
+        let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("SoundConnectApp/analysis/renders/WH-1000XM6-color-0x01-animated.png")
+        guard FileManager.default.fileExists(atPath: fixture.path) else { throw XCTSkip("Local Sony render inspection fixture is not available") }
+        let manager = makeManager()
+        manager.start(); manager.connect(to: device); await finishConnection()
+        defer { manager.stop() }
+        let assignments = HeadphoneModelAssignments(defaults: defaults)
+        let identities = SonyDeviceIdentityStore(assignments: assignments, loadArtwork: { _ in })
+        identities.record(.init(modelName: "WH-1000XM6", series: 0x31, color: 1), address: device.id)
+        let entry = try XCTUnwrap(identities.catalog.entry(model: "WH-1000XM6", color: 1))
+        let artwork = SonyArtworkStore(files: [try XCTUnwrap(entry.animationURL): fixture])
+        for width: CGFloat in [450, 520] {
+            let view = XM6ActivityView(manager: manager, modelAssignments: assignments, identities: identities, artwork: artwork)
+                .frame(width: width, height: 388).background(.black).environment(\.colorScheme, .dark)
+            let hosting = NSHostingView(rootView: view)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: width, height: 388), styleMask: .borderless, backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false; window.contentView = hosting
+            hosting.layoutSubtreeIfNeeded()
+            try await Task.sleep(for: .milliseconds(1800))
+            hosting.layoutSubtreeIfNeeded(); hosting.displayIfNeeded()
+            let bitmap = try XCTUnwrap(hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds))
+            hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+            let directory = FileManager.default.temporaryDirectory.appendingPathComponent("notch-xm6-review")
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: directory.appendingPathComponent("sony-render-\(Int(width)).png"))
+            let attachment = XCTAttachment(image: try XCTUnwrap(NSImage(data: bitmap.tiffRepresentation!)))
+            attachment.name = "Sony render header \(Int(width))"; attachment.lifetime = .keepAlways; add(attachment)
+            window.close()
+        }
+    }
+
+    func testNoiseSelectorClampsDraggingAndSupportsRightToLeftLayout() {
+        XCTAssertEqual(XM6NoiseModeSelector.index(at: -20, width: 300), 0)
+        XCTAssertEqual(XM6NoiseModeSelector.index(at: 150, width: 300), 1)
+        XCTAssertEqual(XM6NoiseModeSelector.index(at: 500, width: 300), 2)
+        XCTAssertEqual(XM6NoiseModeSelector.index(at: 20, width: 300, isRightToLeft: true), 2)
+        XCTAssertEqual(XM6NoiseModeSelector.index(at: 290, width: 300, isRightToLeft: true), 0)
+        XCTAssertEqual(XM6NoiseModeSelector.index(at: 0, width: 0), 0)
+    }
+
+    func testBundledModeChangeSoundsDecodeWithoutPlaying() throws {
+        for mode in AmbientSoundMode.allCases {
+            let url = try XCTUnwrap(Bundle.main.url(
+                forResource: XM6ModeChangeSound.resourceName(for: mode), withExtension: "wav",
+                subdirectory: "NoiseControlSounds"))
+            let sound = try XCTUnwrap(NSSound(contentsOf: url, byReference: true))
+            XCTAssertGreaterThan(sound.duration, 0)
+            XCTAssertLessThan(sound.duration, 2)
+            try render(XM6NoiseModeSelector(selection: mode, select: { _ in }),
+                       name: "noise-selector-" + XM6ModeChangeSound.resourceName(for: mode), width: 450, height: 48)
+        }
+    }
+
+    func testMediaDuckingDoesNotCompoundAndRestoresOriginalPlayer() async {
+        var volume = 0.8
+        var writes: [Double] = []
+        let target = XM6PlaybackDucker.Target(id: "player", read: { volume }, write: {
+            volume = $0; writes.append($0)
+        })
+        let ducker = XM6PlaybackDucker()
+        await ducker.begin(target)
+        XCTAssertEqual(volume, 0.6, accuracy: 0.001)
+        await ducker.begin(target)
+        XCTAssertEqual(writes.count, 1)
+        await ducker.end()
+        XCTAssertEqual(volume, 0.8, accuracy: 0.001)
+        XCTAssertFalse(ducker.isDucking)
+    }
+
+    func testMediaDuckingPreservesManualAdjustmentsAndSkipsUnsupportedPlayers() async {
+        var volume = 0.8
+        let target = XM6PlaybackDucker.Target(id: "player", read: { volume }, write: { volume = $0 })
+        let ducker = XM6PlaybackDucker()
+        await ducker.begin(target)
+        volume = 0.4
+        await ducker.end()
+        XCTAssertEqual(volume, 0.4)
+        await ducker.begin(nil)
+        XCTAssertFalse(ducker.isDucking)
+        await ducker.begin(.init(id: "unsupported", read: { nil }, write: { _ in XCTFail() }))
+        XCTAssertFalse(ducker.isDucking)
+        await ducker.begin(.init(id: "failed-write", read: { 0.8 }, write: { _ in }))
+        XCTAssertFalse(ducker.isDucking)
+    }
+
+    func testSwitchingMediaPlayersRestoresOnlyCapturedPlayer() async {
+        var first = 0.8
+        var second = 0.4
+        let ducker = XM6PlaybackDucker()
+        await ducker.begin(.init(id: "first", read: { first }, write: { first = $0 }))
+        await ducker.begin(.init(id: "second", read: { second }, write: { second = $0 }))
+        XCTAssertEqual(first, 0.8, accuracy: 0.001)
+        XCTAssertEqual(second, 0.3, accuracy: 0.001)
+        await ducker.end()
+        XCTAssertEqual(second, 0.4, accuracy: 0.001)
+    }
+
+    func testMediaDuckingRestoresIntegerPlayerVolume() async {
+        var volume = 0.75
+        let ducker = XM6PlaybackDucker()
+        await ducker.begin(.init(id: "player", read: { volume }, write: { volume = Double(Int($0 * 100)) / 100 }))
+        XCTAssertEqual(volume, 0.56, accuracy: 0.001)
+        await ducker.end()
+        XCTAssertEqual(volume, 0.75, accuracy: 0.001)
     }
 
     private func render<V: View>(_ view: V, name: String, width: CGFloat, height: CGFloat) throws {
@@ -348,7 +481,7 @@ final class XM6ActivityTests: XCTestCase {
         attachment.name = "XM6 \(name)"
         attachment.lifetime = .keepAlways
         add(attachment)
-        if name == "connected" || name == "connected-compact" {
+        if name == "connected" || name == "connected-compact" || name == "connected-assigned-xm6" {
             let scroll = try XCTUnwrap(findScrollView(in: hosting))
             let document = try XCTUnwrap(scroll.documentView)
             XCTAssertLessThanOrEqual(document.bounds.height, scroll.contentView.bounds.height + 1,

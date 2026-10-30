@@ -1218,7 +1218,7 @@ final class NotchSafeZoneTests: XCTestCase {
         let center: CGFloat = 200
         let accessory: CGFloat = 20
         let resting = collapsedNotchShellWidth(centerWidth: center, accessorySize: accessory)
-        XCTAssertEqual(resting, center + 2 * 72 + 2 * 4 + 2 * cornerRadiusInsets.closed.bottom)
+        XCTAssertEqual(resting, center + 2 * 52 + 2 * 4 + 2 * cornerRadiusInsets.closed.bottom)
         let notification = collapsedNotchShellWidth(
             centerWidth: center, accessorySize: accessory, showsBluetoothNotification: true
         )
@@ -1266,8 +1266,8 @@ final class NotchSafeZoneTests: XCTestCase {
                                   "Activity content entered safe zone at x=\(x), sides \(leading)/\(trailing)")
                 XCTAssertGreaterThan(color.alphaComponent, 0.95)
             }
-            let left = try XCTUnwrap(bitmap.colorAt(x: midX - halfCenter - Int(6 * scale), y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
-            let right = try XCTUnwrap(bitmap.colorAt(x: midX + halfCenter + Int(6 * scale), y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
+            let left = try XCTUnwrap(bitmap.colorAt(x: midX - halfCenter - Int((4 + max(leading, trailing) / 2) * scale), y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
+            let right = try XCTUnwrap(bitmap.colorAt(x: midX + halfCenter + Int((4 + max(leading, trailing) / 2) * scale), y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
             XCTAssertGreaterThan(left.redComponent, 0.7)
             XCTAssertGreaterThan(right.greenComponent, 0.7)
         }
@@ -1308,7 +1308,7 @@ final class NotchTopAnchorTests: XCTestCase {
         let transitions: [(isOpen: Bool, height: CGFloat, samples: Int)] = [
             (true, openNotchSize.height, 25),
             (false, 0, 25),
-            (true, 300, 25),
+            (true, 388, 25),
             (false, 0, 3), // Reopen before the retained window can shrink.
             (true, maximumOpenNotchHeight, 25),
             (false, 0, 25)
@@ -1318,7 +1318,7 @@ final class NotchTopAnchorTests: XCTestCase {
                 // The center selects media; a side selects its live activity.
                 // Selection starts its own animation before hover opens the shell.
                 withAnimation(.smooth(duration: 0.25)) {
-                    vm.coordinator.currentView = height == 300 ? .activity(.xm6) : .home
+                    vm.coordinator.currentView = height == 388 ? .activity(.xm6) : .home
                 }
                 try await Task.sleep(for: .milliseconds(50))
             }
@@ -1326,7 +1326,7 @@ final class NotchTopAnchorTests: XCTestCase {
                 if isOpen {
                     vm.open()
                     if vm.coordinator.currentView == .activity(.xm6) {
-                        XCTAssertEqual(vm.notchSize.height, 300)
+                        XCTAssertEqual(vm.notchSize.height, 388)
                     }
                     vm.updateOpenNotchHeight(height)
                     XCTAssertGreaterThanOrEqual(window.frame.height,

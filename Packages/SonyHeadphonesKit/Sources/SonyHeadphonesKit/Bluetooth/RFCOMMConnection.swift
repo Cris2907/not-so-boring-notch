@@ -37,7 +37,9 @@ public final class RFCOMMConnection: NSObject, HeadphonesTransport {
     /// Guards the one-shot retry when a channel open fails outright.
     private var didRetryChannelOpen = false
 
-    public override init() {
+    private let requiresExistingConnection: Bool
+    public init(requiresExistingConnection: Bool = false) {
+        self.requiresExistingConnection = requiresExistingConnection
         super.init()
     }
 
@@ -72,6 +74,10 @@ public final class RFCOMMConnection: NSObject, HeadphonesTransport {
         DispatchQueue.main.async { [self] in
             guard let device = Self.device(forAddress: address) else {
                 onEvent?(.failed("Could not resolve Bluetooth address \(address)"))
+                return
+            }
+            guard !requiresExistingConnection || device.isConnected() else {
+                onEvent?(.failed("The audio device is no longer connected."))
                 return
             }
             self.device = device

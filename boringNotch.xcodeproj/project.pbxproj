@@ -175,6 +175,12 @@
 		C1A600032F00000100000001 /* XM6ActivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A600132F00000100000001 /* XM6ActivityTests.swift */; };
 		C1A600322F00000100000001 /* SonyHeadphonesKit in Frameworks */ = {isa = PBXBuildFile; productRef = C1A600302F00000100000001 /* SonyHeadphonesKit */; };
 		C1A600332F00000100000001 /* SonyHeadphonesKit in Frameworks */ = {isa = PBXBuildFile; productRef = C1A600302F00000100000001 /* SonyHeadphonesKit */; };
+		C0DEB1990000000000000001 /* NoiseControlSounds in Resources */ = {isa = PBXBuildFile; fileRef = C0DEB1990000000000000002 /* NoiseControlSounds */; };
+		C0DEAA220000000000000000 /* SonyArtworkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DEAA110000000000000000 /* SonyArtworkStore.swift */; };
+		C0DEAA220000000000000001 /* SonyDeviceIdentityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DEAA110000000000000001 /* SonyDeviceIdentityStore.swift */; };
+		C0DEAA220000000000000002 /* SonyDeviceArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DEAA110000000000000002 /* SonyDeviceArtwork.swift */; };
+		C0DEAA220000000000000003 /* SonyArtwork in Resources */ = {isa = PBXBuildFile; fileRef = C0DEAA110000000000000003 /* SonyArtwork */; };
+		C0DEAA220000000000000004 /* SonyArtworkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DEAA110000000000000004 /* SonyArtworkTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -379,6 +385,12 @@
 		C1A600112F00000100000001 /* XM6Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XM6Manager.swift"; sourceTree = "<group>"; };
 		C1A600122F00000100000001 /* XM6ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XM6/XM6ActivityView.swift"; sourceTree = "<group>"; };
 		C1A600132F00000100000001 /* XM6ActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XM6ActivityTests.swift"; sourceTree = "<group>"; };
+		C0DEB1990000000000000002 /* NoiseControlSounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = boringNotch/NoiseControlSounds; sourceTree = SOURCE_ROOT; };
+		C0DEAA110000000000000000 /* SonyArtworkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotch/managers/SonyArtworkStore.swift; sourceTree = SOURCE_ROOT; };
+		C0DEAA110000000000000001 /* SonyDeviceIdentityStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotch/managers/SonyDeviceIdentityStore.swift; sourceTree = SOURCE_ROOT; };
+		C0DEAA110000000000000002 /* SonyDeviceArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotch/components/XM6/SonyDeviceArtwork.swift; sourceTree = SOURCE_ROOT; };
+		C0DEAA110000000000000003 /* SonyArtwork */ = {isa = PBXFileReference; lastKnownFileType = folder; path = boringNotch/SonyArtwork; sourceTree = SOURCE_ROOT; };
+		C0DEAA110000000000000004 /* SonyArtworkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotchTests/SonyArtworkTests.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -630,6 +642,11 @@
 		14CEF4092C5CAED200855D72 = {
 			isa = PBXGroup;
 			children = (
+				C0DEB1990000000000000002 /* NoiseControlSounds */,
+				C0DEAA110000000000000003 /* SonyArtwork */,
+				C0DEAA110000000000000002 /* SonyDeviceArtwork.swift */,
+				C0DEAA110000000000000001 /* SonyDeviceIdentityStore.swift */,
+				C0DEAA110000000000000000 /* SonyArtworkStore.swift */,
 				112B0EB62E30DD0F00562D6C /* mediaremote-adapter */,
 				14CEF4142C5CAED300855D72 /* boringNotch */,
 				A10000130000000000000001 /* boringNotchTests */,
@@ -773,6 +790,7 @@
 				C1A100142F00000100000001 /* ActivityArchitectureTests.swift */,
 				A10000100000000000000001 /* TimeActivityTests.swift */,
 				C0DEB1000000000000000015 /* BluetoothHeadphoneProfileTests.swift */,
+				C0DEAA110000000000000004 /* SonyArtworkTests.swift */,
 			);
 			path = boringNotchTests;
 			sourceTree = "<group>";
@@ -1061,6 +1079,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0DEB1990000000000000001 /* NoiseControlSounds in Resources */,
+				C0DEAA220000000000000003 /* SonyArtwork in Resources */,
 				14CEF41D2C5CAED400855D72 /* Preview Assets.xcassets in Resources */,
 				14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */,
 				112B0EB82E30DD0F00562D6C /* MediaRemoteAdapterTestClient in Resources */,
@@ -1107,6 +1127,9 @@
 				C1A100032F00000100000001 /* ExampleActivity.swift in Sources */,
 				C1A100052F00000100000001 /* CalendarActivity.swift in Sources */,
 				C0DEB1000000000000000001 /* BluetoothHeadphoneProfile.swift in Sources */,
+				C0DEAA220000000000000002 /* SonyDeviceArtwork.swift in Sources */,
+				C0DEAA220000000000000001 /* SonyDeviceIdentityStore.swift in Sources */,
+				C0DEAA220000000000000000 /* SonyArtworkStore.swift in Sources */,
 				C0DEB1000000000000000002 /* BluetoothAudioManager.swift in Sources */,
 				C0DEB1000000000000000003 /* BluetoothDeviceActivity.swift in Sources */,
 				A10000020000000000000001 /* TimeActivity.swift in Sources */,
@@ -1242,6 +1265,7 @@
 				C1A100042F00000100000001 /* ActivityArchitectureTests.swift in Sources */,
 				A10000110000000000000001 /* TimeActivityTests.swift in Sources */,
 				C0DEB1000000000000000005 /* BluetoothHeadphoneProfileTests.swift in Sources */,
+				C0DEAA220000000000000004 /* SonyArtworkTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

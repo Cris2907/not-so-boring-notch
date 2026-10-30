@@ -101,6 +101,9 @@ final class XM6Manager: ObservableObject {
     @Published private(set) var isStarted = false
     private(set) var manuallyDisconnected = false
     private var sleeping = false
+    private var recoveryTask: Task<Void, Never>?
+    private var recoveryAttempt = 0
+    private let recoveryDelays: [UInt64]
     private var attemptedDevice: PairedDeviceInfo?
     private let defaults: UserDefaults
     private let enablement: ActivityEnablementStore
@@ -111,9 +114,11 @@ final class XM6Manager: ObservableObject {
         controller: HeadphonesController? = nil,
         defaults: UserDefaults = .standard,
         enablement: ActivityEnablementStore? = nil,
-        monitor: XM6ConnectionMonitoring? = nil
+        monitor: XM6ConnectionMonitoring? = nil,
+        recoveryDelays: [UInt64] = [2_000_000_000, 5_000_000_000]
     ) {
         self.defaults = defaults
+        self.recoveryDelays = recoveryDelays
         self.controller = controller ?? HeadphonesController(defaults: defaults)
         self.enablement = enablement ?? .shared
         self.monitor = monitor ?? XM6ConnectionMonitor()
@@ -135,19 +140,28 @@ final class XM6Manager: ObservableObject {
             self.defaults.set(device.name, forKey: "xm6.deviceName")
             if self.isStarted, self.isEnabled { self.monitor.start() }
         }.store(in: &observations)
+        self.controller.$connectionState.dropFirst().sink { [weak self] state in
+            if case .failed = state { self?.scheduleRecovery() }
+        }.store(in: &observations)
+        self.controller.$identity.sink { [weak self] identity in
+            if identity.supportsXM6Controls { self?.cancelRecovery(reset: true) }
+        }.store(in: &observations)
         self.enablement.$disabledActivityIDs.sink { [weak self] disabled in
             self?.setEnabled(!disabled.contains(.xm6))
         }.store(in: &observations)
         self.monitor.onWake = { [weak self] in
             self?.sleeping = false
+            self?.cancelRecovery(reset: true)
             self?.reconnectIfNeeded()
         }
         self.monitor.onSleep = { [weak self] in
             self?.sleeping = true
+            self?.cancelRecovery(reset: true)
             self?.controller.disconnect()
         }
         self.monitor.onConnect = { [weak self] address in
             guard let self, self.preferredDevice?.id.caseInsensitiveCompare(address) == .orderedSame else { return }
+            self.cancelRecovery(reset: true)
             self.reconnectIfNeeded()
         }
         self.monitor.onDisconnect = { [weak self] address in
@@ -156,9 +170,10 @@ final class XM6Manager: ObservableObject {
         }
     }
 
-    var isConnected: Bool { controller.connectionState == .connected }
+    var isConnected: Bool { controller.canControlXM6 }
     var isConnecting: Bool {
         controller.connectionState == .connecting || controller.connectionState == .initializing
+            || (controller.connectionState == .connected && controller.identity.modelName == nil && !controller.initialStateTimedOut)
     }
     private var preferredDevice: PairedDeviceInfo? { defaultDevice ?? rememberedDevice }
 
@@ -192,6 +207,7 @@ final class XM6Manager: ObservableObject {
 
     func stop() {
         isStarted = false
+        cancelRecovery(reset: true)
         monitor.stop()
         controller.disconnect()
     }
@@ -203,6 +219,7 @@ final class XM6Manager: ObservableObject {
             if preferredDevice != nil { monitor.start() }
             reconnectIfNeeded()
         } else {
+            cancelRecovery(reset: true)
             monitor.stop()
             controller.disconnect()
         }
@@ -211,6 +228,7 @@ final class XM6Manager: ObservableObject {
     func connect(to device: PairedDeviceInfo? = nil) {
         guard isStarted, isEnabled, !sleeping, !isConnecting else { return }
         manuallyDisconnected = false
+        cancelRecovery(reset: true)
         if let target = device ?? defaultDevice ?? attemptedDevice ?? rememberedDevice {
             attemptedDevice = target
             controller.connect(toAddress: target.id, name: target.name)
@@ -221,7 +239,30 @@ final class XM6Manager: ObservableObject {
 
     func disconnect() {
         manuallyDisconnected = true
+        cancelRecovery(reset: true)
         controller.disconnect()
+    }
+
+    private func cancelRecovery(reset: Bool) {
+        recoveryTask?.cancel()
+        recoveryTask = nil
+        if reset { recoveryAttempt = 0 }
+    }
+
+    private func scheduleRecovery() {
+        guard isStarted, isEnabled, automaticReconnect, !manuallyDisconnected, !sleeping,
+              recoveryTask == nil, recoveryAttempt < recoveryDelays.count,
+              let target = attemptedDevice ?? preferredDevice else { return }
+        let delay = recoveryDelays[recoveryAttempt]
+        recoveryAttempt += 1
+        recoveryTask = Task { [weak self] in
+            do { try await Task.sleep(nanoseconds: delay) } catch { return }
+            guard let self else { return }
+            self.recoveryTask = nil
+            guard self.isStarted, self.isEnabled, self.automaticReconnect,
+                  !self.manuallyDisconnected, !self.sleeping, !self.isConnected, !self.isConnecting else { return }
+            self.controller.connect(toAddress: target.id, name: target.name)
+        }
     }
 
     private func reconnectIfNeeded() {

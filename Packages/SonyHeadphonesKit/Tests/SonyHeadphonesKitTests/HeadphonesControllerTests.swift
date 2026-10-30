@@ -48,6 +48,8 @@ final class HeadphonesControllerTests: XCTestCase {
         transport.emit([0x01, 0, 0, 0, 0, 0, 0, 0])
         await settle()
         XCTAssertEqual(controller.connectionState, .connected)
+        transport.emit([0x05, 1, 10] + Array("WH-1000XM6".utf8))
+        await settle()
         return controller
     }
 
@@ -59,9 +61,9 @@ final class HeadphonesControllerTests: XCTestCase {
         XCTAssertEqual(controller.ambientSound?.mode, .off)
         XCTAssertEqual(controller.ambientSound?.level, 0)
         XCTAssertEqual(controller.ambientSound?.focusOnVoice, true)
-        let reads: Set<UInt8> = [0, 0x66, 0x22, 0xf6, 0xfa, 0x26, 0x56, 0xe6, 0x36]
+        let reads: Set<UInt8> = [0, 0x04, 0x66, 0x22, 0xf6, 0xfa, 0x26, 0x56, 0xe6, 0x36]
         XCTAssertTrue(transport.commands.allSatisfy { reads.contains($0.payload[0]) })
-        XCTAssertEqual(transport.commands.count, 13) // handshake plus twelve queries
+        XCTAssertEqual(transport.commands.count, 15) // handshake, two identity queries, twelve state queries
         controller.disconnect()
     }
 

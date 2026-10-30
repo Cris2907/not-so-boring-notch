@@ -13,7 +13,7 @@ final class XM6Activity: NotchActivity {
         name: String(localized: "XM6"),
         systemImage: "headphones",
         tint: .white,
-        preferredExpandedHeight: 300,
+        preferredExpandedHeight: 388,
         summary: String(localized: "Control your Sony WH-1000XM6 headphones.")
     )
     let livePresentationSizing = LiveActivityPresentationSizing(

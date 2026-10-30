@@ -5,12 +5,48 @@ import SwiftUI
 
 struct XM6ActivityView: View {
     @ObservedObject var manager: XM6Manager
+    @ObservedObject private var identities = SonyDeviceIdentityStore.shared
     @ObservedObject private var modelAssignments: HeadphoneModelAssignments
+    private let artwork: SonyArtworkStore
     private var controller: HeadphonesController { manager.controller }
+    @AppStorage("xm6.preferredTransparencyLevel") private var preferredTransparencyLevel = 20
+    @AppStorage("xm6.playModeChangeSounds") private var playsModeChangeSounds = true
+    @AppStorage("xm6.duckModeChangeAudio") private var ducksModeChangeAudio = true
 
-    init(manager: XM6Manager, modelAssignments: HeadphoneModelAssignments = .shared) {
+    private var headerDevice: BluetoothAudioDevice? {
+        if controller.deviceAddress != nil {
+            return BluetoothAudioDevice(audioObjectID: 0, name: controller.deviceName ?? "", manufacturer: nil,
+                modelUID: controller.identity.modelName, transportType: 0, bluetoothAddress: controller.deviceAddress,
+                isBluetooth: true, detectedAt: .distantPast)
+        }
+        // An identified active Sony audio device can show its render without enabling XM6 controls.
+        if let device = identities.activeDevice, identities.identity(for: device.bluetoothAddress)?.modelName != nil { return device }
+        return nil
+    }
+    private var headerAddress: String? { headerDevice?.bluetoothAddress }
+    private var headerIdentity: SonyDeviceIdentity? {
+        if controller.deviceAddress != nil { return controller.identity }
+        return identities.identity(for: headerAddress)
+    }
+    private var headerConnected: Bool {
+        controller.deviceAddress != nil ? controller.connectionState == .connected : headerIdentity?.modelName != nil
+    }
+    private var headerProfile: BluetoothHeadphoneProfile {
+        let device = headerDevice ?? BluetoothAudioDevice(audioObjectID: 0, name: controller.deviceName ?? "", manufacturer: nil,
+            modelUID: nil, transportType: 0, bluetoothAddress: nil, isBluetooth: true, detectedAt: .distantPast)
+        if modelAssignments.assignedProfileID(for: device.bluetoothAddress) != nil {
+            return modelAssignments.profile(for: device)
+        }
+        return identities.profile(for: device)
+    }
+
+    @MainActor
+    init(manager: XM6Manager, modelAssignments: HeadphoneModelAssignments = .shared,
+         identities: SonyDeviceIdentityStore? = nil, artwork: SonyArtworkStore? = nil) {
         self.manager = manager
         self.modelAssignments = modelAssignments
+        self.identities = identities ?? .shared
+        self.artwork = artwork ?? .shared
     }
 
     var body: some View {
@@ -29,51 +65,48 @@ struct XM6ActivityView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("XM6 headphone controls")
+        .onChange(of: playsModeChangeSounds) { _, enabled in
+            if !enabled { XM6ModeChangeSound.shared.stop() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             if !manager.isConnected && !manager.isConnecting { controller.refreshPairedDevices() }
         }
     }
 
     private var header: some View {
-        HStack(spacing: 9) {
-            XM6DeviceArtwork(
-                profile: modelAssignments.profile(name: controller.deviceName ?? "", address: controller.deviceAddress),
-                isConnected: manager.isConnected
-            )
-                .frame(width: 30, height: 30)
-                .background(.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 9))
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(controller.deviceName ?? manager.defaultDevice?.name ?? manager.rememberedDevice?.name ?? "WH-1000XM6")
-                    .font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                Text(manager.isConnected ? "Connected" : manager.isConnecting ? "Connecting…" : "Not connected")
-                    .font(.system(size: 10)).foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 6)
-            if manager.isConnected {
-                HStack(spacing: 5) {
-                    Image(systemName: batterySymbol)
-                        .foregroundStyle(.secondary).accessibilityHidden(true)
-                    XM6BatteryView(battery: controller.battery)
+        HStack(spacing: 14) {
+            SonyDeviceArtwork(address: headerAddress, profile: headerProfile,
+                              isConnected: headerConnected, size: 112, identities: identities, artwork: artwork)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(headerIdentity?.modelName ?? controller.deviceName ?? manager.defaultDevice?.name ?? manager.rememberedDevice?.name ?? "WH-1000XM6")
+                    .font(.system(size: 15, weight: .semibold)).lineLimit(1)
+                Text(manager.isConnected ? "Connected" : manager.isConnecting ? "Connecting controls…" : headerConnected ? "Audio connected · Controls unavailable" : "Not connected")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    if manager.isConnected {
+                        Image(systemName: batterySymbol).foregroundStyle(.secondary).accessibilityHidden(true)
+                        XM6BatteryView(battery: controller.battery)
+                        Spacer(minLength: 0)
+                        Menu {
+                            Button("Refresh headphone state", systemImage: "arrow.clockwise") { controller.refreshState() }
+                            illustrationMenu
+                            Toggle("Play mode-change sounds", isOn: $playsModeChangeSounds)
+                            Divider()
+                            Button("Disconnect", systemImage: "bolt.horizontal.circle") { manager.disconnect() }
+                        } label: {
+                            Image(systemName: "ellipsis.circle").font(.system(size: 16))
+                        }
+                        .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                        .accessibilityLabel("Headphone actions")
+                    } else {
+                        Button(manager.isConnecting ? "Cancel" : "Connect") {
+                            if manager.isConnecting { manager.disconnect() } else { manager.connect() }
+                        }.controlSize(.small)
+                    }
                 }
-                Menu {
-                    Button("Refresh headphone state", systemImage: "arrow.clockwise") { controller.refreshState() }
-                    illustrationMenu
-                    Divider()
-                    Button("Disconnect", systemImage: "bolt.horizontal.circle") { manager.disconnect() }
-                } label: {
-                    Image(systemName: "ellipsis.circle").font(.system(size: 16))
-                }
-                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                .accessibilityLabel("Headphone actions")
-                .help("Refresh, choose an illustration, or disconnect headphones")
-            } else {
-                Button(manager.isConnecting ? "Cancel" : "Connect") {
-                    if manager.isConnecting { manager.disconnect() } else { manager.connect() }
-                }
-                .controlSize(.small)
             }
         }
+        .frame(height: 112)
     }
 
     private var illustrationMenu: some View {
@@ -111,28 +144,14 @@ struct XM6ActivityView: View {
     }
 
     private var noiseControls: some View {
-        HStack(spacing: 5) {
-            ForEach(AmbientSoundMode.allCases, id: \.self) { mode in
-                Button {
-                    var state = controller.ambientSound ?? AmbientSoundState()
-                    state.mode = mode
-                    controller.setAmbientSound(state)
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: mode.xm6Symbol)
-                            .font(.system(size: 15))
-                            .foregroundStyle(controller.ambientSound?.mode == mode ? mode.xm6SelectedColor : Color.secondary)
-                        Text(mode.xm6Label).font(.system(size: 11, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 32)
-                }
-                .buttonStyle(XM6ModeButtonStyle(isSelected: controller.ambientSound?.mode == mode))
-                .accessibilityAddTraits(controller.ambientSound?.mode == mode ? .isSelected : [])
-                .help(controller.ambientSound == nil ? String(localized: "Noise mode not reported") : mode.xm6Label)
-            }
+        XM6NoiseModeSelector(selection: controller.ambientSound?.mode) { mode in
+            guard manager.isConnected, mode != controller.ambientSound?.mode else { return }
+            var state = controller.ambientSound ?? AmbientSoundState()
+            state.mode = mode
+            if mode == .ambientSound { state.level = max(0, min(20, preferredTransparencyLevel)) }
+            controller.setAmbientSound(state)
+            if playsModeChangeSounds { XM6ModeChangeSound.shared.play(mode, duckPlayback: ducksModeChangeAudio) }
         }
-        .padding(4)
-        .background(.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var connectionPrompt: some View {
@@ -183,6 +202,9 @@ struct XM6ActivityView: View {
         if CBManager.authorization == .denied || CBManager.authorization == .restricted {
             return String(localized: "Bluetooth access is disabled. Allow boring.notch in Bluetooth Privacy settings, then retry.")
         }
+        if let identity = headerIdentity, let model = identity.modelName, !identity.supportsXM6Controls {
+            return "Detected \(model). Headphone controls currently support WH-1000XM6 only."
+        }
         return controller.lastError.map { String(localized: String.LocalizationValue($0)) }
             ?? String(localized: "Pair your WH-1000XM6 in Bluetooth settings, then connect. Headphone settings stay as they are.")
     }
@@ -206,6 +228,7 @@ struct XM6DeviceArtwork: View {
 }
 
 struct XM6DetailsView: View {
+    @AppStorage("xm6.preferredTransparencyLevel") private var preferredTransparencyLevel = 20
     @ObservedObject var controller: HeadphonesController
 
     @State private var showsMoreSettings = false
@@ -262,7 +285,8 @@ struct XM6DetailsView: View {
                     get: { Double(controller.ambientSound?.level ?? 0) },
                     set: { value in
                         guard var state = controller.ambientSound else { return }
-                        state.level = Int(value)
+                        state.level = max(0, min(20, Int(value)))
+                        preferredTransparencyLevel = state.level
                         controller.setAmbientSound(state)
                     }
                 ), in: 0...20, step: 1)
@@ -284,8 +308,7 @@ struct XM6DetailsView: View {
     }
 
     private var soundControls: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Label("Listening mode", systemImage: "waveform").font(.system(size: 10)).foregroundStyle(.secondary)
+        XM6SettingRow(title: "Listening mode", systemImage: "waveform") {
             Picker("Listening mode", selection: Binding<ListeningMode?>(
                 get: { controller.listeningMode },
                 set: { if let value = $0 { controller.setListeningMode(value) } }
@@ -297,7 +320,6 @@ struct XM6DetailsView: View {
             }
             .labelsHidden().pickerStyle(.menu)
         }
-        .modifier(XM6SettingCard())
     }
 
     private var roomControls: some View {
@@ -314,8 +336,7 @@ struct XM6DetailsView: View {
     }
 
     private var equalizerControls: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Label("Equalizer", systemImage: "slider.vertical.3").font(.system(size: 10)).foregroundStyle(.secondary)
+        XM6SettingRow(title: "Equalizer", systemImage: "slider.vertical.3") {
             Menu {
                 ForEach(EqualizerPreset.allCases) { preset in
                     Button {
@@ -333,7 +354,6 @@ struct XM6DetailsView: View {
             .accessibilityLabel("Equalizer preset")
             .help("Choosing a preset replaces the current equalizer. Custom band controls are in More settings.")
         }
-        .modifier(XM6SettingCard())
     }
 
     private var bands: [Int] {
@@ -485,31 +505,205 @@ struct XM6DetailsView: View {
     }
 }
 
-private struct XM6SettingCard: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .font(.system(size: 12, weight: .medium))
-            .controlSize(.small)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(8)
-            .background(.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.primary.opacity(0.06)))
+private struct XM6SettingRow<Content: View>: View {
+    let title: LocalizedStringKey
+    let systemImage: String
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.system(size: 26, weight: .medium))
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 36)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+                content
+            }
+        }
+        .font(.system(size: 12, weight: .medium))
+        .controlSize(.small)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 8)
     }
 }
 
-private struct XM6ModeButtonStyle: ButtonStyle {
-    let isSelected: Bool
+/// A single sliding selection capsule; native buttons retain keyboard and
+/// accessibility behavior while dragging commits only once on finger lift.
+struct XM6NoiseModeSelector: View {
+    let selection: AmbientSoundMode?
+    let select: (AmbientSoundMode) -> Void
+    @GestureState private var draggedIndex: Int?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isHovered = false
+    @Environment(\.layoutDirection) private var layoutDirection
+    private let modes: [AmbientSoundMode] = [.off, .noiseCancelling, .ambientSound]
 
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(isSelected ? .primary : .secondary)
-            .background(.primary.opacity(configuration.isPressed ? 0.18 : isSelected ? 0.12 : isHovered ? 0.06 : 0), in: RoundedRectangle(cornerRadius: 9))
-            .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.primary.opacity(isSelected ? 0.2 : 0)))
-            .onHover { isHovered = $0 }
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: isSelected)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovered)
+    private var selectedIndex: Int? { draggedIndex ?? modes.firstIndex(where: { $0 == selection }) }
+
+    static func index(at x: CGFloat, width: CGFloat, isRightToLeft: Bool = false) -> Int {
+        let index = min(2, max(0, Int((min(max(x, 0), max(width - 1, 0)) / max(width, 1)) * 3)))
+        return isRightToLeft ? 2 - index : index
+    }
+
+    var body: some View {
+        VStack(spacing: 3) {
+            GeometryReader { geometry in
+                let width = geometry.size.width / 3
+                ZStack(alignment: .leading) {
+                    Capsule().fill(.primary.opacity(0.06))
+                    Capsule().strokeBorder(.primary.opacity(0.12), lineWidth: 0.5)
+                    if let index = selectedIndex {
+                        Capsule()
+                            .fill(.primary.opacity(0.16))
+                            .overlay(Capsule().strokeBorder(.primary.opacity(0.18), lineWidth: 0.5))
+                            .frame(width: width - 4, height: 28)
+                            .position(x: CGFloat(layoutDirection == .rightToLeft ? 2 - index : index) * width + width / 2, y: 16)
+                            .allowsHitTesting(false)
+                    }
+                    HStack(spacing: 0) {
+                        ForEach(Array(modes.enumerated()), id: \.offset) { index, mode in
+                            Button { select(mode) } label: {
+                                Image(systemName: mode.xm6Symbol)
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(selectedIndex == index ? mode.xm6SelectedColor : Color.secondary)
+                                    .frame(maxWidth: .infinity, minHeight: 32)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(mode.xm6Label)
+                            .accessibilityAddTraits(selection == mode ? .isSelected : [])
+                            .help(mode.xm6Label)
+                        }
+                    }
+                }
+                .simultaneousGesture(DragGesture(minimumDistance: 8)
+                    .updating($draggedIndex) { value, index, _ in
+                        index = Self.index(at: value.location.x, width: geometry.size.width,
+                                           isRightToLeft: layoutDirection == .rightToLeft)
+                    }
+                    .onEnded { value in
+                        select(modes[Self.index(at: value.location.x, width: geometry.size.width,
+                                                isRightToLeft: layoutDirection == .rightToLeft)])
+                    })
+            }
+            .frame(height: 32)
+            HStack(spacing: 0) {
+                ForEach(modes, id: \.self) { mode in
+                    Text(mode.xm6Label)
+                        .font(.system(size: 10, weight: selection == mode ? .medium : .regular))
+                        .foregroundStyle(selection == mode ? .primary : .secondary)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .accessibilityHidden(true)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Noise control")
+        .animation(reduceMotion ? nil : .smooth(duration: 0.2), value: selectedIndex)
+    }
+}
+
+@MainActor
+final class XM6ModeChangeSound {
+    static let shared = XM6ModeChangeSound()
+    private var currentSound: NSSound?
+    private var restoreTask: Task<Void, Never>?
+    private var operation: Task<Void, Never>?
+    private var generation = 0
+    private let ducker = XM6PlaybackDucker()
+    private init() {}
+
+    func prepareForTermination() async {
+        stop()
+        await operation?.value
+    }
+
+    static func resourceName(for mode: AmbientSoundMode) -> String {
+        switch mode {
+        case .off: "off"
+        case .noiseCancelling: "noise-cancelling"
+        case .ambientSound: "ambient"
+        }
+    }
+
+    func play(_ mode: AmbientSoundMode, duckPlayback: Bool = false) {
+        guard let url = Bundle.main.url(forResource: Self.resourceName(for: mode), withExtension: "wav",
+                                        subdirectory: "NoiseControlSounds"),
+              let sound = NSSound(contentsOf: url, byReference: true) else { return }
+        generation += 1
+        let token = generation
+        restoreTask?.cancel()
+        currentSound?.stop()
+        let previous = operation
+        // Serialize async player commands, including cleanup after rapid changes.
+        operation = Task { @MainActor in
+            await previous?.value
+            guard token == self.generation else { return }
+            let target = duckPlayback ? MusicManager.shared.modeChangeDuckingTarget() : nil
+            await self.ducker.begin(target)
+            guard token == self.generation else { await self.ducker.end(); return }
+            self.currentSound = sound
+            sound.volume = 0.35
+            guard sound.play() else { await self.ducker.end(); self.currentSound = nil; return }
+            self.restoreTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(sound.duration + 0.1))
+                guard !Task.isCancelled, let self, token == self.generation else { return }
+                self.stop()
+            }
+        }
+    }
+
+    func stop() {
+        generation += 1
+        restoreTask?.cancel()
+        restoreTask = nil
+        currentSound?.stop()
+        currentSound = nil
+        let previous = operation
+        operation = Task { @MainActor in
+            await previous?.value
+            await self.ducker.end()
+        }
+    }
+}
+
+/// A lease on the original player's volume, independent of the system output.
+@MainActor
+final class XM6PlaybackDucker {
+    static let factor = 0.75
+    struct Target {
+        let id: String
+        let read: @MainActor () async -> Double?
+        let write: @MainActor (Double) async -> Void
+    }
+    private var saved: (target: Target, original: Double, applied: Double)?
+    var isDucking: Bool { saved != nil }
+
+    func begin(_ target: Target?) async {
+        if let saved, saved.target.id == target?.id { return }
+        await end()
+        guard let target, let original = await target.read(), original.isFinite,
+              original > 0, original <= 1 else { return }
+        let requested = original * Self.factor
+        saved = (target, original, requested)
+        await target.write(requested)
+        // Confirm application and account for a player's integer volume steps.
+        guard let applied = await target.read() else { return }
+        guard applied.isFinite, abs(applied - requested) <= 0.011, applied < original else {
+            saved = nil
+            return
+        }
+        saved = (target, original, applied)
+    }
+
+    func end() async {
+        guard let previous = saved else { return }
+        saved = nil
+        guard let current = await previous.target.read(), abs(current - previous.applied) < 0.005 else { return }
+        await previous.target.write(previous.original)
     }
 }
 
@@ -552,6 +746,8 @@ struct XM6ChinView: View {
 
 struct XM6SettingsView: View {
     @ObservedObject var manager: XM6Manager
+    @AppStorage("xm6.playModeChangeSounds") private var playsModeChangeSounds = true
+    @AppStorage("xm6.duckModeChangeAudio") private var ducksModeChangeAudio = true
     var body: some View {
         Form {
             Section {
@@ -603,9 +799,22 @@ struct XM6SettingsView: View {
                 }
                 .disabled(manager.controller.protocolLogURL.map { !FileManager.default.fileExists(atPath: $0.path) } ?? true)
             } header: { Text("Diagnostics") }
+            Section {
+                Toggle("Play mode-change sounds", isOn: $playsModeChangeSounds)
+                Toggle("Lower playback during mode-change sounds", isOn: $ducksModeChangeAudio)
+                    .disabled(!playsModeChangeSounds)
+                Text("Lowers the playing app’s volume while the chime stays at its normal level. Supports Music, Spotify, and the connected YouTube Music player.")
+                    .font(.caption).foregroundStyle(.secondary)
+            } header: { Text("Noise control feedback") }
         }
         .formStyle(.grouped)
         .onAppear { manager.controller.refreshPairedDevices() }
+        .onChange(of: playsModeChangeSounds) { _, enabled in
+            if !enabled { XM6ModeChangeSound.shared.stop() }
+        }
+        .onChange(of: ducksModeChangeAudio) { _, enabled in
+            if !enabled { XM6ModeChangeSound.shared.stop() }
+        }
     }
 }
 
