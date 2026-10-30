@@ -109,6 +109,24 @@ class BoringViewModel: NSObject, ObservableObject {
         return noNotchAndFullscreen ? 0 : closedNotchSize.height
     }
 
+    var notchSafeZoneWidth: CGFloat {
+        let screen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
+        let hardwareWidth: CGFloat?
+        if let screen, screen.safeAreaInsets.top > 0,
+           let left = screen.auxiliaryTopLeftArea, let right = screen.auxiliaryTopRightArea {
+            // Enclose both edges relative to the centered notch window.
+            hardwareWidth = 2 * max(screen.frame.width / 2 - left.width, screen.frame.width / 2 - right.width)
+        } else {
+            hardwareWidth = nil
+        }
+        return protectedNotchCenterWidth(closedWidth: closedNotchSize.width, hardwareWidth: hardwareWidth)
+    }
+
+    var notchSafeZoneHeight: CGFloat {
+        let screen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
+        return max(effectiveClosedNotchHeight, screen?.safeAreaInsets.top ?? 0)
+    }
+
     var chinHeight: CGFloat {
         if !Defaults[.hideTitleBar] {
             return 0
@@ -176,11 +194,19 @@ class BoringViewModel: NSObject, ObservableObject {
         }
     }
     
+    var showsFloatingTabBar: Bool {
+        coordinator.alwaysShowTabs || (!ShelfStateViewModel.shared.isEmpty && Defaults[.boringShelf])
+    }
+
+    var floatingTabBarReservedHeight: CGFloat {
+        notchState == .open && showsFloatingTabBar ? floatingTabBarGap + floatingTabBarHeight : 0
+    }
+
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
         let screenFrame = getScreenFrame(screenUUID)
         if let frame = screenFrame {
             
-            let baseY = frame.maxY - notchSize.height
+            let baseY = frame.maxY - notchSize.height - floatingTabBarReservedHeight
             let baseX = frame.midX - notchSize.width / 2
             
             return position.y >= baseY && position.x >= baseX && position.x <= baseX + notchSize.width
@@ -194,7 +220,17 @@ class BoringViewModel: NSObject, ObservableObject {
         // preferred expanded height by resetting it to the default size.
         guard notchState != .open else { return }
 
-        self.notchSize = openNotchSize
+        // Start at the selected activity's height. Waiting for its first
+        // preference report otherwise resizes the backing window mid-opening.
+        let preferredHeight: CGFloat
+        if case .activity(let id) = coordinator.currentView,
+           ActivityRegistry.shared.isActivityAvailable(id),
+           let height = ActivityRegistry.shared.activity(for: id)?.metadata.preferredExpandedHeight {
+            preferredHeight = clampedOpenNotchHeight(height)
+        } else {
+            preferredHeight = openNotchSize.height
+        }
+        self.notchSize = CGSize(width: openNotchSize.width, height: preferredHeight)
         self.notchState = .open
         
         // Force music information update when notch is opened

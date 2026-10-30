@@ -37,7 +37,6 @@ struct TimeActivityView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 2)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.black)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Time controls")
         .onAppear {
@@ -490,7 +489,7 @@ struct TimerCompletionInterruptionView: View {
         )
         let edgeSpacing = closedActivityNotchEdgeSpacing(accessorySize: accessorySize)
 
-        HStack(spacing: edgeSpacing) {
+        NotchSafeZoneLayout(centerWidth: vm.notchSafeZoneWidth, spacing: edgeSpacing) {
             Image(systemName: "timer")
                 .font(.system(size: 18, weight: .medium))
                 .foregroundStyle(.orange)
@@ -503,7 +502,7 @@ struct TimerCompletionInterruptionView: View {
 
             Rectangle()
                 .fill(.black)
-                .frame(width: max(0, vm.closedNotchSize.width - cornerRadiusInsets.closed.top))
+                .frame(width: vm.notchSafeZoneWidth)
 
             Text("Done")
                 .font(.system(size: 14, weight: .semibold, design: .rounded))

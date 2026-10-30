@@ -1,0 +1,169 @@
+[
+  {
+    "model": "LinkBuds Open",
+    "color_ids": [
+      "0x00"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/b19a723c-b574-4c76-a55b-00959cf89e3b.png",
+    "file": "LinkBuds-Open-color-0x00-animated.png",
+    "bytes": 3169923,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 145,
+    "duration_ms": 4999.999999999999
+  },
+  {
+    "model": "WH-1000XM6",
+    "color_ids": [
+      "0x03"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/8418c164-f41b-4c23-98e2-6ee8481f3a66.png",
+    "file": "WH-1000XM6-color-0x03-animated.png",
+    "bytes": 11373660,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 150,
+    "duration_ms": 4999.999999999999
+  },
+  {
+    "model": "WF-1000XM6",
+    "color_ids": [
+      "0x00",
+      "0x01"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/d62477ff-ca08-4d1a-9e18-d9160f54d388.png",
+    "file": "WF-1000XM6-color-0x00-animated.png",
+    "bytes": 4276516,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 143,
+    "duration_ms": 4999.999999999999
+  },
+  {
+    "model": "WH-1000XM6",
+    "color_ids": [
+      "0x05"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/6cac6d88-3e0e-4328-bff6-d5d4dfbc8e6e.png",
+    "file": "WH-1000XM6-color-0x05-animated.png",
+    "bytes": 10539498,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 150,
+    "duration_ms": 4999.999999999999
+  },
+  {
+    "model": "WH-1000XM6",
+    "color_ids": [
+      "0x0D"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/b78bb5b2-de18-48ae-a63d-c4e6a31b0f98.png",
+    "file": "WH-1000XM6-color-0x0D-animated.png",
+    "bytes": 4778890,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 150,
+    "duration_ms": 4999.999999999999
+  },
+  {
+    "model": "WH-1000XM6",
+    "color_ids": [
+      "0x06"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/dd65cb7c-93d4-42f6-9743-785749d0db51.png",
+    "file": "WH-1000XM6-color-0x06-animated.png",
+    "bytes": 5209064,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 150,
+    "duration_ms": 4999.999999999999
+  },
+  {
+    "model": "WH-1000XM6",
+    "color_ids": [
+      "0x08"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/2c0b09bb-8eee-4929-8fc6-df027260e3ff.png",
+    "file": "WH-1000XM6-color-0x08-animated.png",
+    "bytes": 4698832,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 150,
+    "duration_ms": 4999.999999999999
+  },
+  {
+    "model": "WH-1000XM6",
+    "color_ids": [
+      "0x01",
+      "0x00"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/725d34b5-5fc8-483b-a477-8c017873928a.png",
+    "file": "WH-1000XM6-color-0x01-animated.png",
+    "bytes": 4465887,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 150,
+    "duration_ms": 4999.999999999999
+  },
+  {
+    "model": "LinkBuds Fit",
+    "color_ids": [
+      "0x00"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/b4a6cb59-835c-46fe-8645-8bdbb8651433.png",
+    "file": "LinkBuds-Fit-color-0x00-animated.png",
+    "bytes": 3279327,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 144,
+    "duration_ms": 5000.0
+  },
+  {
+    "model": "WF-1000XM6",
+    "color_ids": [
+      "0x03"
+    ],
+    "kind": "animated",
+    "url": "https://hpc-image.data-gateway.seeds.services/0227f495-d269-4997-8882-0ebe567dc5ac.png",
+    "file": "WF-1000XM6-color-0x03-animated.png",
+    "bytes": 4630872,
+    "has_apng_marker": true,
+    "width": 720,
+    "height": 720,
+    "frames": 143,
+    "duration_ms": 4999.999999999999
+  },
+  {
+    "model": "WF-1000XM5",
+    "color_ids": [
+      "0x00"
+    ],
+    "kind": "static",
+    "url": "https://hpc-image.data-gateway.seeds.services/b195e9ac-6901-442f-8dc9-e0d32c1de12d.png",
+    "file": "WF-1000XM5-color-0x00-static.png",
+    "bytes": 69058,
+    "has_apng_marker": false,
+    "width": 720,
+    "height": 720,
+    "frames": 1,
+    "duration_ms": 0
+  }
+]

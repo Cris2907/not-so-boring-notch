@@ -159,6 +159,7 @@ final class ActivityRegistry: ObservableObject {
                 PomodoroActivity()
                 QuickNotesActivity()
                 DobermanActivity()
+                XM6Activity()
             }
         } catch {
             preconditionFailure("Invalid default activity registry: \(error)")

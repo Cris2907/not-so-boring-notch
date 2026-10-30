@@ -1,0 +1,1593 @@
+[
+  {
+    "dex": "classes3.dex",
+    "class": "Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "method": "$values",
+    "descriptor": "()[Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "method": "<clinit>",
+    "descriptor": "()V",
+    "strings": [
+      "v4, \"SONY_AUDIO\"",
+      "v4, \"SONY_LIGHTING\"",
+      "v4, \"IBEACON_SONY\""
+    ],
+    "calls": [
+      "v0, v4, v5, v2, v3, Lcom/sony/songpal/ble/central/data/PacketFilterType;-><init>(Ljava/lang/String; I [B [B)V",
+      "v0, v4, v5, v2, v3, Lcom/sony/songpal/ble/central/data/PacketFilterType;-><init>(Ljava/lang/String; I [B [B)V",
+      "v0, v4, v1, v2, v3, Lcom/sony/songpal/ble/central/data/PacketFilterType;-><init>(Ljava/lang/String; I [B [B)V",
+      "Lcom/sony/songpal/ble/central/data/PacketFilterType;->$values()[Lcom/sony/songpal/ble/central/data/PacketFilterType;"
+    ]
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "method": "<init>",
+    "descriptor": "(Ljava/lang/String; I [B [B)V",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljava/lang/Enum;-><init>(Ljava/lang/String; I)V"
+    ]
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "method": "valueOf",
+    "descriptor": "(Ljava/lang/String;)Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "strings": [],
+    "calls": [
+      "v0, v1, Ljava/lang/Enum;->valueOf(Ljava/lang/Class; Ljava/lang/String;)Ljava/lang/Enum;"
+    ]
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "method": "values",
+    "descriptor": "()[Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "strings": [],
+    "calls": [
+      "v0, [Lcom/sony/songpal/ble/central/data/PacketFilterType;->clone()Ljava/lang/Object;"
+    ]
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "method": "getHeadBytesOfManufacturerSpecific",
+    "descriptor": "()[B",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "method": "getIntManufacturerId",
+    "descriptor": "()I",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lcom/sony/songpal/ble/central/data/PacketFilterType;",
+    "method": "getManufacturerId",
+    "descriptor": "()[B",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lmh/d;",
+    "method": "<clinit>",
+    "descriptor": "()V",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lmh/d;",
+    "method": "<init>",
+    "descriptor": "([B)V",
+    "strings": [
+      "v12, \"INVALID Manufacturer Data !\""
+    ],
+    "calls": [
+      "v11, Ljava/lang/Object;-><init>()V",
+      "v12, Lmh/d;->a([B)Z",
+      "v0, Lcom/sony/songpal/ble/central/param/audio/ModelId;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/ModelId;",
+      "v1, Lcom/sony/songpal/util/modelinfo/ModelColor;->fromByteCode(B)Lcom/sony/songpal/util/modelinfo/ModelColor;",
+      "v0, Lcom/sony/songpal/ble/central/param/audio/v1/GroupStatus;->getEnum(I)Lcom/sony/songpal/ble/central/param/audio/v1/GroupStatus;",
+      "v0, Lcom/sony/songpal/ble/central/param/audio/v1/OutputChannel;->getEnum(I)Lcom/sony/songpal/ble/central/param/audio/v1/OutputChannel;",
+      "v2, Lcom/sony/songpal/ble/central/param/audio/TransmittingLineAndroid;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/TransmittingLineAndroid;",
+      "v1, Lcom/sony/songpal/ble/central/param/audio/TransmittingLineIos;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/TransmittingLineIos;",
+      "v0, Lcom/sony/songpal/ble/central/param/audio/AudioStreamType;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/AudioStreamType;",
+      "v0, Lcom/sony/songpal/ble/central/param/audio/AudioStreamType;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/AudioStreamType;",
+      "v11, v12, Ljava/lang/IllegalArgumentException;-><init>(Ljava/lang/String;)V"
+    ]
+  },
+  {
+    "dex": "classes3.dex",
+    "class": "Lmh/d;",
+    "method": "a",
+    "descriptor": "([B)Z",
+    "strings": [
+      "v0, \"modelId == ModelId.UNKNOWN\"",
+      "v0, \"TransmittingLineAndroid.OUT_OF_RANGE\"",
+      "v0, \"TransmittingLineIos.OUT_OF_RANGE\"",
+      "v0, \"Android : AudioStreamType.OUT_OF_RANGE\"",
+      "v0, \"iOS : AudioStreamType.OUT_OF_RANGE\"",
+      "v0, \"reserved BLUETOOTH SPEC 0 bit is enabled\"",
+      "v0, \"reserved DEVICE STATUS bit is enabled\""
+    ],
+    "calls": [
+      "v1, Lcom/sony/songpal/ble/central/param/audio/ModelId;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/ModelId;",
+      "v6, v0, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v3, Lcom/sony/songpal/ble/central/param/audio/TransmittingLineAndroid;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/TransmittingLineAndroid;",
+      "v6, v0, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v4, Lcom/sony/songpal/ble/central/param/audio/TransmittingLineIos;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/TransmittingLineIos;",
+      "v6, v0, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v1, Lcom/sony/songpal/ble/central/param/audio/AudioStreamType;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/AudioStreamType;",
+      "v6, v0, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v1, Lcom/sony/songpal/ble/central/param/audio/AudioStreamType;->fromByteCode(B)Lcom/sony/songpal/ble/central/param/audio/AudioStreamType;",
+      "v6, v0, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v6, v0, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v6, v0, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V"
+    ]
+  },
+  {
+    "dex": "classes2.dex",
+    "class": "Lt9/a;",
+    "method": "<init>",
+    "descriptor": "(Ly9/c;)V",
+    "strings": [],
+    "calls": [
+      "v0, v1, Ls9/a;-><init>(Ly9/c;)V"
+    ]
+  },
+  {
+    "dex": "classes2.dex",
+    "class": "Lt9/a;",
+    "method": "i",
+    "descriptor": "(Landroid/content/Context; Ljava/lang/String;)Lt9/a;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ly9/a;-><init>(Landroid/content/Context; Ljava/lang/String;)V",
+      "v1, v0, Lt9/a;-><init>(Ly9/c;)V"
+    ]
+  },
+  {
+    "dex": "classes2.dex",
+    "class": "Lt9/a;",
+    "method": "j",
+    "descriptor": "(Ljava/lang/String;)Lt9/a;",
+    "strings": [],
+    "calls": [
+      "v0, v1, Ly9/b;-><init>(Ljava/lang/String;)V",
+      "v1, v0, Lt9/a;-><init>(Ly9/c;)V"
+    ]
+  },
+  {
+    "dex": "classes2.dex",
+    "class": "Lt9/a;",
+    "method": "d",
+    "descriptor": "(Ly9/c; Lcom/github/penfeizhou/animation/decode/FrameSeqDecoder$j;)Lcom/github/penfeizhou/animation/decode/FrameSeqDecoder;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Lt9/a;->h(Ly9/c; Lcom/github/penfeizhou/animation/decode/FrameSeqDecoder$j;)Lcom/github/penfeizhou/animation/apng/decode/b;"
+    ]
+  },
+  {
+    "dex": "classes2.dex",
+    "class": "Lt9/a;",
+    "method": "h",
+    "descriptor": "(Ly9/c; Lcom/github/penfeizhou/animation/decode/FrameSeqDecoder$j;)Lcom/github/penfeizhou/animation/apng/decode/b;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Lcom/github/penfeizhou/animation/apng/decode/b;-><init>(Ly9/c; Lcom/github/penfeizhou/animation/decode/FrameSeqDecoder$j;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/util/w0;",
+    "method": "a",
+    "descriptor": "(Lcom/sony/songpal/ble/central/param/audio/ModelId; B)Ljava/lang/String;",
+    "strings": [
+      "v1, \"Unknown\""
+    ],
+    "calls": [
+      "Lcom/sony/songpal/mdr/vim/MdrApplication;->q1()Lcom/sony/songpal/mdr/vim/MdrApplication;",
+      "v0, Lcom/sony/songpal/mdr/vim/MdrApplication;->O0()Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+      "v1, Lcom/sony/songpal/ble/central/param/audio/ModelId;->getModelId()B",
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getModelName(B B)Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "<clinit>",
+    "descriptor": "()V",
+    "strings": [],
+    "calls": [
+      "v0, v1, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage$a;-><init>(Lkotlin/jvm/internal/i;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "<init>",
+    "descriptor": "(Landroid/content/Context; Landroid/util/AttributeSet;)V",
+    "strings": [
+      "v0, \"context\""
+    ],
+    "calls": [
+      "v2, v0, Lkotlin/jvm/internal/p;->j(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v1, v2, v3, Landroidx/appcompat/widget/q;-><init>(Landroid/content/Context; Landroid/util/AttributeSet;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "c",
+    "descriptor": "(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Ljava/lang/String;)V",
+    "strings": [],
+    "calls": [
+      "v0, v1, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->o(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Ljava/lang/String;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "d",
+    "descriptor": "(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Ljava/lang/String;)V",
+    "strings": [],
+    "calls": [
+      "v0, v1, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->m(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Ljava/lang/String;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "e",
+    "descriptor": "(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lgz/a;)V",
+    "strings": [],
+    "calls": [
+      "v0, v1, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->q(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lgz/a;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "f",
+    "descriptor": "(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lck0/h; Ljava/util/Optional;)V",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->l(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lck0/h; Ljava/util/Optional;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "g",
+    "descriptor": "(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lck0/h; Ljava/lang/String;)V",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->k(Lck0/h; Ljava/lang/String;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "h",
+    "descriptor": "()I",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "i",
+    "descriptor": "()J",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "j",
+    "descriptor": "()Z",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "k",
+    "descriptor": "(Lck0/h; Ljava/lang/String;)V",
+    "strings": [
+      "v1, \"null cannot be cast to non-null type com.sony.songpal.mdr.vim.MdrApplication\"",
+      "v1, \"getCloudModelInfoController(...)\""
+    ],
+    "calls": [
+      "v2, Landroid/view/View;->getContext()Landroid/content/Context;",
+      "v0, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;",
+      "v0, v1, Lkotlin/jvm/internal/p;->h(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v0, Lcom/sony/songpal/mdr/vim/MdrApplication;->O0()Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+      "v0, v1, Lkotlin/jvm/internal/p;->i(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getCloudModelInfoDependency()Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/ICloudModelInfoDependency;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/ICloudModelInfoDependency;->getDownloadedFileManager()Llz/k;",
+      "v1, v2, v3, Lil0/d;-><init>(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lck0/h;)V",
+      "v0, v4, v1, Llz/k;->n(Ljava/lang/String; Ljava/util/function/Consumer;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "l",
+    "descriptor": "(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lck0/h; Ljava/util/Optional;)V",
+    "strings": [
+      "v0, \"filePath\"",
+      "v3, \"get(...)\""
+    ],
+    "calls": [
+      "v3, v0, Lkotlin/jvm/internal/p;->j(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v3, Ljava/util/Optional;->isPresent()Z",
+      "v3, Ljava/util/Optional;->get()Ljava/lang/Object;",
+      "v2, v3, Lkotlin/jvm/internal/p;->i(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v1, v2, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->n(Ljava/lang/String;)V",
+      "v1, v2, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->p(Lgz/a;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "m",
+    "descriptor": "(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Ljava/lang/String;)V",
+    "strings": [
+      "v2, \"file:///android_asset/\"",
+      "v3, \"\""
+    ],
+    "calls": [
+      "v7, Landroid/view/View;->getContext()Landroid/content/Context;",
+      "v1 ... v6, Lkotlin/text/r;->O(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Z I Ljava/lang/Object;)Ljava/lang/String;",
+      "v0, v8, Lt9/a;->i(Landroid/content/Context; Ljava/lang/String;)Lt9/a;",
+      "v7, v8, Landroidx/appcompat/widget/q;->setImageDrawable(Landroid/graphics/drawable/Drawable;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "n",
+    "descriptor": "(Ljava/lang/String;)V",
+    "strings": [],
+    "calls": [
+      "Lcom/sony/songpal/util/b;->i()Lcom/sony/songpal/util/b;",
+      "v1, v2, v3, Lil0/e;-><init>(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Ljava/lang/String;)V",
+      "v0, v1, Lcom/sony/songpal/util/m;->d(Ljava/lang/Runnable;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "o",
+    "descriptor": "(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Ljava/lang/String;)V",
+    "strings": [],
+    "calls": [
+      "v1, Lt9/a;->j(Ljava/lang/String;)Lt9/a;",
+      "v0, v1, Landroidx/appcompat/widget/q;->setImageDrawable(Landroid/graphics/drawable/Drawable;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "p",
+    "descriptor": "(Lgz/a;)V",
+    "strings": [],
+    "calls": [
+      "Lcom/sony/songpal/util/b;->i()Lcom/sony/songpal/util/b;",
+      "v1, v2, v3, Lil0/c;-><init>(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lgz/a;)V",
+      "v0, v1, Lcom/sony/songpal/util/m;->d(Ljava/lang/Runnable;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "q",
+    "descriptor": "(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lgz/a;)V",
+    "strings": [],
+    "calls": [
+      "v2, Landroid/view/View;->getContext()Landroid/content/Context;",
+      "Ljp/co/sony/vim/framework/platform/android/core/device/ModelImageUrlInfo;->isNightModeActive()Z",
+      "v0, v2, v1, v3, Ljp/co/sony/vim/framework/platform/android/core/device/ModelImageUrlInfo;->loadSingleDeviceImage(Landroid/content/Context; Landroid/widget/ImageView; Z Lgz/a;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "F",
+    "descriptor": "(Lck0/h; Lcom/sony/songpal/mdr/j2objc/tandem/DeviceState;)V",
+    "strings": [
+      "v0, \"device\"",
+      "v0, \"deviceState\"",
+      "v1, \"null cannot be cast to non-null type com.sony.songpal.mdr.vim.MdrApplication\"",
+      "v1, \"getCloudModelInfoController(...)\"",
+      "v2, \"getModelName(...)\"",
+      "v2, \"getModelColor(...)\"",
+      "v2, \"file:///android_asset/\""
+    ],
+    "calls": [
+      "v5, v0, Lkotlin/jvm/internal/p;->j(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v6, v0, Lkotlin/jvm/internal/p;->j(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v4, Landroid/view/View;->getContext()Landroid/content/Context;",
+      "v0, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;",
+      "v0, v1, Lkotlin/jvm/internal/p;->h(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v0, Lcom/sony/songpal/mdr/vim/MdrApplication;->O0()Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+      "v0, v1, Lkotlin/jvm/internal/p;->i(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v6, Lcom/sony/songpal/mdr/j2objc/tandem/DeviceState;->d()Lcom/sony/songpal/mdr/j2objc/tandem/c;",
+      "v1, Lcom/sony/songpal/mdr/j2objc/tandem/c;->g()Ljava/lang/String;",
+      "v1, v2, Lkotlin/jvm/internal/p;->i(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v6, Lcom/sony/songpal/mdr/j2objc/tandem/DeviceState;->d()Lcom/sony/songpal/mdr/j2objc/tandem/c;",
+      "v6, Lcom/sony/songpal/mdr/j2objc/tandem/c;->j()Lcom/sony/songpal/util/modelinfo/ModelColor;",
+      "v6, v2, Lkotlin/jvm/internal/p;->i(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v0, v1, v6, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getModelAnimeUrl(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/String;",
+      "v6, Ljava/lang/CharSequence;->length()I",
+      "v6, v2, v3, v0, v1, Lkotlin/text/r;->U(Ljava/lang/String; Ljava/lang/String; Z I Ljava/lang/Object;)Z",
+      "Lcom/sony/songpal/util/b;->i()Lcom/sony/songpal/util/b;",
+      "v0, v4, v6, Lil0/b;-><init>(Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Ljava/lang/String;)V",
+      "v5, v0, Lcom/sony/songpal/util/m;->d(Ljava/lang/Runnable;)V",
+      "Landroid/os/Looper;->getMainLooper()Landroid/os/Looper;",
+      "v0, v1, Landroid/os/Handler;-><init>(Landroid/os/Looper;)V",
+      "v1, v0, v4, v5, v6, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage$b;-><init>(Landroid/os/Handler; Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage; Lck0/h; Ljava/lang/String;)V",
+      "v0, v1, Landroid/os/Handler;->post(Ljava/lang/Runnable;)Z",
+      "v4, v5, v6, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->k(Lck0/h; Ljava/lang/String;)V",
+      "v4, v5, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->p(Lgz/a;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "H",
+    "descriptor": "(Lgz/a;)V",
+    "strings": [
+      "v0, \"device\""
+    ],
+    "calls": [
+      "v2, v0, Lkotlin/jvm/internal/p;->j(Ljava/lang/Object; Ljava/lang/String;)V",
+      "v1, v2, Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;->p(Lgz/a;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/view/bigheader/BigHeaderModelImage;",
+    "method": "dispose",
+    "descriptor": "()V",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/vim/m;",
+    "method": "<init>",
+    "descriptor": "()V",
+    "strings": [],
+    "calls": [
+      "v4, Ljava/lang/Object;-><init>()V",
+      "v4, Lcom/sony/songpal/mdr/vim/m;->a()Ljava/lang/String;",
+      "v0, v1, v2, v3, Lik0/c;-><init>(Ljava/lang/String; J)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/vim/m;",
+    "method": "a",
+    "descriptor": "()Ljava/lang/String;",
+    "strings": [
+      "v1, \"modelimage\""
+    ],
+    "calls": [
+      "Lcom/sony/songpal/mdr/vim/MdrApplication;->q1()Lcom/sony/songpal/mdr/vim/MdrApplication;",
+      "v2, Landroid/content/Context;->getFilesDir()Ljava/io/File;",
+      "v0, v2, v1, Ljava/io/File;-><init>(Ljava/io/File; Ljava/lang/String;)V",
+      "v0, Ljava/io/File;->getAbsolutePath()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/vim/m;",
+    "method": "createHttpClient",
+    "descriptor": "(Z)Lfp0/a;",
+    "strings": [
+      "v2, \"CloudModel\""
+    ],
+    "calls": [
+      "Lcom/sony/songpal/util/h;->a()Lcom/sony/songpal/util/h;",
+      "v0, v1, v2, Lcom/sony/songpal/util/g;-><init>(Lcom/sony/songpal/util/y; Ljava/lang/String;)V",
+      "v3, v4, v0, Lmk0/a;-><init>(Z Lcom/sony/songpal/util/y;)V"
+    ]
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/vim/m;",
+    "method": "getDownloadedFileManager",
+    "descriptor": "()Llz/k;",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/vim/m;",
+    "method": "getLocalImageUrlForTrialVersion",
+    "descriptor": "()Ljava/lang/String;",
+    "strings": [
+      "v0, \"file:///android_asset/trial_model_image/\""
+    ],
+    "calls": []
+  },
+  {
+    "dex": "classes5.dex",
+    "class": "Lcom/sony/songpal/mdr/vim/m;",
+    "method": "isDebugMode",
+    "descriptor": "()Z",
+    "strings": [],
+    "calls": [
+      "v0, Lzk0/a;->a()Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "method": "$values",
+    "descriptor": "()[Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "method": "<clinit>",
+    "descriptor": "()V",
+    "strings": [
+      "v1, \"NO_USE\"",
+      "v1, \"MODEL_NAME\"",
+      "v1, \"FW_VERSION\"",
+      "v1, \"SERIES_AND_COLOR_INFO\"",
+      "v1, \"INSTRUCTION_GUIDE\"",
+      "v3, \"OUT_OF_RANGE\""
+    ],
+    "calls": [
+      "v0, v1, v2, v2, Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;-><init>(Ljava/lang/String; I B)V",
+      "v0, v1, v2, v2, Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;-><init>(Ljava/lang/String; I B)V",
+      "v0, v1, v2, v2, Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;-><init>(Ljava/lang/String; I B)V",
+      "v0, v1, v2, v2, Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;-><init>(Ljava/lang/String; I B)V",
+      "v0, v1, v2, v2, Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;-><init>(Ljava/lang/String; I B)V",
+      "v0, v3, v1, v2, Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;-><init>(Ljava/lang/String; I B)V",
+      "Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;->$values()[Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "method": "<init>",
+    "descriptor": "(Ljava/lang/String; I B)V",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljava/lang/Enum;-><init>(Ljava/lang/String; I)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "method": "fromByteCode",
+    "descriptor": "(B)Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "strings": [],
+    "calls": [
+      "Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;->values()[Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "method": "valueOf",
+    "descriptor": "(Ljava/lang/String;)Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "strings": [],
+    "calls": [
+      "v0, v1, Ljava/lang/Enum;->valueOf(Ljava/lang/Class; Ljava/lang/String;)Ljava/lang/Enum;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "method": "values",
+    "descriptor": "()[Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "strings": [],
+    "calls": [
+      "v0, [Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;->clone()Ljava/lang/Object;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Lcom/sony/songpal/tandemfamily/message/mdr/v1/table1/param/DeviceInfoInquiredType;",
+    "method": "byteCode",
+    "descriptor": "()B",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Lep0/c;",
+    "method": "<clinit>",
+    "descriptor": "()V",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Lep0/c;",
+    "method": "a",
+    "descriptor": "(Ljava/lang/String; Llm0/e; Llm0/g; Landroid/content/Context;)Llm0/b;",
+    "strings": [
+      "v0, \"android.permission.BLUETOOTH_SCAN\"",
+      "v8, \"Bluetooth permission Missing.\"",
+      "v8, \"BluetoothAdapter is null\"",
+      "v10, \"BluetoothDevice is null. bdAddress = \"",
+      "v8, \"\"",
+      "v9, \"Fail to create BluetoothSocket for \""
+    ],
+    "calls": [
+      "v10, v0, Landroid/content/Context;->checkSelfPermission(Ljava/lang/String;)I",
+      "v7, v8, Lcom/sony/songpal/util/SpLog;->e(Ljava/lang/String; Ljava/lang/String;)V",
+      "v10, Lep0/b;->a(Landroid/content/Context;)Landroid/bluetooth/BluetoothAdapter;",
+      "v7, v8, Lcom/sony/songpal/util/SpLog;->e(Ljava/lang/String; Ljava/lang/String;)V",
+      "v10, v7, Landroid/bluetooth/BluetoothAdapter;->getRemoteDevice(Ljava/lang/String;)Landroid/bluetooth/BluetoothDevice;",
+      "v9, Ljava/lang/StringBuilder;-><init>()V",
+      "v9, v10, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v9, v7, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v9, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v8, v7, Lcom/sony/songpal/util/SpLog;->e(Ljava/lang/String; Ljava/lang/String;)V",
+      "v10, Landroid/bluetooth/BluetoothAdapter;->cancelDiscovery()Z",
+      "v8, Llm0/e;->a()Ljava/util/UUID;",
+      "v0, v10, Landroid/bluetooth/BluetoothDevice;->createRfcommSocketToServiceRecord(Ljava/util/UUID;)Landroid/bluetooth/BluetoothSocket;",
+      "v4, v10, Ldp0/a;-><init>(Landroid/bluetooth/BluetoothSocket;)V",
+      "v0, Landroid/bluetooth/BluetoothDevice;->getName()Ljava/lang/String;",
+      "Lcom/sony/songpal/util/b;->i()Lcom/sony/songpal/util/b;",
+      "v1 ... v6, Llm0/e;->b(Ljava/lang/String; Ljava/lang/String; Llm0/f; Llm0/g; Lcom/sony/songpal/util/t;)Llm0/b;",
+      "v4, Llm0/f;->V0()V",
+      "v7, Llm0/b;->start()V",
+      "v8, v7, Lcom/sony/songpal/util/SpLog;->k(Ljava/lang/String; Ljava/lang/Throwable;)V",
+      "v7, v8, Lcom/sony/songpal/tandemfamily/SocketConnectionException;-><init>(Ljava/lang/String;)V",
+      "v8, v7, Lcom/sony/songpal/util/SpLog;->k(Ljava/lang/String; Ljava/lang/Throwable;)V",
+      "v8, Ljava/lang/StringBuilder;-><init>()V",
+      "v8, v9, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v8, v2, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v8, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v7, v8, Lcom/sony/songpal/tandemfamily/SocketCreationException;-><init>(Ljava/lang/String;)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "<clinit>",
+    "descriptor": "()V",
+    "strings": [
+      "v17, \"wp_check_left_image_url\"",
+      "v18, \"wp_check_right_image_url\"",
+      "v1, \"model_id\"",
+      "v2, \"model_number\"",
+      "v3, \"is_official_model_name\"",
+      "v4, \"model_name\"",
+      "v5, \"model_color_id\"",
+      "v6, \"sca_image_image_url\"",
+      "v7, \"sca_anime_image_url\"",
+      "v8, \"sca_source_color\"",
+      "v9, \"model_category\"",
+      "v10, \"big_header_bg_gradient_color_1\"",
+      "v11, \"big_header_bg_gradient_color_2\"",
+      "v12, \"big_header_theme_label\"",
+      "v13, \"tutorial_home_page_numbers\"",
+      "v14, \"tutorial_page_filter_displayed_on_oobe\"",
+      "v15, \"wp_left_image_url\"",
+      "v16, \"wp_right_image_url\"",
+      "v1, \"{\"query\":\"query GetAllCloudModelInfos { HPC { getAllCloudModelInfos { %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s } } }\"}\""
+    ],
+    "calls": [
+      "v1, v0, Ljava/lang/String;->format(Ljava/lang/String; [Ljava/lang/Object;)Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "<init>",
+    "descriptor": "(Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$Environment; Ljava/lang/String; Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor; Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/ICloudModelInfoDependency; Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$OS;)V",
+    "strings": [],
+    "calls": [
+      "v1, Ljava/lang/Object;-><init>()V",
+      "v0, Ljava/util/HashSet;-><init>()V",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->migrateDownloadedImageFile()V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "CloudModelInfoFromColor",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getCloudModelInfo(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getCloudModelInfo(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "a",
+    "descriptor": "(Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;)V",
+    "strings": [],
+    "calls": [
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->lambda$refreshModelInfoList$0()V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "b",
+    "descriptor": "(Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController; Ljava/io/File; Ljava/lang/Boolean;)V",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->lambda$migrateDownloadedImageFile$1(Ljava/io/File; Ljava/lang/Boolean;)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "convertModelInfoListFromJson",
+    "descriptor": "()Ljava/util/List;",
+    "strings": [
+      "v1, \"\"",
+      "v2, \"model_category\"",
+      "v3, \"tutorial_page_filter_displayed_on_oobe\"",
+      "v4, \"model_number\"",
+      "v5, \"model_id\"",
+      "v0, \"data\"",
+      "v7, \"HPC\"",
+      "v7, \"getAllCloudModelInfos\"",
+      "v9, \"model_name\"",
+      "v9, \"model_color_id\"",
+      "v9, \"sca_image_image_url\"",
+      "v9, \"sca_anime_image_url\"",
+      "v9, \"sca_source_color\"",
+      "v9, \"big_header_bg_gradient_color_1\"",
+      "v9, \"big_header_bg_gradient_color_2\"",
+      "v9, \"big_header_theme_label\"",
+      "v9, \"tutorial_home_page_numbers\"",
+      "v9, \"wp_left_image_url\"",
+      "v9, \"wp_right_image_url\"",
+      "v9, \"wp_check_left_image_url\"",
+      "v9, \"wp_check_right_image_url\"",
+      "v9, \"is_official_model_name\"",
+      "v11, \"0\""
+    ],
+    "calls": [
+      "v6, Ljava/util/ArrayList;-><init>()V",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->getModeInfoListJsonString()Ljava/lang/String;",
+      "v7, v0, Lorg/json/JSONObject;-><init>(Ljava/lang/String;)V",
+      "v7, v0, Lorg/json/JSONObject;->getJSONObject(Ljava/lang/String;)Lorg/json/JSONObject;",
+      "v0, v7, Lorg/json/JSONObject;->getJSONObject(Ljava/lang/String;)Lorg/json/JSONObject;",
+      "v0, v7, Lorg/json/JSONObject;->getJSONArray(Ljava/lang/String;)Lorg/json/JSONArray;",
+      "v7, Lorg/json/JSONArray;->length()I",
+      "v7, v8, Lorg/json/JSONArray;->getJSONObject(I)Lorg/json/JSONObject;",
+      "v0, v5, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v9, Ljava/lang/String;->isEmpty()Z",
+      "v0, v5, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v9, Ljava/lang/Byte;->decode(Ljava/lang/String;)Ljava/lang/Byte;",
+      "v0, v4, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v9, Ljava/lang/String;->isEmpty()Z",
+      "v0, v4, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v9, Ljava/lang/Byte;->decode(Ljava/lang/String;)Ljava/lang/Byte;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v9, Ljava/lang/Byte;->decode(Ljava/lang/String;)Ljava/lang/Byte;",
+      "v16, Ljava/lang/Byte;->byteValue()B",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v9, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getHexStringToArgbInt(Ljava/lang/String;)Ljava/lang/Integer;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v9, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getHexStringToArgbInt(Ljava/lang/String;)Ljava/lang/Integer;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v9, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getHexStringToArgbInt(Ljava/lang/String;)Ljava/lang/Integer;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v9, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v9, v11, Lorg/json/JSONObject;->optString(Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v3, Lorg/json/JSONObject;->opt(Ljava/lang/String;)Ljava/lang/Object;",
+      "v0, v3, Lorg/json/JSONObject;->opt(Ljava/lang/String;)Ljava/lang/Object;",
+      "v0, v2, Lorg/json/JSONObject;->opt(Ljava/lang/String;)Ljava/lang/Object;",
+      "v0, v2, Lorg/json/JSONObject;->opt(Ljava/lang/String;)Ljava/lang/Object;",
+      "v11 ... v29, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;-><init>(Ljava/lang/Byte; Ljava/lang/Byte; Ljava/lang/String; Ljava/lang/String; Ljava/lang/Byte; Ljava/lang/String; Ljava/lang/String; Ljava/lang/Integer; Ljava/lang/Integer; Ljava/lang/Integer; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String;)V",
+      "v6, v11, Ljava/util/List;->add(Ljava/lang/Object;)Z",
+      "v0, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;",
+      "v9, v0, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v0, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;",
+      "v2, v1, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getApiKeyValue",
+    "descriptor": "()Ljava/lang/String;",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getAppropriateModelNameKey",
+    "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+    "strings": [
+      "v2, \"(h.ear)\"",
+      "v0, \" \""
+    ],
+    "calls": [
+      "v3, v0, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;",
+      "v2, v0, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;",
+      "v1, v0, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z",
+      "v3, v0, Ljava/lang/String;->split(Ljava/lang/String;)[Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getArgbValue",
+    "descriptor": "(Ljava/lang/String;)I",
+    "strings": [],
+    "calls": [
+      "v6, v0, v1, Ljava/lang/String;->substring(I I)Ljava/lang/String;",
+      "v0, v2, Ljava/lang/Integer;->parseInt(Ljava/lang/String; I)I",
+      "v6, v1, v3, Ljava/lang/String;->substring(I I)Ljava/lang/String;",
+      "v1, v2, Ljava/lang/Integer;->parseInt(Ljava/lang/String; I)I",
+      "v6, v3, v4, Ljava/lang/String;->substring(I I)Ljava/lang/String;",
+      "v3, v2, Ljava/lang/Integer;->parseInt(Ljava/lang/String; I)I",
+      "v6, v4, v5, Ljava/lang/String;->substring(I I)Ljava/lang/String;",
+      "v6, v2, Ljava/lang/Integer;->parseInt(Ljava/lang/String; I)I"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getCloudModelInfo",
+    "descriptor": "(Ljava/lang/Byte; Ljava/lang/Byte;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+    "strings": [],
+    "calls": [
+      "v3, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->convertModelInfoListFromJson()Ljava/util/List;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/b;-><init>()V",
+      "Ljava/util/Comparator;->reverseOrder()Ljava/util/Comparator;",
+      "v0, v1, Ljava/util/Comparator;->comparing(Ljava/util/function/Function; Ljava/util/Comparator;)Ljava/util/Comparator;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/c;-><init>()V",
+      "Ljava/util/Comparator;->naturalOrder()Ljava/util/Comparator;",
+      "v0, v1, v2, Ljava/util/Comparator;->thenComparing(Ljava/util/function/Function; Ljava/util/Comparator;)Ljava/util/Comparator;",
+      "v3, v0, Ljava/util/List;->sort(Ljava/util/Comparator;)V",
+      "v3, Ljava/util/List;->iterator()Ljava/util/Iterator;",
+      "v3, Ljava/util/Iterator;->hasNext()Z",
+      "v3, Ljava/util/Iterator;->next()Ljava/lang/Object;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getModelId()Ljava/lang/Byte;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getModelNumber()Ljava/lang/Byte;",
+      "v1, v4, Ljava/lang/Byte;->equals(Ljava/lang/Object;)Z",
+      "v2, v5, Ljava/lang/Byte;->equals(Ljava/lang/Object;)Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getCloudModelInfo",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+    "strings": [],
+    "calls": [
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/ICloudModelInfoDependency;->isDebugMode()Z",
+      "v3, v4, v5, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getModelInfoForTrialVersion(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v3, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->convertModelInfoListFromJson()Ljava/util/List;",
+      "v3, Ljava/util/List;->iterator()Ljava/util/Iterator;",
+      "v3, Ljava/util/Iterator;->hasNext()Z",
+      "v3, Ljava/util/Iterator;->next()Ljava/lang/Object;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getModelName()Ljava/lang/String;",
+      "v4, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getAppropriateModelNameKey(Ljava/lang/String;)Ljava/lang/String;",
+      "v1, v2, Ljava/lang/String;->equals(Ljava/lang/Object;)Z",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getModelColor()Ljava/lang/Byte;",
+      "v1, Ljava/lang/Byte;->byteValue()B",
+      "v5, Lcom/sony/songpal/util/modelinfo/ModelColor;->byteCode()B"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getHexStringToArgbInt",
+    "descriptor": "(Ljava/lang/String;)Ljava/lang/Integer;",
+    "strings": [],
+    "calls": [
+      "v4, Ljava/lang/String;->length()I",
+      "v4, v1, v2, Ljava/lang/String;->substring(I I)Ljava/lang/String;",
+      "v1, v3, Ljava/lang/Integer;->parseInt(Ljava/lang/String; I)I",
+      "v4, v2, Ljava/lang/String;->substring(I)Ljava/lang/String;",
+      "v4, v3, Ljava/lang/Integer;->parseInt(Ljava/lang/String; I)I",
+      "v1, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getInstance",
+    "descriptor": "(Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$Environment; Ljava/lang/String; Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor; Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/ICloudModelInfoDependency; Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$OS;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "strings": [],
+    "calls": [
+      "v0 ... v5, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;-><init>(Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$Environment; Ljava/lang/String; Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor; Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/ICloudModelInfoDependency; Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$OS;)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getModelInfoForTrialVersion",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getUrl",
+    "descriptor": "()Ljava/lang/String;",
+    "strings": [
+      "v1, \"https://v1.api.data-gateway.seeds-dev.services/graphql\"",
+      "v1, \"https://v1.api.data-gateway.seeds.services/graphql\""
+    ],
+    "calls": [
+      "v1, Ljava/lang/Enum;->ordinal()I"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "isAppGraphGoneError",
+    "descriptor": "(Ljava/lang/String;)Z",
+    "strings": [
+      "v4, \"errors\"",
+      "v2, \"extensions\"",
+      "v2, \"code\"",
+      "v2, \"APP_GRAPH_GONE\""
+    ],
+    "calls": [
+      "v0, v4, Lorg/json/JSONObject;-><init>(Ljava/lang/String;)V",
+      "v0, v4, Lorg/json/JSONObject;->getJSONArray(Ljava/lang/String;)Lorg/json/JSONArray;",
+      "v4, Lorg/json/JSONArray;->length()I",
+      "v4, v0, Lorg/json/JSONArray;->getJSONObject(I)Lorg/json/JSONObject;",
+      "v1, v2, Lorg/json/JSONObject;->getJSONObject(Ljava/lang/String;)Lorg/json/JSONObject;",
+      "v1, v2, Lorg/json/JSONObject;->getString(Ljava/lang/String;)Ljava/lang/String;",
+      "v1, v2, Ljava/lang/String;->equals(Ljava/lang/Object;)Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "isOldVersionOfSavedModelInfoListJson",
+    "descriptor": "()Z",
+    "strings": [
+      "v0, \"model_category\""
+    ],
+    "calls": [
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->getModeInfoListJsonString()Ljava/lang/String;",
+      "v1, v0, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "lambda$migrateDownloadedImageFile$1",
+    "descriptor": "(Ljava/io/File; Ljava/lang/Boolean;)V",
+    "strings": [],
+    "calls": [
+      "v2, Ljava/lang/Boolean;->booleanValue()Z",
+      "v1, Ljava/io/File;->delete()Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "lambda$refreshModelInfoList$0",
+    "descriptor": "()V",
+    "strings": [
+      "v3, \"\n\"",
+      "v4, \"\"",
+      "v4, \"HTTP status code error occurred. Http Status Code=\""
+    ],
+    "calls": [
+      "v6, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->postAPI()Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$MyHttpResponse;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$MyHttpResponse;->getHttpStatusCode()I",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$MyHttpResponse;->getJsonString()Ljava/lang/String;",
+      "v0, Ljava/lang/String;->isEmpty()Z",
+      "v0, Ljava/lang/String;->trim()Ljava/lang/String;",
+      "v0, v3, v4, Ljava/lang/String;->replace(Ljava/lang/CharSequence; Ljava/lang/CharSequence;)Ljava/lang/String;",
+      "v6, v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->isAppGraphGoneError(Ljava/lang/String;)Z",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->setApiServiceTerminated()V",
+      "v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->getModeInfoListJsonString()Ljava/lang/String;",
+      "v2, Ljava/lang/String;->trim()Ljava/lang/String;",
+      "v2, v3, v4, Ljava/lang/String;->replace(Ljava/lang/CharSequence; Ljava/lang/CharSequence;)Ljava/lang/String;",
+      "v3, v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->saveModelInfoListJson(Ljava/lang/String;)V",
+      "v0, v2, Ljava/lang/String;->equals(Ljava/lang/Object;)Z",
+      "v6, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->notifyModelInfoChanged()V",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->setApiServiceTerminated()V",
+      "v6, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->whetherToSuspendApiCall(I)Z",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->updateModelInfoListJsonSaveMillis()V",
+      "v3, Ljava/lang/StringBuilder;-><init>()V",
+      "v3, v4, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v3, v2, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;",
+      "v3, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v0, v2, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "migrateDownloadedImageFile",
+    "descriptor": "()V",
+    "strings": [
+      "v3, \"\""
+    ],
+    "calls": [
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->wasMigratedImageFile()Z",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->recordImageFileMigrated()V",
+      "v10, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->convertModelInfoListFromJson()Ljava/util/List;",
+      "v0, Ljava/util/List;->iterator()Ljava/util/Iterator;",
+      "v0, Ljava/util/Iterator;->hasNext()Z",
+      "v0, Ljava/util/Iterator;->next()Ljava/lang/Object;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getDeviceAnimeUrl()Ljava/lang/String;",
+      "v2, v3, Ljava/util/Objects;->requireNonNullElse(Ljava/lang/Object; Ljava/lang/Object;)Ljava/lang/Object;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getDeviceImageUrl()Ljava/lang/String;",
+      "v2, v3, Ljava/util/Objects;->requireNonNullElse(Ljava/lang/Object; Ljava/lang/Object;)Ljava/lang/Object;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getWpLeftUrl()Ljava/lang/String;",
+      "v2, v3, Ljava/util/Objects;->requireNonNullElse(Ljava/lang/Object; Ljava/lang/Object;)Ljava/lang/Object;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getWpRightUrl()Ljava/lang/String;",
+      "v2, v3, Ljava/util/Objects;->requireNonNullElse(Ljava/lang/Object; Ljava/lang/Object;)Ljava/lang/Object;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getWpCheckLeftUrl()Ljava/lang/String;",
+      "v2, v3, Ljava/util/Objects;->requireNonNullElse(Ljava/lang/Object; Ljava/lang/Object;)Ljava/lang/Object;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getWpCheckRightUrl()Ljava/lang/String;",
+      "v2, v3, Ljava/util/Objects;->requireNonNullElse(Ljava/lang/Object; Ljava/lang/Object;)Ljava/lang/Object;",
+      "v4, Ljava/lang/String;->isEmpty()Z",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getDeviceAnimeUrl()Ljava/lang/String;",
+      "v4, v6, Ljava/lang/String;->equals(Ljava/lang/Object;)Z",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getModelName()Ljava/lang/String;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getModelColor()Ljava/lang/Byte;",
+      "v8, Ljava/lang/Byte;->byteValue()B",
+      "v8, Lcom/sony/songpal/util/modelinfo/ModelColor;->fromByteCode(B)Lcom/sony/songpal/util/modelinfo/ModelColor;",
+      "v5, v6, v7, v8, v4, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->getMigrationSrcImageFilePath(Z Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor; Ljava/lang/String;)Ljava/lang/String;",
+      "v5, Ljava/lang/String;->isEmpty()Z",
+      "v6, v5, Ljava/io/File;-><init>(Ljava/lang/String;)V",
+      "v6, Ljava/io/File;->exists()Z",
+      "v7, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/ICloudModelInfoDependency;->getDownloadedFileManager()Llz/k;",
+      "v8, v10, v6, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/a;-><init>(Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController; Ljava/io/File;)V",
+      "v7, v4, v5, v8, Llz/k;->s(Ljava/lang/String; Ljava/lang/String; Ljava/util/function/Consumer;)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "notifyModelInfoChanged",
+    "descriptor": "()V",
+    "strings": [],
+    "calls": [
+      "v1, v2, Ljava/util/HashSet;-><init>(Ljava/util/Collection;)V",
+      "v1, Ljava/util/HashSet;->iterator()Ljava/util/Iterator;",
+      "v2, Ljava/util/Iterator;->hasNext()Z",
+      "v2, Ljava/util/Iterator;->next()Ljava/lang/Object;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$CloudModelInfoListener;->onModelInfoChanged()V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "shouldExecuteProcess",
+    "descriptor": "()Z",
+    "strings": [],
+    "calls": [
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->isApiServiceTerminated()Z",
+      "v7, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->isOldVersionOfSavedModelInfoListJson()Z",
+      "v7, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoDataAccessor;->getModelInfoListJsonSaveMillis()J",
+      "Ljava/lang/System;->currentTimeMillis()J",
+      "v7, v3, v4, Ljava/util/concurrent/TimeUnit;->toMillis(J)J"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "whetherToSuspendApiCall",
+    "descriptor": "(I)Z",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "addCloudModelInfoListener",
+    "descriptor": "(Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$CloudModelInfoListener;)V",
+    "strings": [],
+    "calls": [
+      "v1, v2, Ljava/util/HashSet;->add(Ljava/lang/Object;)Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getBigHeaderBgGradientColor1",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/Integer;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getBigHeaderBgGradientColor1()Ljava/lang/Integer;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getBigHeaderBgGradientColor2",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/Integer;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getBigHeaderBgGradientColor2()Ljava/lang/Integer;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getBigHeaderThemeLabel",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getBigHeaderThemeLabel()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getCloudModelColorForDebug",
+    "descriptor": "()Lcom/sony/songpal/util/modelinfo/ModelColor;",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getCloudModelInfoDependency",
+    "descriptor": "()Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/ICloudModelInfoDependency;",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getCloudModelNameForDebug",
+    "descriptor": "()Ljava/lang/String;",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getModelAnimeUrl",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getDeviceAnimeUrl()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getModelCategory",
+    "descriptor": "(Lcom/sony/songpal/mdr/j2objc/tandem/DeviceState;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$ModelCategory;",
+    "strings": [],
+    "calls": [
+      "v1, Lcom/sony/songpal/mdr/j2objc/tandem/DeviceState;->d()Lcom/sony/songpal/mdr/j2objc/tandem/c;",
+      "v1, Lcom/sony/songpal/mdr/j2objc/tandem/c;->g()Ljava/lang/String;",
+      "v0, v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getModelCategory(Ljava/lang/String;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$ModelCategory;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getModelCategory",
+    "descriptor": "(Ljava/lang/String;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$ModelCategory;",
+    "strings": [],
+    "calls": [
+      "v1, v2, v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getCloudModelInfo(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getModelCategory()Ljava/lang/String;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$ModelCategory;->fromString(Ljava/lang/String;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$ModelCategory;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getModelImageUrl",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v1, v2, v3, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v3, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getDeviceImageUrl()Ljava/lang/String;",
+      "v1, v2, v3, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getCloudModelInfo(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v3, Ljava/util/Objects;->requireNonNull(Ljava/lang/Object;)Ljava/lang/Object;",
+      "v3, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getDeviceImageUrl()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getModelImageUrl",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor; Lcom/sony/songpal/util/modelinfo/ModelImageType;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getModelImageUrl(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getModelName",
+    "descriptor": "(B B)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v1, Ljava/lang/Byte;->valueOf(B)Ljava/lang/Byte;",
+      "v2, Ljava/lang/Byte;->valueOf(B)Ljava/lang/Byte;",
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getCloudModelInfo(Ljava/lang/Byte; Ljava/lang/Byte;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getModelName()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getModelSourceColor1",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/Integer;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getSourceColor()Ljava/lang/Integer;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getTutorialHomePageNumbers",
+    "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v1, v2, v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getCloudModelInfo(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getTutorialHomePageNumbers()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getTutorialPageFilterDisplayedOnOoBE",
+    "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v1, v2, v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getCloudModelInfo(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getTutorialPageFilterDisplayedOnOoBE()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getWPCheckLeftImageUrl",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getWpCheckLeftUrl()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getWPCheckRightImageUrl",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getWpCheckRightUrl()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getWPLeftImageUrl",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getWpLeftUrl()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "getWPRightImageUrl",
+    "descriptor": "(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljava/lang/String;",
+    "strings": [],
+    "calls": [
+      "v0, v1, v2, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->CloudModelInfoFromColor(Ljava/lang/String; Lcom/sony/songpal/util/modelinfo/ModelColor;)Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;",
+      "v0, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfo;->getWpRightUrl()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "isTutorialHomePageSupported",
+    "descriptor": "(Ljava/lang/String;)Z",
+    "strings": [],
+    "calls": [
+      "v0, v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getTutorialHomePageNumbers(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, Ljava/lang/String;->isEmpty()Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "isTutorialPageFilterDisplayedOnOoBESupported",
+    "descriptor": "(Ljava/lang/String;)Z",
+    "strings": [],
+    "calls": [
+      "v0, v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getTutorialPageFilterDisplayedOnOoBE(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, Ljava/lang/String;->isEmpty()Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "postAPI",
+    "descriptor": "()Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$MyHttpResponse;",
+    "strings": [
+      "v1, \"x-api-key\"",
+      "v1, \"Content-Type\"",
+      "v2, \"application/json;charset=utf-8\""
+    ],
+    "calls": [
+      "v0, v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/ICloudModelInfoDependency;->createHttpClient(Z)Lfp0/a;",
+      "v3, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getApiKeyValue()Ljava/lang/String;",
+      "v0, v1, v2, Lfp0/a;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v0, v1, v2, Lfp0/a;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v3, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->getUrl()Ljava/lang/String;",
+      "v0, v3, v1, v2, Lfp0/a;->n(Ljava/lang/String; Ljava/lang/String; I)Ljava/lang/String;",
+      "v0, Lfp0/a;->h()I",
+      "v1, v0, v3, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$MyHttpResponse;-><init>(I Ljava/lang/String;)V",
+      "v3, Ljava/lang/Throwable;->printStackTrace()V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "refreshModelInfoList",
+    "descriptor": "()V",
+    "strings": [],
+    "calls": [
+      "v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;->shouldExecuteProcess()Z",
+      "v0, v1, Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/d;-><init>(Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;)V",
+      "v0, Lcom/sony/songpal/util/ThreadProvider;->i(Ljava/lang/Runnable;)Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "removeCloudModelInfoListener",
+    "descriptor": "(Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController$CloudModelInfoListener;)V",
+    "strings": [],
+    "calls": [
+      "v1, v2, Ljava/util/HashSet;->remove(Ljava/lang/Object;)Z"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "setCloudModelColorForDebug",
+    "descriptor": "(Lcom/sony/songpal/util/modelinfo/ModelColor;)V",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "setCloudModelNameForDebug",
+    "descriptor": "(Ljava/lang/String;)V",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Ljp/co/sony/vim/framework/core/device/cloudmodelinfo/CloudModelInfoController;",
+    "method": "setExecuting",
+    "descriptor": "(Z)V",
+    "strings": [],
+    "calls": []
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Llm0/i$a;",
+    "method": "<init>",
+    "descriptor": "()V",
+    "strings": [],
+    "calls": [
+      "v0, Ljava/lang/Object;-><init>()V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Llm0/i$a;",
+    "method": "a",
+    "descriptor": "()Ljava/util/UUID;",
+    "strings": [
+      "v0, \"96CC203E-5068-46ad-B32D-E316F5E069BA\""
+    ],
+    "calls": [
+      "v0, Ljava/util/UUID;->fromString(Ljava/lang/String;)Ljava/util/UUID;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Llm0/i$a;",
+    "method": "b",
+    "descriptor": "()Ljava/util/UUID;",
+    "strings": [
+      "v0, \"BA69E0F5-16E3-2DB3-ad46-68503E20CC96\""
+    ],
+    "calls": [
+      "v0, Ljava/util/UUID;->fromString(Ljava/lang/String;)Ljava/util/UUID;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Llz/k;",
+    "method": "q",
+    "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+    "strings": [
+      "v0, \"SHA-1\"",
+      "v4, \"%02x\"",
+      "v2, \" SHA-1 algorithm not found: \""
+    ],
+    "calls": [
+      "v0, Ljava/security/MessageDigest;->getInstance(Ljava/lang/String;)Ljava/security/MessageDigest;",
+      "v5, Ljava/lang/String;->getBytes()[B",
+      "v0, v5, Ljava/security/MessageDigest;->digest([B)[B",
+      "v0, Ljava/lang/StringBuilder;-><init>()V",
+      "v3, Ljava/lang/Byte;->valueOf(B)Ljava/lang/Byte;",
+      "v4, v3, Ljava/lang/String;->format(Ljava/lang/String; [Ljava/lang/Object;)Ljava/lang/String;",
+      "v0, v3, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v0, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v1, Ljava/lang/StringBuilder;-><init>()V",
+      "v1, v2, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v5, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;",
+      "v1, v5, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v1, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v0, v5, Lcom/sony/songpal/util/SpLog;->c(Ljava/lang/String; Ljava/lang/String;)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Llz/k;",
+    "method": "r",
+    "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+    "strings": [
+      "v2, \"getFullPath() fileName: \""
+    ],
+    "calls": [
+      "v1, Ljava/lang/StringBuilder;-><init>()V",
+      "v1, v2, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v1, v4, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v1, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v0, v1, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v0, v3, v4, Ljava/io/File;-><init>(Ljava/lang/String; Ljava/lang/String;)V",
+      "v0, Ljava/io/File;->getPath()Ljava/lang/String;"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Llz/k;",
+    "method": "w",
+    "descriptor": "(Ljava/lang/String; Ljava/util/function/Consumer; Ljava/lang/String;)V",
+    "strings": [
+      "v0, \" callback: \"",
+      "v0, \" (file already exists)\"",
+      "v1, \" Already downloading, adding callback to queue: \"",
+      "v4, \" Not enough free space to proceed.\"",
+      "v2, \" Starting download: \""
+    ],
+    "calls": [
+      "v0, v4, Ljava/io/File;-><init>(Ljava/lang/String;)V",
+      "v0, Ljava/io/File;->exists()Z",
+      "v6, Ljava/lang/StringBuilder;-><init>()V",
+      "v6, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v6, v4, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v6, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v6, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v3, v6, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v4, Ljava/util/Optional;->of(Ljava/lang/Object;)Ljava/util/Optional;",
+      "v5, v3, Ljava/util/function/Consumer;->accept(Ljava/lang/Object;)V",
+      "v0, v6, Ljava/util/Set;->contains(Ljava/lang/Object;)Z",
+      "v0, Ljava/lang/StringBuilder;-><init>()V",
+      "v0, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v0, v6, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v0, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v4, v0, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v4, Llz/d;-><init>()V",
+      "v3, v6, v4, Ljava/util/Map;->computeIfAbsent(Ljava/lang/Object; Ljava/util/function/Function;)Ljava/lang/Object;",
+      "v3, v5, Ljava/util/Queue;->add(Ljava/lang/Object;)Z",
+      "v3, Llz/k;->t()Z",
+      "v3, v4, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "Ljava/util/Optional;->empty()Ljava/util/Optional;",
+      "v5, v3, Ljava/util/function/Consumer;->accept(Ljava/lang/Object;)V",
+      "v0, v6, Ljava/util/Set;->add(Ljava/lang/Object;)Z",
+      "v1, Ljava/lang/StringBuilder;-><init>()V",
+      "v1, v2, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v1, v6, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v1, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v0, v1, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v0, v3, v6, v4, v5, Llz/e;-><init>(Llz/k; Ljava/lang/String; Ljava/lang/String; Ljava/util/function/Consumer;)V",
+      "v3, v6, v4, v0, Llz/k;->o(Ljava/lang/String; Ljava/lang/String; Ljava/util/function/Consumer;)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Llz/k;",
+    "method": "y",
+    "descriptor": "(Ljava/lang/String; Ljava/util/function/Consumer; Ljava/lang/String;)V",
+    "strings": [
+      "v2, \" HttpClient().getByte: \"",
+      "v12, \" failed to download binary: \""
+    ],
+    "calls": [
+      "v0, Lqz/a;->create()Lfp0/a;",
+      "v0, v10, v1, v2, Lfp0/a;->g(Ljava/lang/String; I I)[B",
+      "v1, Ljava/lang/StringBuilder;-><init>()V",
+      "v1, v2, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v1, v10, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v1, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v0, v1, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v3 ... v8, Llz/j;-><init>(Llz/k; [B Ljava/lang/String; Ljava/util/function/Consumer; Ljava/lang/String;)V",
+      "v0, v3, Ljava/util/concurrent/ExecutorService;->submit(Ljava/lang/Runnable;)Ljava/util/concurrent/Future;",
+      "v11, Ljava/lang/StringBuilder;-><init>()V",
+      "v11, v12, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v9, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;",
+      "v11, v9, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v11, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v10, v9, Lcom/sony/songpal/util/SpLog;->c(Ljava/lang/String; Ljava/lang/String;)V",
+      "v7, v9, Ljava/util/function/Consumer;->accept(Ljava/lang/Object;)V"
+    ]
+  },
+  {
+    "dex": "classes4.dex",
+    "class": "Llz/k;",
+    "method": "n",
+    "descriptor": "(Ljava/lang/String; Ljava/util/function/Consumer;)V",
+    "strings": [
+      "v2, \"downloadFile() urlString: \"",
+      "v3, \" callback: \"\" (fileName is null)\""
+    ],
+    "calls": [
+      "v1, Ljava/lang/StringBuilder;-><init>()V",
+      "v1, v2, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v1, v4, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+      "v1, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+      "v0, v1, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "v4, Llz/k;->q(Ljava/lang/String;)Ljava/lang/String;",
+      "v0, v3, Lcom/sony/songpal/util/SpLog;->a(Ljava/lang/String; Ljava/lang/String;)V",
+      "Ljava/util/Optional;->empty()Ljava/util/Optional;",
+      "v5, v3, Ljava/util/function/Consumer;->accept(Ljava/lang/Object;)V",
+      "v3, v1, Llz/k;->r(Ljava/lang/String;)Ljava/lang/String;",
+      "v2, v3, v0, v5, v4, Llz/a;-><init>(Llz/k; Ljava/lang/String; Ljava/util/function/Consumer; Ljava/lang/String;)V",
+      "v1, v2, Ljava/util/concurrent/ExecutorService;->submit(Ljava/lang/Runnable;)Ljava/util/concurrent/Future;"
+    ]
+  }
+]

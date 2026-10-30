@@ -8,7 +8,10 @@ struct BluetoothDeviceActivity: View {
     let height: CGFloat
 
     private var iconSize: CGFloat {
-        max(18, min(34, height - 10))
+        if profile.id.hasPrefix("sony-") || profile.imageAssetName.flatMap({ NSImage(named: $0) }) != nil {
+            return max(18, min(42, height - 2))
+        }
+        return max(18, min(34, height - 10))
     }
 
     private var deviceName: String {
@@ -17,7 +20,7 @@ struct BluetoothDeviceActivity: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
+        NotchSafeZoneLayout(centerWidth: closedNotchWidth) {
             HStack(spacing: 8) {
                 deviceIcon
                     .frame(width: iconSize, height: iconSize)
@@ -30,12 +33,12 @@ struct BluetoothDeviceActivity: View {
                 .font(.caption)
                 .fontWeight(.medium)
             }
-            .frame(width: 174, alignment: .leading)
+            .frame(width: bluetoothNotificationSideWidth - 8, alignment: .leading)
             .padding(.leading, 8)
 
             Rectangle()
                 .fill(.black)
-                .frame(width: closedNotchWidth + 10)
+                .frame(width: closedNotchWidth)
 
             HStack(spacing: 5) {
                 Image(systemName: "checkmark.circle.fill")
@@ -63,7 +66,9 @@ struct BluetoothDeviceActivity: View {
 
     @ViewBuilder
     private var deviceIcon: some View {
-        if let imageAssetName = profile.imageAssetName,
+        if profile.id.hasPrefix("sony-") {
+            SonyDeviceArtwork(address: device?.bluetoothAddress, profile: profile, isConnected: true, size: iconSize)
+        } else if let imageAssetName = profile.imageAssetName,
            let image = NSImage(named: imageAssetName) {
             Image(nsImage: image)
                 .resizable()

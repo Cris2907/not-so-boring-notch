@@ -6,6 +6,7 @@
 // Original source: https://github.com/MrKai77/DynamicNotchKit
 // Modified by Alexander on 2025-05-18.
 
+import AppKit
 import SwiftUI
 
 struct NotchShape: Shape {
@@ -117,6 +118,61 @@ struct NotchShape: Shape {
 
         return path
     }
+}
+
+/// One shared surface for every expanded destination. Content stays transparent
+/// so the preference changes the whole panel rather than just its outer border.
+struct NotchPanelBackground<PanelShape: Shape>: View {
+    let shape: PanelShape
+    let style: NotchSurfaceStyle
+    let isOpen: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        if style.usesGlass(isOpen: isOpen, reduceTransparency: reduceTransparency) {
+            glassSurface
+                .overlay {
+                    LinearGradient(stops: [
+                        .init(color: .black, location: 0),
+                        .init(color: .black, location: 0.2),
+                        .init(color: .black.opacity(contrast == .increased ? 0.9 : 0.64), location: 0.34),
+                        .init(color: .black.opacity(contrast == .increased ? 0.8 : 0.22), location: 0.6),
+                        .init(color: .black.opacity(contrast == .increased ? 0.74 : 0.14), location: 1)
+                    ], startPoint: .top, endPoint: .bottom)
+                }
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        } else {
+            Color.black
+        }
+    }
+
+    @ViewBuilder
+    private var glassSurface: some View {
+        if #available(macOS 26.0, *) {
+            // Native clear Liquid Glass provides the lens/refraction rather than
+            // a frosted material. This decorative layer must not install gestures.
+            Color.clear.glassEffect(.clear.tint(.black.opacity(0.08)), in: shape)
+        } else {
+            NotchBackdropMaterial()
+        }
+    }
+}
+
+/// Behind-window blending samples the desktop instead of the panel's own views
+/// on systems that predate the native Liquid Glass API.
+private struct NotchBackdropMaterial: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .hudWindow
+        view.blendingMode = .behindWindow
+        view.state = .active
+        view.appearance = NSAppearance(named: .vibrantDark)
+        return view
+    }
+
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }
 
 #Preview {

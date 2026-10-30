@@ -22,7 +22,9 @@ struct DynamicNotchApp: App {
 
     init() {
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            // Start Sparkle only when the user explicitly checks for updates.
+            startingUpdater: false,
+            updaterDelegate: nil, userDriverDelegate: nil)
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
@@ -72,6 +74,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        Task { @MainActor in
+            await XM6ModeChangeSound.shared.prepareForTermination()
+            sender.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         NotificationCenter.default.removeObserver(self)
         if let observer = screenLockedObserver {
@@ -82,6 +92,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DistributedNotificationCenter.default().removeObserver(observer)
             screenUnlockedObserver = nil
         }
+        XM6Manager.shared.stop()
         BluetoothAudioManager.shared.stop()
         MusicManager.shared.destroy()
         cleanupDragDetectors()
@@ -238,6 +249,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let window = BoringNotchSkyLightWindow(contentRect: rect, styleMask: styleMask, backing: .buffered, defer: false)
         window.bindKeyboardFocus(to: viewModel)
+        window.bindSizing(to: viewModel)
         
         // Enable SkyLight only when screen is locked
         if isScreenLocked {
@@ -246,10 +258,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.disableSkyLight()
         }
 
-        window.contentView = NSHostingView(
-            rootView: ContentView()
-                .environmentObject(viewModel)
+        let hostingView = NSHostingView(
+            rootView: NotchWindowRoot(viewModel: viewModel)
         )
+        // The notch manages its own top-anchored window size. Hosting-view
+        // intrinsic constraints must not move it while SwiftUI animates content.
+        hostingView.sizingOptions = []
+        hostingView.safeAreaRegions = []
+        window.contentView = hostingView
 
         window.orderFrontRegardless()
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
@@ -283,6 +299,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         BluetoothAudioManager.shared.start()
+        XM6Manager.shared.start()
 
         NotificationCenter.default.addObserver(
             self,

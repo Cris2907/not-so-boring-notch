@@ -1,3 +1,5 @@
+import AppKit
+import Combine
 import CoreAudio
 import Defaults
 import Foundation
@@ -10,6 +12,11 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
     @Published private(set) var currentOutputDevice: BluetoothAudioDevice?
     @Published private(set) var activeNotificationDevice: BluetoothAudioDevice?
     @Published private(set) var activeProfile: BluetoothHeadphoneProfile = BluetoothHeadphoneProfileStore.fallbackProfile
+
+    private var assignmentObservation: AnyCancellable?
+    private var artworkObservation: AnyCancellable?
+    private var notificationPresented = false
+    private var notificationHasAnimatedDuration = false
 
     private var isStarted = false
     private var audioListenersInstalled = false
@@ -24,11 +31,25 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
 
     private override init() {
         super.init()
+        assignmentObservation = HeadphoneModelAssignments.shared.$assignments
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] assignments in
+                guard let self, let device = self.activeNotificationDevice else { return }
+                // Update an existing notification without restarting its animation or timeout.
+                self.activeProfile = BluetoothHeadphoneProfileStore.profile(for: device, assignments: assignments)
+            }
     }
 
     func start() {
         guard !isStarted else { return }
         isStarted = true
+        Task { @MainActor [weak self] in
+            guard let self, self.isStarted else { return }
+            SonyDeviceIdentityStore.shared.start(audio: self, controls: XM6Manager.shared.controller)
+            self.artworkObservation = SonyArtworkStore.shared.$files.receive(on: DispatchQueue.main).sink { [weak self] _ in
+                Task { @MainActor in self?.refreshSonyNotificationProfile() }
+            }
+        }
 
         installAudioListenersIfNeeded()
         installBluetoothNotificationsIfNeeded()
@@ -37,6 +58,9 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
 
     func stop() {
         isStarted = false
+        artworkObservation = nil
+        notificationPresented = false
+        Task { @MainActor in SonyDeviceIdentityStore.shared.stop() }
         refreshWorkItem?.cancel()
         refreshWorkItem = nil
         clearNotificationWorkItem?.cancel()
@@ -142,26 +166,58 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
         lastNotifiedSignature = deviceSignature
         lastNotificationDate = now
 
-        let profile = BluetoothHeadphoneProfileStore.profile(for: device)
+        notificationPresented = false
+        notificationHasAnimatedDuration = false
         activeNotificationDevice = device
-        activeProfile = profile
+        activeProfile = HeadphoneModelAssignments.shared.profile(for: device)
+        Task { @MainActor [weak self] in
+            guard let self, self.activeNotificationDevice == device else { return }
+            self.refreshSonyNotificationProfile()
+            let profile = self.activeProfile
+            let entry = SonyDeviceIdentityStore.shared.artworkEntry(address: device.bluetoothAddress, profile: profile)
+            let hasAnimation = SonyArtworkStore.shared.localFile(for: entry?.animationURL) != nil
+            let animated = hasAnimation && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+            self.notificationPresented = true
+            self.notificationHasAnimatedDuration = animated
+            self.presentBluetoothNotification(duration: animated ? 5.5 : 2.5, profile: profile)
 
-        Task { @MainActor in
-            BoringViewCoordinator.shared.toggleSneakPeek(
-                status: true,
-                type: .bluetooth,
-                duration: 2.5,
-                icon: profile.symbolName
-            )
         }
+    }
 
+    @MainActor
+    func refreshSonyNotificationProfile() {
+        guard let device = activeNotificationDevice else { return }
+        activeProfile = SonyDeviceIdentityStore.shared.profile(for: device)
+        // Extend only a still-visible notification when its first render becomes ready.
+        // Never resurrect an expired notification or restart its animation on state updates.
+        let coordinator = BoringViewCoordinator.shared
+        if notificationPresented, !notificationHasAnimatedDuration,
+           coordinator.sneakPeek.show, coordinator.sneakPeek.type == .bluetooth,
+           !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
+           let entry = SonyDeviceIdentityStore.shared.artworkEntry(address: device.bluetoothAddress, profile: activeProfile),
+           SonyArtworkStore.shared.localFile(for: entry.animationURL) != nil {
+            if coordinator.extendBluetoothSneakPeek(duration: 5.5) {
+                notificationHasAnimatedDuration = true
+                scheduleBluetoothNotificationClear(after: 6.0)
+            }
+        }
+    }
+
+    @MainActor
+    private func presentBluetoothNotification(duration: TimeInterval, profile: BluetoothHeadphoneProfile) {
+        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .bluetooth, duration: duration, icon: profile.symbolName)
+        scheduleBluetoothNotificationClear(after: duration + 0.5)
+    }
+
+    private func scheduleBluetoothNotificationClear(after duration: TimeInterval) {
         clearNotificationWorkItem?.cancel()
-        let clearWorkItem = DispatchWorkItem { [weak self] in
+        let clear = DispatchWorkItem { [weak self] in
+            self?.notificationPresented = false
             self?.activeNotificationDevice = nil
             self?.activeProfile = BluetoothHeadphoneProfileStore.fallbackProfile
         }
-        clearNotificationWorkItem = clearWorkItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: clearWorkItem)
+        clearNotificationWorkItem = clear
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: clear)
     }
 
     private func makeAudioDevice(from deviceID: AudioObjectID) -> BluetoothAudioDevice? {
@@ -195,14 +251,21 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
             scope: kAudioObjectPropertyScopeGlobal
         )
 
+        let deviceUID = readStringProperty(
+            deviceID: deviceID, selector: kAudioDevicePropertyDeviceUID,
+            scope: kAudioObjectPropertyScopeGlobal
+        )
+        let address = BluetoothAddress.fromDeviceUID(deviceUID)
+
         return BluetoothAudioDevice(
             audioObjectID: deviceID,
             name: name,
             manufacturer: manufacturer,
             modelUID: modelUID,
             transportType: transportType,
-            bluetoothAddress: nil,
-            isBluetooth: transportType == UInt32(kIOAudioDeviceTransportTypeBluetooth),
+            bluetoothAddress: address,
+            isBluetooth: transportType == UInt32(kIOAudioDeviceTransportTypeBluetooth)
+                || (transportType == UInt32(kIOAudioDeviceTransportTypeWireless) && address != nil),
             detectedAt: Date()
         )
     }
@@ -222,33 +285,30 @@ final class BluetoothAudioManager: NSObject, ObservableObject {
             manufacturer: audioDevice.manufacturer,
             modelUID: audioDevice.modelUID,
             transportType: audioDevice.transportType,
-            bluetoothAddress: bluetoothDevice.addressString,
+            bluetoothAddress: BluetoothAddress.canonical(bluetoothDevice.addressString),
             isBluetooth: audioDevice.isBluetooth || audioDevice.transportType == UInt32(kIOAudioDeviceTransportTypeWireless),
             detectedAt: audioDevice.detectedAt
         )
     }
 
-    private func matchingBluetoothDevice(for audioDevice: BluetoothAudioDevice) -> IOBluetoothDevice? {
-        let pairedDevices = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []
-        let connectedDevices = pairedDevices.filter { $0.isConnected() }
-
-        if let connectedMatch = firstBluetoothMatch(in: connectedDevices, for: audioDevice) {
-            return connectedMatch
-        }
-
-        return firstBluetoothMatch(in: pairedDevices, for: audioDevice)
+    static func pairedHeadphones() -> [PairedHeadphoneIdentity] {
+        ((IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []).compactMap { device in
+            guard let address = BluetoothAddress.canonical(device.addressString) else { return nil }
+            return PairedHeadphoneIdentity(address: address, name: device.name ?? device.addressString ?? address,
+                                           isConnected: device.isConnected())
+        }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
-    private func firstBluetoothMatch(in devices: [IOBluetoothDevice], for audioDevice: BluetoothAudioDevice) -> IOBluetoothDevice? {
-        let normalizedAudioName = BluetoothHeadphoneProfileStore.normalize(audioDevice.name)
-        guard !normalizedAudioName.isEmpty else { return nil }
-
-        return devices.first { device in
-            let normalizedDeviceName = BluetoothHeadphoneProfileStore.normalize(device.name)
-            guard normalizedDeviceName.count > 2 else { return false }
-            return normalizedAudioName.contains(normalizedDeviceName)
-                || normalizedDeviceName.contains(normalizedAudioName)
+    private func matchingBluetoothDevice(for audioDevice: BluetoothAudioDevice) -> IOBluetoothDevice? {
+        let devices = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []
+        let identities = devices.compactMap { device -> PairedHeadphoneIdentity? in
+            guard let address = BluetoothAddress.canonical(device.addressString) else { return nil }
+            return PairedHeadphoneIdentity(address: address, name: device.name ?? "", isConnected: device.isConnected())
         }
+        guard let identity = BluetoothHeadphoneAssociation.match(
+            address: audioDevice.bluetoothAddress, name: audioDevice.name, devices: identities
+        ) else { return nil }
+        return devices.first { BluetoothAddress.canonical($0.addressString) == identity.address }
     }
 
     private func registerDisconnectNotification(for device: IOBluetoothDevice) {

@@ -1,4 +1,6 @@
+import AppKit
 import Combine
+import Defaults
 import SwiftUI
 import XCTest
 @testable import boringNotch
@@ -336,7 +338,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             fullStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            ((42 + closedActivityFullPresentationContentLeadingPadding) * 2) + 20
+            ((42 + closedActivityFullPresentationContentLeadingPadding) * 2) + 36
         )
 
         let mediaProvider = LiveTestProvider(
@@ -354,7 +356,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             mediaStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            ((accessorySize + closedActivityFullPresentationContentLeadingPadding) * 2) + 20
+            ((accessorySize + closedActivityFullPresentationContentLeadingPadding) * 2) + 36
         )
 
         let leadingProvider = LiveTestProvider(
@@ -386,7 +388,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             splitStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            (30 + accessorySize + 6) + accessorySize + 20
+            2 * (30 + accessorySize + 6) + 36
         )
 
         let iconOnlyProvider = LiveTestProvider(
@@ -417,7 +419,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             iconOnlyStack.requiredAdditionalWidth(accessorySize: accessorySize),
-            accessorySize + 12 + 20
+            2 * accessorySize + 36
         )
     }
 
@@ -543,6 +545,63 @@ final class ActivityArchitectureTests: XCTestCase {
             ),
             contains: [first.id, second.id]
         )
+    }
+
+    func testMediaStartPublishesOnlyTheResolvedSplitOrder() async throws {
+        let companion = LiveTestActivity(id: ActivityID.doberman.rawValue, state: .visible(priority: .low))
+        let activities = try ActivityRegistry { companion }
+        let media = LiveTestProvider(id: .media)
+        let providers = LiveActivityPresentationProviderRegistry(
+            activityRegistry: activities,
+            additionalProviders: [AnyLiveActivityPresentationProvider(media)]
+        )
+        let coordinator = ActivityLivePresentationCoordinator(registry: providers)
+        var selections: [String] = []
+        var sequences: [Int?] = []
+        let observation = coordinator.$presentation.dropFirst().sink { resolved in
+            selections.append(resolved.stack.identity)
+            sequences.append(resolved.snapshot.startedSequence(for: .media))
+        }
+        defer { observation.cancel() }
+
+        media.livePresentationState = .visible(priority: .normal)
+        // Before the batch commits, keep the previous composition rather than
+        // combining new eligibility with the previous recency snapshot.
+        assertStack(coordinator.selectedStack, contains: [.doberman])
+        await coordinator.waitForPendingReconciliation()
+
+        XCTAssertEqual(selections, ["split:builtin.doberman:builtin.media"])
+        XCTAssertEqual(sequences.count, 1)
+        XCTAssertNotNil(sequences[0])
+        assertStack(coordinator.selectedStack, contains: [.doberman, .media])
+
+        media.livePresentationState = .visible(priority: .low)
+        media.objectWillChange.send() // Artwork and progress do not restart selection.
+        await coordinator.waitForPendingReconciliation()
+        XCTAssertEqual(selections.count, 1)
+    }
+
+    func testEligibilityBatchDoesNotPublishTemporaryFullMedia() async throws {
+        let companion = LiveTestActivity(id: ActivityID.doberman.rawValue, state: .visible(priority: .low))
+        let activities = try ActivityRegistry { companion }
+        let media = LiveTestProvider(id: .media, state: .visible(priority: .normal))
+        let providers = LiveActivityPresentationProviderRegistry(
+            activityRegistry: activities,
+            additionalProviders: [AnyLiveActivityPresentationProvider(media)]
+        )
+        let coordinator = ActivityLivePresentationCoordinator(registry: providers)
+        let initialIdentity = coordinator.selectedStack.identity
+        var selections: [String] = []
+        let observation = coordinator.$presentation.dropFirst().sink { selections.append($0.stack.identity) }
+        defer { observation.cancel() }
+
+        companion.livePresentationState = .hidden
+        media.objectWillChange.send()
+        companion.livePresentationState = .visible(priority: .low)
+        await coordinator.waitForPendingReconciliation()
+
+        XCTAssertEqual(coordinator.selectedStack.identity, initialIdentity)
+        XCTAssertTrue(selections.isEmpty)
     }
 
     func testCoordinatorRemovesHiddenActivityAndPromotesNextMostRecent() async throws {
@@ -844,7 +903,7 @@ final class ActivityArchitectureTests: XCTestCase {
 
         XCTAssertEqual(
             stack.requiredAdditionalWidth(accessorySize: accessorySize),
-            accessorySize + 12 + 20
+            2 * accessorySize + 36
         )
     }
 
@@ -918,10 +977,7 @@ private func selectedStack(
     from registry: LiveActivityPresentationProviderRegistry,
     coordinator: ActivityLivePresentationCoordinator
 ) -> ActivityLivePresentationStack {
-    selectedActivityLivePresentationStack(
-        from: registry.providers,
-        snapshot: coordinator.snapshot
-    )
+    coordinator.selectedStack
 }
 
 @MainActor
@@ -1047,5 +1103,325 @@ private final class LiveTestProvider: LiveActivityPresentationProvider {
 
     func makeMinimalView() -> some View {
         Text(name)
+    }
+}
+
+
+@MainActor
+final class FloatingTabBarTests: XCTestCase {
+    func testAllCurrentTabsFitFullWidthWithXM6Selected() {
+        let width = FloatingTabBarMetrics.contentWidth(tabCount: 8, selectedLabel: "XM6")
+        XCTAssertLessThan(width, openNotchSize.width - 40)
+        XCTAssertEqual(FloatingTabBarMetrics.viewportWidth(contentWidth: width, availableWidth: 600), width)
+    }
+
+    func testOverflowReservesMenuSpaceAndCanFitSelectedBubble() {
+        let contentWidth = FloatingTabBarMetrics.contentWidth(tabCount: 20, selectedLabel: "XM6")
+        let viewport = FloatingTabBarMetrics.viewportWidth(contentWidth: contentWidth, availableWidth: 300)
+        XCTAssertGreaterThan(contentWidth, 300)
+        XCTAssertEqual(viewport, 252)
+        XCTAssertGreaterThan(viewport, FloatingTabBarMetrics.labelWidth("XM6") + 51)
+        XCTAssertEqual(FloatingTabBarMetrics.viewportWidth(contentWidth: contentWidth, availableWidth: 20), 0)
+    }
+
+    func testLongSelectedNamesCannotPushCurrentTabsIntoOverflow() {
+        let label = String(repeating: "Long extension name ", count: 20)
+        XCTAssertEqual(FloatingTabBarMetrics.labelWidth(label), 100)
+        XCTAssertLessThan(FloatingTabBarMetrics.contentWidth(tabCount: 8, selectedLabel: label), 600)
+        XCTAssertEqual(FloatingTabBarMetrics.contentWidth(tabCount: 0, selectedLabel: nil), 0)
+    }
+
+    func testHoverRegionIncludesDetachedDockAndGapOnlyWhileOpen() {
+        let vm = BoringViewModel()
+        let oldTabs = vm.coordinator.alwaysShowTabs
+        defer { vm.coordinator.alwaysShowTabs = oldTabs }
+        vm.coordinator.alwaysShowTabs = true
+        vm.open()
+        vm.updateOpenNotchHeight(300)
+        guard let screen = NSScreen.main else { return XCTFail("No screen for notch hover test") }
+        let y = screen.frame.maxY - vm.notchSize.height - floatingTabBarGap - 20
+        XCTAssertEqual(vm.floatingTabBarReservedHeight, 56)
+        XCTAssertTrue(vm.isMouseHovering(position: NSPoint(x: screen.frame.midX, y: y)))
+        XCTAssertFalse(vm.isMouseHovering(position: NSPoint(x: screen.frame.midX, y: screen.frame.maxY - 370)))
+        vm.close()
+        XCTAssertEqual(vm.floatingTabBarReservedHeight, 0)
+        XCTAssertFalse(vm.isMouseHovering(position: NSPoint(x: screen.frame.midX, y: y)))
+    }
+}
+
+
+final class NotchSurfaceStyleTests: XCTestCase {
+    func testBlackIsDefaultAndGlassChoicePersists() throws {
+        let suiteName = "NotchSurfaceStyleTests.\(UUID().uuidString)"
+        let suite = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { suite.removePersistentDomain(forName: suiteName) }
+        let key = Defaults.Key<NotchSurfaceStyle>("notchSurfaceStyle", default: .solidBlack, suite: suite)
+        XCTAssertEqual(Defaults[key], .solidBlack)
+        Defaults[key] = .siriGlass
+        let restored = Defaults.Key<NotchSurfaceStyle>("notchSurfaceStyle", default: .solidBlack, suite: suite)
+        XCTAssertEqual(Defaults[restored], .siriGlass)
+        Defaults[key] = .solidBlack
+        XCTAssertEqual(Defaults[restored], .solidBlack)
+    }
+
+    func testGlassOnlyAppliesToExpandedPanelWithoutReducedTransparency() {
+        XCTAssertTrue(NotchSurfaceStyle.siriGlass.usesGlass(isOpen: true, reduceTransparency: false))
+        XCTAssertFalse(NotchSurfaceStyle.siriGlass.usesGlass(isOpen: false, reduceTransparency: false))
+        XCTAssertFalse(NotchSurfaceStyle.siriGlass.usesGlass(isOpen: true, reduceTransparency: true))
+        XCTAssertFalse(NotchSurfaceStyle.solidBlack.usesGlass(isOpen: true, reduceTransparency: false))
+    }
+}
+
+@MainActor
+final class NotchWindowHeightRetentionTests: XCTestCase {
+    func testClosingKeepsDockUnclippedUntilExitFinishes() async throws {
+        let sizing = NotchWindowHeightRetention(initialHeight: 376, shrinkDelay: .milliseconds(15))
+        sizing.update(210, reduceMotion: false)
+        XCTAssertEqual(sizing.height, 376)
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 210)
+    }
+
+    func testRapidReopenCancelsPendingWindowShrink() async throws {
+        let sizing = NotchWindowHeightRetention(initialHeight: 376, shrinkDelay: .milliseconds(15))
+        sizing.update(210, reduceMotion: false)
+        sizing.update(400, reduceMotion: false)
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 400)
+    }
+
+    func testLatestClosingSizeWinsAcrossTabHeightChanges() async throws {
+        let sizing = NotchWindowHeightRetention(initialHeight: 376, shrinkDelay: .milliseconds(15))
+        sizing.update(266, reduceMotion: false)
+        sizing.update(210, reduceMotion: false)
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 210)
+    }
+
+    func testReducedMotionAndCancellationDoNotLeaveDelayedResize() async throws {
+        let sizing = NotchWindowHeightRetention(initialHeight: 376, shrinkDelay: .milliseconds(15))
+        sizing.update(210, reduceMotion: false)
+        sizing.update(266, reduceMotion: true)
+        XCTAssertEqual(sizing.height, 266)
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 266)
+        sizing.update(210, reduceMotion: false)
+        sizing.cancel()
+        try await Task.sleep(for: .milliseconds(45))
+        XCTAssertEqual(sizing.height, 266)
+    }
+}
+
+@MainActor
+final class NotchSafeZoneTests: XCTestCase {
+    func testCollapsedShellReservesBothSidesAndRestoresWidthAfterBluetooth() {
+        let center: CGFloat = 200
+        let accessory: CGFloat = 20
+        let resting = collapsedNotchShellWidth(centerWidth: center, accessorySize: accessory)
+        XCTAssertEqual(resting, center + 2 * 52 + 2 * 4 + 2 * cornerRadiusInsets.closed.bottom)
+        let notification = collapsedNotchShellWidth(
+            centerWidth: center, accessorySize: accessory, showsBluetoothNotification: true
+        )
+        XCTAssertEqual(notification, center + 2 * bluetoothNotificationSideWidth + 2 * cornerRadiusInsets.closed.bottom)
+        XCTAssertGreaterThan(notification, resting)
+        XCTAssertEqual(
+            collapsedNotchShellWidth(centerWidth: center, accessorySize: accessory), resting
+        )
+    }
+
+    func testHardwareCutoutHasClearanceEvenWithCustomClosedSize() {
+        XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 185, hardwareWidth: 181), 197)
+        XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 120, hardwareWidth: 210), 226)
+        XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 240, hardwareWidth: 181), 240)
+        XCTAssertEqual(protectedNotchCenterWidth(closedWidth: 185, hardwareWidth: nil), 185)
+    }
+
+    func testRenderedUnequalActivitiesLeaveTheHardwareCenterEmpty() throws {
+        let centerWidth: CGFloat = 200
+        for (leading, trailing): (CGFloat, CGFloat) in [(36, 70), (70, 36), (182, 100)] {
+            let hosting = NSHostingView(rootView:
+                NotchSafeZoneLayout(centerWidth: centerWidth, spacing: 4) {
+                    Color.red.frame(width: leading, height: 32)
+                    Color.black.frame(width: centerWidth, height: 32)
+                    Color.green.frame(width: trailing, height: 32)
+                }
+                .frame(width: 600, height: 32)
+                .background(.blue)
+            )
+            hosting.sizingOptions = []
+            let window = NSPanel(contentRect: CGRect(x: 0, y: 0, width: 600, height: 32),
+                                 styleMask: .borderless, backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.contentView = hosting
+            defer { window.close() }
+            hosting.layoutSubtreeIfNeeded()
+            let bitmap = try XCTUnwrap(hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds))
+            hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+            let scale = CGFloat(bitmap.pixelsWide) / hosting.bounds.width
+            let midX = bitmap.pixelsWide / 2
+            let halfCenter = Int(centerWidth * scale / 2)
+            for x in (midX - halfCenter)..<(midX + halfCenter) {
+                let color = try XCTUnwrap(bitmap.colorAt(x: x, y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
+                XCTAssertLessThan(color.redComponent + color.greenComponent + color.blueComponent, 0.05,
+                                  "Activity content entered safe zone at x=\(x), sides \(leading)/\(trailing)")
+                XCTAssertGreaterThan(color.alphaComponent, 0.95)
+            }
+            let left = try XCTUnwrap(bitmap.colorAt(x: midX - halfCenter - Int((4 + max(leading, trailing) / 2) * scale), y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
+            let right = try XCTUnwrap(bitmap.colorAt(x: midX + halfCenter + Int((4 + max(leading, trailing) / 2) * scale), y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
+            XCTAssertGreaterThan(left.redComponent, 0.7)
+            XCTAssertGreaterThan(right.greenComponent, 0.7)
+        }
+    }
+}
+
+@MainActor
+final class NotchTopAnchorTests: XCTestCase {
+    func testRenderedNotchStaysAttachedThroughoutOpenAndClose() async throws {
+        let screen = try XCTUnwrap(NSScreen.main)
+        let vm = BoringViewModel(screenUUID: screen.displayUUID)
+        vm.hideOnClosed = false
+        let oldStyle = Defaults[.notchSurfaceStyle]
+        let oldTabs = vm.coordinator.alwaysShowTabs
+        let oldView = vm.coordinator.currentView
+        Defaults[.notchSurfaceStyle] = .solidBlack
+        vm.coordinator.alwaysShowTabs = true
+        vm.coordinator.currentView = .activity(.xm6)
+        let window = BoringNotchSkyLightWindow(
+            contentRect: CGRect(x: screen.frame.midX - 320, y: screen.frame.maxY - 210, width: 640, height: 210),
+            styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
+            backing: .buffered, defer: false
+        )
+        let hosting = NSHostingView(rootView: NotchWindowRoot(viewModel: vm))
+        window.bindSizing(to: vm)
+        hosting.sizingOptions = []
+        hosting.safeAreaRegions = []
+        window.contentView = hosting
+        window.orderFrontRegardless()
+        defer {
+            window.close()
+            vm.destroy()
+            Defaults[.notchSurfaceStyle] = oldStyle
+            vm.coordinator.alwaysShowTabs = oldTabs
+            vm.coordinator.currentView = oldView
+        }
+        try await Task.sleep(for: .milliseconds(100))
+        let transitions: [(isOpen: Bool, height: CGFloat, samples: Int)] = [
+            (true, openNotchSize.height, 25),
+            (false, 0, 25),
+            (true, 388, 25),
+            (false, 0, 3), // Reopen before the retained window can shrink.
+            (true, maximumOpenNotchHeight, 25),
+            (false, 0, 25)
+        ]
+        for (isOpen, height, samples) in transitions {
+            if isOpen {
+                // The center selects media; a side selects its live activity.
+                // Selection starts its own animation before hover opens the shell.
+                withAnimation(.smooth(duration: 0.25)) {
+                    vm.coordinator.currentView = height == 388 ? .activity(.xm6) : .home
+                }
+                try await Task.sleep(for: .milliseconds(50))
+            }
+            withAnimation(.interactiveSpring(response: 0.38, dampingFraction: 0.72)) {
+                if isOpen {
+                    vm.open()
+                    if vm.coordinator.currentView == .activity(.xm6) {
+                        XCTAssertEqual(vm.notchSize.height, 388)
+                    }
+                    vm.updateOpenNotchHeight(height)
+                    XCTAssertGreaterThanOrEqual(window.frame.height,
+                                                notchWindowHeight(for: vm.notchSize.height) + vm.floatingTabBarReservedHeight)
+                } else {
+                    vm.close()
+                }
+            }
+            for sample in 0..<samples {
+                try await Task.sleep(for: .milliseconds(20))
+                hosting.layoutSubtreeIfNeeded()
+                let bitmap = try XCTUnwrap(hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds))
+                hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+                let topPixel = try XCTUnwrap(bitmap.colorAt(x: bitmap.pixelsWide / 2, y: 0))
+                XCTAssertGreaterThan(topPixel.alphaComponent, 0.95, "Detached during \(isOpen ? "opening" : "closing"), height \(height), sample \(sample)")
+                XCTAssertEqual(window.frame.maxY, screen.frame.maxY, accuracy: 0.5)
+            }
+        }
+    }
+
+    func testEveryOpenCloseHeightKeepsTheScreenTopAndHorizontalPosition() {
+        let screen = CGRect(x: 0, y: 0, width: 1920, height: 1080)
+        var frame = CGRect(x: 640, y: 870, width: 640, height: 210)
+        for height: CGFloat in [266, 376, 396, 266, 210, 376, 210] {
+            frame = topAnchoredNotchWindowFrame(frame, height: height, screenFrame: screen)
+            XCTAssertEqual(frame.maxY, screen.maxY)
+            XCTAssertEqual(frame.minX, 640)
+            XCTAssertEqual(frame.width, 640)
+            XCTAssertEqual(frame.height, height)
+        }
+    }
+
+    func testAWindowAlreadyDisplacedDownwardIsReattachedWithoutChangingHeight() {
+        let screen = CGRect(x: -1920, y: 240, width: 1920, height: 1080)
+        let displaced = CGRect(x: -1280, y: screen.maxY - 376 - 30, width: 640, height: 376)
+        let repaired = topAnchoredNotchWindowFrame(displaced, height: 376, screenFrame: screen)
+        XCTAssertEqual(repaired.maxY, screen.maxY)
+        XCTAssertEqual(repaired.minX, displaced.minX)
+    }
+
+    func testSecondaryScreenBelowMainAndMissingScreenFallback() {
+        let screen = CGRect(x: 1920, y: -1200, width: 1920, height: 1200)
+        let original = CGRect(x: 2560, y: -210, width: 640, height: 210)
+        let expanded = topAnchoredNotchWindowFrame(original, height: 396, screenFrame: screen)
+        XCTAssertEqual(expanded.maxY, 0)
+        let closed = topAnchoredNotchWindowFrame(expanded, height: 210, screenFrame: nil)
+        XCTAssertEqual(closed.maxY, expanded.maxY)
+    }
+
+    func testNativeWindowResizeAndSameHeightRepairKeepTopEdge() async throws {
+        let screen = try XCTUnwrap(NSScreen.main)
+        let window = BoringNotchWindow(
+            contentRect: CGRect(x: screen.frame.midX - 320, y: screen.frame.maxY - 210, width: 640, height: 210),
+            styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false
+        )
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let sizing = NotchWindowHeightSynchronizer.WindowSizingView(height: 210, screenUUID: nil)
+        let container = NSView(frame: CGRect(x: 0, y: 0, width: 640, height: 210))
+        window.contentView = container
+        container.addSubview(sizing)
+        for height: CGFloat in [376, 266, 210] {
+            sizing.updateHeight(height, screenUUID: nil)
+            try await Task.sleep(for: .milliseconds(15))
+            XCTAssertEqual(window.frame.maxY, screen.frame.maxY, accuracy: 0.5)
+            XCTAssertEqual(window.frame.height, height, accuracy: 0.5)
+        }
+        window.setFrameOrigin(NSPoint(x: window.frame.minX, y: window.frame.minY - 30))
+        sizing.updateHeight(210, screenUUID: nil)
+        try await Task.sleep(for: .milliseconds(15))
+        XCTAssertEqual(window.frame.maxY, screen.frame.maxY, accuracy: 0.5)
+    }
+}
+
+final class NotchCloseScrollOwnershipTests: XCTestCase {
+    func testContentRetainsGestureAtEdgesAndThroughMomentum() {
+        var ownership = NotchCloseScrollOwnership()
+        XCTAssertTrue(ownership.shouldIgnore(phase: .began, momentumPhase: [], startsInContent: true))
+        XCTAssertTrue(ownership.shouldIgnore(phase: .changed, momentumPhase: [], startsInContent: false))
+        XCTAssertTrue(ownership.shouldIgnore(phase: .ended, momentumPhase: [], startsInContent: false))
+        XCTAssertTrue(ownership.shouldIgnore(phase: [], momentumPhase: .began, startsInContent: false))
+        XCTAssertTrue(ownership.shouldIgnore(phase: [], momentumPhase: .ended, startsInContent: false))
+        XCTAssertFalse(ownership.shouldIgnore(phase: .began, momentumPhase: [], startsInContent: false))
+    }
+
+    func testHeaderGestureRemainsAvailableAndOtherExtensionsAreUnaffected() {
+        var ownership = NotchCloseScrollOwnership()
+        XCTAssertFalse(ownership.shouldIgnore(phase: .began, momentumPhase: [], startsInContent: false))
+        XCTAssertFalse(ownership.shouldIgnore(phase: .changed, momentumPhase: [], startsInContent: true))
+        XCTAssertFalse(ownership.shouldIgnore(phase: [], momentumPhase: .changed, startsInContent: true))
+    }
+
+    func testMouseWheelEventsChooseTheirOwnRegion() {
+        var ownership = NotchCloseScrollOwnership()
+        XCTAssertTrue(ownership.shouldIgnore(phase: [], momentumPhase: [], startsInContent: true))
+        XCTAssertFalse(ownership.shouldIgnore(phase: [], momentumPhase: [], startsInContent: false))
     }
 }

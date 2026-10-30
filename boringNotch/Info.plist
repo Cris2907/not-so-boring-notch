@@ -8,7 +8,7 @@
 		<true/>
 	</dict>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>boring.notch uses Bluetooth device details to show connected headphone notifications.</string>
+	<string>boring.notch uses Bluetooth to show connected headphone notifications and control your Sony WH-1000XM6 headphones.</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>

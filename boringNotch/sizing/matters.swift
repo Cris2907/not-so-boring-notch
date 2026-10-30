@@ -11,11 +11,71 @@ import SwiftUI
 
 let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
-let bluetoothSneakSize: CGSize = .init(width: 292, height: 1)
+let bluetoothNotificationSideWidth: CGFloat = 182
 let closedTimeActivityCompactTextWidth: CGFloat = 52
 let closedTimeActivityMinimumTextWidth: CGFloat = 64
 let closedActivityFullPresentationContentLeadingPadding: CGFloat = 8
-let closedActivityFullPresentationWidthReserve: CGFloat = 18
+// Adjust this to change the resting chin width on each side (in points).
+let collapsedNotchContentWidth: CGFloat = 44
+
+/// Keep a compact, stable footprint around the hardware cutout. Wider
+/// activities use their minimal content rather than expanding the resting shell.
+func collapsedNotchShellWidth(
+    centerWidth: CGFloat,
+    accessorySize: CGFloat,
+    showsBluetoothNotification: Bool = false
+) -> CGFloat {
+    if showsBluetoothNotification {
+        return centerWidth + 2 * bluetoothNotificationSideWidth + 2 * cornerRadiusInsets.closed.bottom
+    }
+    return centerWidth + closedActivityFullPresentationAdditionalWidth(
+        contentWidth: collapsedNotchContentWidth,
+        accessorySize: accessorySize
+    )
+}
+
+/// Content must stay outside the hardware cutout, with eight points of clearance.
+func protectedNotchCenterWidth(closedWidth: CGFloat, hardwareWidth: CGFloat?) -> CGFloat {
+    max(closedWidth, hardwareWidth.map { $0 + 16 } ?? 0)
+}
+
+/// Equal side allocations keep the empty center over the physical notch even
+/// when the two activities have different intrinsic widths.
+struct NotchSafeZoneLayout: Layout {
+    let centerWidth: CGFloat
+    var spacing: CGFloat = 0
+    var expandsToFit = false
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard subviews.count == 3 else { return .zero }
+        let sideProposal = ProposedViewSize(width: nil, height: proposal.height)
+        let leading = subviews[0].sizeThatFits(sideProposal)
+        let trailing = subviews[2].sizeThatFits(sideProposal)
+        let width = 2 * max(leading.width, trailing.width) + centerWidth + 2 * spacing
+        return CGSize(
+            width: expandsToFit ? max(width, proposal.width ?? width) : width,
+            height: proposal.height ?? max(leading.height, trailing.height)
+        )
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 3 else { return }
+        let sideWidth = max(0, (bounds.width - centerWidth) / 2 - spacing)
+        let sideProposal = ProposedViewSize(width: sideWidth, height: bounds.height)
+        subviews[0].place(
+            at: CGPoint(x: bounds.midX - centerWidth / 2 - spacing - sideWidth / 2, y: bounds.midY),
+            anchor: .center, proposal: sideProposal
+        )
+        subviews[1].place(
+            at: CGPoint(x: bounds.midX, y: bounds.midY),
+            anchor: .center, proposal: ProposedViewSize(width: centerWidth, height: bounds.height)
+        )
+        subviews[2].place(
+            at: CGPoint(x: bounds.midX + centerWidth / 2 + spacing + sideWidth / 2, y: bounds.midY),
+            anchor: .center, proposal: sideProposal
+        )
+    }
+}
 
 func closedActivityNotchEdgeSpacing(accessorySize: CGFloat) -> CGFloat {
     min(4, max(0, accessorySize / 5))
@@ -39,14 +99,15 @@ func closedActivityFullPresentationAdditionalWidth(
 
     return (sideWidth * 2)
         + (2 * closedActivityNotchEdgeSpacing(accessorySize: accessorySize))
-        - cornerRadiusInsets.closed.top
-        + closedActivityFullPresentationWidthReserve
+        + 2 * cornerRadiusInsets.closed.bottom
 }
 
+let floatingTabBarHeight: CGFloat = 48
+let floatingTabBarGap: CGFloat = 8
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
 let calendarOpenNotchHeight: CGFloat = openNotchSize.height + 20
-let maximumOpenNotchHeight: CGFloat = 320
+let maximumOpenNotchHeight: CGFloat = 388
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
@@ -56,6 +117,14 @@ func clampedOpenNotchHeight(_ height: CGFloat) -> CGFloat {
 
 func notchWindowHeight(for notchHeight: CGFloat) -> CGFloat {
     max(openNotchSize.height, clampedOpenNotchHeight(notchHeight)) + shadowPadding
+}
+
+func topAnchoredNotchWindowFrame(_ currentFrame: CGRect, height: CGFloat, screenFrame: CGRect?) -> CGRect {
+    var frame = currentFrame
+    let top = screenFrame?.maxY ?? currentFrame.maxY
+    frame.size.height = height
+    frame.origin.y = top - height
+    return frame
 }
 
 struct OpenNotchHeightPreferenceKey: PreferenceKey {

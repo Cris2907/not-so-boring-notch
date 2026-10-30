@@ -315,7 +315,10 @@ final class DobermanActivity: NotchActivity {
     var showsAccessoryInMinimalPresentation: Bool { false }
 
     var livePresentationState: ActivityLivePresentationState {
-        expandedAppearanceCount == 0 ? .visible(priority: .low) : .hidden
+        // Expanding the companion does not end its background activity. The
+        // host hides the chin while open; eligibility must survive the exit
+        // animation so closing never renders music alone first.
+        .visible(priority: .low)
     }
 
     let livePresentationSizing = LiveActivityPresentationSizing(

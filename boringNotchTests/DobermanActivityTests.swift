@@ -1,3 +1,4 @@
+import AppKit
 import Defaults
 import SwiftUI
 import XCTest
@@ -34,7 +35,7 @@ final class DobermanActivityTests: XCTestCase {
         XCTAssertEqual(activity.metadata.preferredExpandedHeight, 310)
     }
 
-    func testLifecycleReferenceCountingControlsLiveVisibility() {
+    func testLifecycleReferenceCountingPreservesChinEligibility() {
         let model = DobermanAnimationModel(startsSleeping: false)
         defer { model.cancelAll() }
         let activity = DobermanActivity(model: model)
@@ -45,22 +46,95 @@ final class DobermanActivityTests: XCTestCase {
         activity.activityDidAppear()
         let firstExpandedGeneration = model.generation
         XCTAssertEqual(activity.expandedAppearanceCount, 1)
-        XCTAssertEqual(activity.livePresentationState, .hidden)
+        XCTAssertEqual(activity.livePresentationState, .visible(priority: .low))
 
         activity.activityDidAppear()
         XCTAssertEqual(activity.expandedAppearanceCount, 2)
         XCTAssertEqual(model.generation, firstExpandedGeneration)
-        XCTAssertEqual(activity.livePresentationState, .hidden)
+        XCTAssertEqual(activity.livePresentationState, .visible(priority: .low))
 
         activity.activityDidDisappear()
         XCTAssertEqual(activity.expandedAppearanceCount, 1)
         XCTAssertEqual(model.generation, firstExpandedGeneration)
-        XCTAssertEqual(activity.livePresentationState, .hidden)
+        XCTAssertEqual(activity.livePresentationState, .visible(priority: .low))
 
         activity.activityDidDisappear()
         XCTAssertEqual(activity.expandedAppearanceCount, 0)
         XCTAssertEqual(model.generation, firstExpandedGeneration + 1)
         XCTAssertEqual(activity.livePresentationState, .visible(priority: .low))
+    }
+
+    func testDobermanOnlyUsesTheSameFullChinWidthAsMedia() {
+        let model = DobermanAnimationModel(timingScale: 0, startsSleeping: false)
+        let vm = BoringViewModel()
+        defer { model.cancelAll(); vm.destroy() }
+        let providers = [
+            AnyLiveActivityPresentationProvider(activity: AnyNotchActivity(DobermanActivity(model: model))),
+            AnyLiveActivityPresentationProvider(ChinMediaRenderProbe())
+        ]
+        let expectedWidth = collapsedNotchShellWidth(
+            centerWidth: vm.notchSafeZoneWidth,
+            accessorySize: max(0, vm.effectiveClosedNotchHeight - 12)
+        ) - 2 * cornerRadiusInsets.closed.bottom
+        for provider in providers {
+            let hosting = NSHostingView(rootView:
+                ClosedActivityLivePresentationStackView(
+                    stack: .full(provider), openLiveActivity: { _ in }, openMediaTab: {}
+                ).environmentObject(vm)
+            )
+            XCTAssertEqual(hosting.fittingSize.width, expectedWidth, accuracy: 0.5,
+                           "Full chin width changed for \(provider.id)")
+        }
+    }
+
+    func testClosingWithMusicNeverRendersAnInterimFullMediaChin() async throws {
+        let model = DobermanAnimationModel(timingScale: 0, startsSleeping: false)
+        let activity = DobermanActivity(model: model)
+        let registry = try ActivityRegistry { activity }
+        let media = ChinMediaRenderProbe()
+        let providers = LiveActivityPresentationProviderRegistry(
+            activityRegistry: registry,
+            additionalProviders: [AnyLiveActivityPresentationProvider(media)]
+        )
+        let coordinator = ActivityLivePresentationCoordinator(registry: providers)
+        let initialIdentity = coordinator.selectedStack.identity
+        XCTAssertTrue(initialIdentity.hasPrefix("split:"))
+        let initialSnapshot = coordinator.snapshot
+        activity.activityDidAppear()
+        await coordinator.waitForPendingReconciliation()
+
+        let vm = BoringViewModel()
+        vm.hideOnClosed = false
+        let hosting = NSHostingView(rootView: ChinRenderProbe(coordinator: coordinator).environmentObject(vm))
+        hosting.sizingOptions = []
+        let window = NSPanel(contentRect: CGRect(x: 0, y: 0, width: 640, height: 60),
+                             styleMask: .borderless, backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = hosting
+        window.orderFrontRegardless()
+        defer {
+            window.close()
+            activity.activityDidDisappear()
+            model.cancelAll()
+            vm.destroy()
+        }
+
+        for sample in 0..<30 {
+            // SwiftUI can keep the outgoing expanded view alive for its entire
+            // exit transition. Its delayed disappearance must not change slots.
+            if sample == 15 {
+                activity.activityDidDisappear()
+                await coordinator.waitForPendingReconciliation()
+            }
+            try await Task.sleep(for: .milliseconds(20))
+            hosting.layoutSubtreeIfNeeded()
+            let bitmap = try XCTUnwrap(hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds))
+            hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+            XCTAssertEqual(media.fullViewAppearances, 0, "Full media flashed during closing at sample \(sample)")
+            XCTAssertEqual(coordinator.selectedStack.identity, initialIdentity)
+            XCTAssertEqual(coordinator.snapshot, initialSnapshot)
+        }
+        XCTAssertGreaterThan(media.minimalViewAppearances, 0)
     }
 
     func testJSXDerivedFrameDefinitionsAreCanonical() {
@@ -702,5 +776,41 @@ final class DobermanActivityTests: XCTestCase {
         Defaults[.dobermanVirtualPetNeedsEnabled] = isEnabled
         defer { Defaults[.dobermanVirtualPetNeedsEnabled] = previousValue }
         return await body()
+    }
+}
+
+@MainActor
+private final class ChinMediaRenderProbe: LiveActivityPresentationProvider {
+    let id = ActivityID.media
+    let name = "Media render probe"
+    let livePresentationState = ActivityLivePresentationState.visible(priority: .normal)
+    let showsAccessoryInMinimalPresentation = false
+    let livePresentationSizing = LiveActivityPresentationSizing(
+        fullContentWidth: .accessorySize, minimalContentWidth: .accessorySize
+    )
+    private(set) var fullViewAppearances = 0
+    private(set) var minimalViewAppearances = 0
+
+    func makeAccessoryView() -> some View { Color.orange }
+    func makeFullView() -> some View {
+        Color.purple.onAppear { self.fullViewAppearances += 1 }
+    }
+    func makeMinimalView() -> some View {
+        Color.blue.onAppear { self.minimalViewAppearances += 1 }
+    }
+}
+
+@MainActor
+private struct ChinRenderProbe: View {
+    @ObservedObject var coordinator: ActivityLivePresentationCoordinator
+
+    var body: some View {
+        ClosedActivityLivePresentationStackView(
+            stack: coordinator.selectedStack,
+            openLiveActivity: { _ in },
+            openMediaTab: {}
+        )
+        .frame(width: 640, height: 60, alignment: .top)
+        .background(.black)
     }
 }

@@ -36,6 +36,22 @@ enum HideNotchOption: String, Defaults.Serializable {
     case never
 }
 
+enum NotchSurfaceStyle: String, CaseIterable, Defaults.Serializable {
+    case solidBlack
+    case siriGlass
+
+    var label: String {
+        switch self {
+        case .solidBlack: String(localized: "Solid black")
+        case .siriGlass: String(localized: "Siri-style glass")
+        }
+    }
+
+    func usesGlass(isOpen: Bool, reduceTransparency: Bool) -> Bool {
+        self == .siriGlass && isOpen && !reduceTransparency
+    }
+}
+
 // Define notification names at file scope
 extension Notification.Name {
     static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
@@ -144,6 +160,7 @@ extension Defaults.Keys {
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
     
     // MARK: Appearance
+    static let notchSurfaceStyle = Key<NotchSurfaceStyle>("notchSurfaceStyle", default: .solidBlack)
     static let showEmojis = Key<Bool>("showEmojis", default: false)
     //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)

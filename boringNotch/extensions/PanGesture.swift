@@ -18,6 +18,21 @@ enum PanDirection {
     func signed(deltaX: CGFloat, deltaY: CGFloat) -> CGFloat { (isHorizontal ? deltaX : deltaY) * sign }
 }
 
+/// Ownership is chosen once per finger gesture and retained through momentum.
+struct NotchCloseScrollOwnership {
+    private(set) var belongsToContent: Bool?
+
+    mutating func shouldIgnore(phase: NSEvent.Phase, momentumPhase: NSEvent.Phase, startsInContent: Bool) -> Bool {
+        if phase.contains(.began) || (phase.isEmpty && momentumPhase.isEmpty)
+            || (belongsToContent == nil && momentumPhase.isEmpty) {
+            belongsToContent = startsInContent
+        }
+        return belongsToContent == true
+    }
+
+    mutating func reset() { belongsToContent = nil }
+}
+
 enum HorizontalSwipeDirection: Equatable {
     case left
     case right
@@ -125,6 +140,11 @@ extension View {
         }
     }
 
+    /// Keep scrolling in this viewport separate from the notch close gesture.
+    func preservesNotchContentScrolling() -> some View {
+        background(NotchContentScrollRegion())
+    }
+
     /// Handles precise horizontal scrolling only while Option is held. This keeps
     /// the gesture separate from normal two-finger tab navigation.
     func optionHorizontalTrackpadSwipe(
@@ -177,6 +197,35 @@ private struct HorizontalTrackpadNavigationExclusionRegion: NSViewRepresentable 
 
     static func dismantleNSView(_ nsView: NSView, coordinator: ()) {
         HorizontalTrackpadNavigationExclusionRegistry.shared.remove(nsView)
+    }
+}
+
+@MainActor
+private final class NotchContentScrollRegistry {
+    static let shared = NotchContentScrollRegistry()
+    private let views = NSHashTable<NSView>.weakObjects()
+
+    func add(_ view: NSView) { views.add(view) }
+    func remove(_ view: NSView) { views.remove(view) }
+
+    func contains(_ event: NSEvent) -> Bool {
+        views.allObjects.contains { view in
+            guard view.window === event.window, !view.isHiddenOrHasHiddenAncestor,
+                  view.alphaValue > 0 else { return false }
+            return view.visibleRect.contains(view.convert(event.locationInWindow, from: nil))
+        }
+    }
+}
+
+private struct NotchContentScrollRegion: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        NotchContentScrollRegistry.shared.add(view)
+        return view
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+    static func dismantleNSView(_ nsView: NSView, coordinator: ()) {
+        NotchContentScrollRegistry.shared.remove(nsView)
     }
 }
 
@@ -496,6 +545,7 @@ private struct ScrollMonitor: NSViewRepresentable {
         private var accumulated: CGFloat = 0
         private var active = false
             private var endTask: Task<Void, Never>?
+        private var closeScrollOwnership = NotchCloseScrollOwnership()
         private let noiseThreshold: CGFloat = 0.2
 
         init(direction: PanDirection, threshold: CGFloat, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
@@ -537,11 +587,22 @@ private struct ScrollMonitor: NSViewRepresentable {
             }
             accumulated = 0
             active = false
+            closeScrollOwnership.reset()
             endTask?.cancel()
             endTask = nil
         }
 
         private func handleScroll(_ event: NSEvent) {
+            if direction == .up && closeScrollOwnership.shouldIgnore(
+                phase: event.phase,
+                momentumPhase: event.momentumPhase,
+                startsInContent: NotchContentScrollRegistry.shared.contains(event)
+            ) {
+                // Leave the original event untouched for the native scroll view,
+                // even at its edges or when the pointer leaves during momentum.
+                return
+            }
+
             if event.phase == .ended || event.momentumPhase == .ended {
                 if active {
                     action(accumulated.magnitude, .ended)

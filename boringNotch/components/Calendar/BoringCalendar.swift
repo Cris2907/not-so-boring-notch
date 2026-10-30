@@ -87,7 +87,6 @@ struct CalendarView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 2)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.black)
         .contentShape(Rectangle())
         .optionHorizontalTrackpadSwipe(isEnabled: true, allowsInertia: false) { delta, phase in
             handleMonthSwipe(delta: delta, phase: phase)
