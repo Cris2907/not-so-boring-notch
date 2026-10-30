@@ -1,7 +1,6 @@
 # SonyHeadphonesKit
 
-Vendored from Rui Martins' MIT-licensed XM6 Control (the sibling `xm6-control`
-checkout). Only the protocol, models, and RFCOMM transport are included.
+Vendored from Rui Martins' MIT-licensed XM6 Control. Only the protocol, models, and RFCOMM transport are included.
 
 Notch adaptations: injectable per-attempt transport and deadlines, cancellation
 and stale-session protection, read-only connection initialization, sandbox-local

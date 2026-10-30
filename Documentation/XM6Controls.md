@@ -41,8 +41,7 @@ existing enablement store. Its Bluetooth notifications do not depend on the
 generic headphone popup preference or the selected audio output.
 
 `Packages/SonyHeadphonesKit` vendors only the MIT-licensed library from Rui
-Martins' XM6 Control; the original `xm6-control` checkout is untouched and is not
-a build dependency. The package exports its library and uses an injectable
+Martins' XM6 Control. The standalone source checkout is not required or retained. The package exports its library and uses an injectable
 transport factory, paired-device provider, and session deadlines. Every attempt
 gets a new transport and generation token. Ending a session clears state, queued
 writes, and timers. Rapid EQ writes replace unsent curves; choosing a preset

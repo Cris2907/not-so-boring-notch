@@ -240,4 +240,4 @@ header renders at 450/520-point widths, and rendered window anchoring. The full
 173-test app run exposed failures in the unrelated Doberman placeholder mappings,
 Quick Notes sizing expectations, and keyboard-focus close test. Hardware identity
 replies, Bluetooth permissions, and actual reconnect behavior remain to be tested
-with the user's headphones. The standalone `xm6-control` project was not changed.
+with the user's headphones. The standalone source checkout is no longer retained; the vendored package is self-contained.

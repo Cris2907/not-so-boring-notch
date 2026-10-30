@@ -352,8 +352,8 @@ final class XM6ActivityTests: XCTestCase {
 
     func testRenderCachedSonyAnimationInLargerHeader() async throws {
         let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("SoundConnectApp/analysis/renders/WH-1000XM6-color-0x01-animated.png")
-        guard FileManager.default.fileExists(atPath: fixture.path) else { throw XCTSkip("Local Sony render inspection fixture is not available") }
+            .appendingPathComponent("boringNotchTests/Fixtures/Sony/WH-1000XM6-color-0x01-animated.png")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fixture.path), "Sony render fixture must be available")
         let manager = makeManager()
         manager.start(); manager.connect(to: device); await finishConnection()
         defer { manager.stop() }
